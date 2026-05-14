@@ -6,7 +6,7 @@ class_name FollowCamera
 
 var _frame: int = 0
 
-func _physics_process(_delta: float) -> void:
+func _process(_delta: float) -> void:
 	if target == null:
 		return
 	_frame += 1
