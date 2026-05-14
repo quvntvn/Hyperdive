@@ -2,11 +2,15 @@ extends Camera3D
 class_name FollowCamera
 
 @export var target: Node3D
-@export var offset: Vector3 = Vector3(0.0, 4.0, 8.0)
-@export var smooth_speed: float = 8.0
+@export var offset: Vector3 = Vector3(0.0, 3.0, 6.0)
 
-func _physics_process(delta: float) -> void:
-	if not target:
+var _frame: int = 0
+
+func _physics_process(_delta: float) -> void:
+	if target == null:
 		return
-	var desired: Vector3 = target.global_position + offset
-	global_position = global_position.lerp(desired, clamp(smooth_speed * delta, 0.0, 1.0))
+	_frame += 1
+	if _frame % 30 == 0:
+		print("Cam @ ", global_position, " | target_pos = ", target.global_position)
+	global_position = target.global_position + offset
+	look_at(target.global_position, Vector3.UP)

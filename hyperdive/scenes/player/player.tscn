@@ -17,6 +17,8 @@ height = 1.5
 
 [node name="Player" type="RigidBody3D"]
 mass = 1.0
+gravity_scale = 1.0
+freeze = false
 axis_lock_angular_x = true
 axis_lock_angular_y = true
 axis_lock_angular_z = true
