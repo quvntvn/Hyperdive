@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="PlayerScene"]
+[ext_resource type="Script" path="res://scripts/gameplay/follow_camera.gd" id="FollowCameraScript"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.122, 0.188, 0.369, 1)
@@ -31,5 +32,7 @@ shadow_enabled = true
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.866, -0.5, 0, 0.5, 0.866, 0, 5, 7)
+script = ExtResource("FollowCameraScript")
+target = NodePath("../Player")
 
 [node name="Player" parent="." instance=ExtResource("PlayerScene")]
