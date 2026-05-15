@@ -1,8 +1,11 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="PlayerScene"]
 [ext_resource type="Script" path="res://scripts/gameplay/follow_camera.gd" id="FollowCameraScript"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_hud.tscn" id="DebugHUDScene"]
+[ext_resource type="Script" path="res://scripts/gameplay/obstacle_spawner.gd" id="SpawnerScript"]
+[ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_box.tscn" id="ObstacleBoxScene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="GameHUDScene"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.122, 0.188, 0.369, 1)
@@ -39,4 +42,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 6)
 script = ExtResource("FollowCameraScript")
 target_path = NodePath("../Player")
 
+[node name="ObstacleSpawner" type="Node3D" parent="."]
+script = ExtResource("SpawnerScript")
+player_path = NodePath("../Player")
+obstacle_scene = ExtResource("ObstacleBoxScene")
+
 [node name="DebugHUD" parent="." instance=ExtResource("DebugHUDScene")]
+
+[node name="GameHUD" parent="." instance=ExtResource("GameHUDScene")]
+player_path = NodePath("../Player")
