@@ -8,10 +8,10 @@ albedo_color = Color(0.486, 0.180, 0.165, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 material = SubResource("StandardMaterial3D_1")
-size = Vector3(0.6, 1.0, 0.6)
+size = Vector3(0.9, 1.0, 0.9)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_1"]
-size = Vector3(0.6, 1.0, 0.6)
+size = Vector3(0.9, 1.0, 0.9)
 
 [node name="ObstacleBox" type="StaticBody3D" groups=["obstacles"]]
 script = ExtResource("Script_1")
