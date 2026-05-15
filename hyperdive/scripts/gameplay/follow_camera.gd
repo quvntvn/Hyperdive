@@ -4,6 +4,9 @@ class_name FollowCamera
 @export var target: Node3D
 @export var offset: Vector3 = Vector3(0.0, 3.0, 6.0)
 
+func _ready() -> void:
+	print("FollowCamera _ready, target = ", target)
+
 func _process(_delta: float) -> void:
 	if target == null:
 		return

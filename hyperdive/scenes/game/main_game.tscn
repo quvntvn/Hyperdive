@@ -32,11 +32,11 @@ light_color = Color(1, 0.878, 0.706, 1)
 light_energy = 1.5
 shadow_enabled = true
 
+[node name="Player" parent="." instance=ExtResource("PlayerScene")]
+
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 6)
 script = ExtResource("FollowCameraScript")
 target = NodePath("../Player")
-
-[node name="Player" parent="." instance=ExtResource("PlayerScene")]
 
 [node name="DebugHUD" parent="." instance=ExtResource("DebugHUDScene")]
