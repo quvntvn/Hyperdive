@@ -18,10 +18,8 @@ signal game_over
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
-	print("Player ready — contact_monitor=", contact_monitor, " max_contacts=", max_contacts_reported, " signal_connected=", body_entered.is_connected(_on_body_entered))
 
 func _on_body_entered(body: Node3D) -> void:
-	print("Collision avec ", body.name, " | groupes=", body.get_groups(), " | invincibility_left=", _invincibility_left, " | lives=", lives)
 	if _invincibility_left > 0.0:
 		return
 	if not body.is_in_group("obstacles"):
