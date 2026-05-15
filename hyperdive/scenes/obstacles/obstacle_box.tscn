@@ -6,10 +6,10 @@ albedo_color = Color(0.486, 0.180, 0.165, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 material = SubResource("StandardMaterial3D_1")
-size = Vector3(2.0, 1.0, 2.0)
+size = Vector3(0.6, 1.0, 0.6)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_1"]
-size = Vector3(2.0, 1.0, 2.0)
+size = Vector3(0.6, 1.0, 0.6)
 
 [node name="ObstacleBox" type="StaticBody3D"]
 groups = ["obstacles"]
