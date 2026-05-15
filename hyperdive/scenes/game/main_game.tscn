@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="PlayerScene"]
 [ext_resource type="Script" path="res://scripts/gameplay/follow_camera.gd" id="FollowCameraScript"]
+[ext_resource type="PackedScene" path="res://scenes/ui/debug_hud.tscn" id="DebugHUDScene"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.122, 0.188, 0.369, 1)
@@ -37,3 +38,5 @@ script = ExtResource("FollowCameraScript")
 target = NodePath("../Player")
 
 [node name="Player" parent="." instance=ExtResource("PlayerScene")]
+
+[node name="DebugHUD" parent="." instance=ExtResource("DebugHUDScene")]
