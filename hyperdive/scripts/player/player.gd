@@ -5,9 +5,30 @@ const LATERAL_FORCE: float = 25.0
 const MAX_LATERAL_SPEED: float = 12.0
 const TILT_DEADZONE: float = 0.1
 const TILT_SENSITIVITY: float = 0.25
+const MAX_LIVES: int = 3
+const INVINCIBILITY_TIME: float = 1.0
 
 var _is_touching: bool = false
 var _touch_x_normalized: float = 0.0
+var lives: int = MAX_LIVES
+var _invincibility_left: float = 0.0
+
+signal life_lost(remaining_lives: int)
+signal game_over
+
+func _ready() -> void:
+	body_entered.connect(_on_body_entered)
+
+func _on_body_entered(body: Node3D) -> void:
+	if _invincibility_left > 0.0:
+		return
+	if not body.is_in_group("obstacles"):
+		return
+	lives -= 1
+	_invincibility_left = INVINCIBILITY_TIME
+	life_lost.emit(lives)
+	if lives <= 0:
+		game_over.emit()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
@@ -61,7 +82,8 @@ func _get_lateral_input() -> float:
 			return _get_tilt_lateral()
 	return 0.0
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	_invincibility_left = maxf(_invincibility_left - delta, 0.0)
 	var lateral: float = _get_lateral_input()
 	if lateral != 0.0:
 		apply_central_force(Vector3(lateral * LATERAL_FORCE, 0.0, 0.0))
