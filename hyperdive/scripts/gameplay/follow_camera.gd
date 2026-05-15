@@ -2,7 +2,7 @@ extends Camera3D
 class_name FollowCamera
 
 @export var target: Node3D
-@export var offset: Vector3 = Vector3(0.0, 3.0, 6.0)
+@export var offset: Vector3 = Vector3(0.0, 3.0, 0.0)
 @export var target_path: NodePath
 
 func _ready() -> void:
@@ -14,5 +14,4 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if target == null:
 		return
-	global_position = target.global_position + offset
-	look_at(target.global_position, Vector3.UP)
+	global_position.y = target.global_position.y + offset.y
