@@ -37,6 +37,6 @@ shadow_enabled = true
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 6)
 script = ExtResource("FollowCameraScript")
-target = NodePath("../Player")
+target_path = NodePath("../Player")
 
 [node name="DebugHUD" parent="." instance=ExtResource("DebugHUDScene")]
