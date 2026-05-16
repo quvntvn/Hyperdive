@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="PlayerScene"]
 [ext_resource type="Script" path="res://scripts/gameplay/follow_camera.gd" id="FollowCameraScript"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_star.tscn" id="ObstacleStarScene"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_saturn.tscn" id="ObstacleSaturnScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="GameHUDScene"]
+[ext_resource type="PackedScene" path="res://scenes/effects/post_process.tscn" id="PostProcessScene"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/corridor_walls.tscn" id="CorridorWallsScene"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
@@ -53,6 +54,8 @@ target_path = NodePath("../Player")
 script = ExtResource("SpawnerScript")
 player_path = NodePath("../Player")
 obstacle_scenes = Array[PackedScene]([ExtResource("ObstacleBoxScene"), ExtResource("ObstaclePillarScene"), ExtResource("ObstacleStarScene"), ExtResource("ObstacleSaturnScene")])
+
+[node name="PostProcess" parent="." instance=ExtResource("PostProcessScene")]
 
 [node name="DebugHUD" parent="." instance=ExtResource("DebugHUDScene")]
 

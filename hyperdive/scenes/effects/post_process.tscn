@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://assets/shaders/halftone.gdshader" id="HalftoneShader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMat_1"]
+shader = ExtResource("HalftoneShader")
+
+[node name="PostProcess" type="CanvasLayer"]
+layer = 0
+
+[node name="ScreenEffect" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("ShaderMat_1")
