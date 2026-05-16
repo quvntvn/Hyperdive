@@ -1,0 +1,36 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/obstacle_base.gd" id="Script_1"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_1"]
+shading_mode = 1
+albedo_color = Color(0.235, 0.682, 0.639, 1)
+
+[sub_resource type="BoxMesh" id="HorizMesh_1"]
+material = SubResource("Mat_1")
+size = Vector3(1.4, 0.25, 0.25)
+
+[sub_resource type="BoxMesh" id="VertMesh_1"]
+material = SubResource("Mat_1")
+size = Vector3(0.25, 1.4, 0.25)
+
+[sub_resource type="BoxShape3D" id="HorizShape_1"]
+size = Vector3(1.4, 0.25, 0.25)
+
+[sub_resource type="BoxShape3D" id="VertShape_1"]
+size = Vector3(0.25, 1.4, 0.25)
+
+[node name="ObstacleStar" type="StaticBody3D" groups=["obstacles"]]
+script = ExtResource("Script_1")
+
+[node name="HorizontalBar" type="MeshInstance3D" parent="."]
+mesh = SubResource("HorizMesh_1")
+
+[node name="VerticalBar" type="MeshInstance3D" parent="."]
+mesh = SubResource("VertMesh_1")
+
+[node name="CollisionH" type="CollisionShape3D" parent="."]
+shape = SubResource("HorizShape_1")
+
+[node name="CollisionV" type="CollisionShape3D" parent="."]
+shape = SubResource("VertShape_1")
