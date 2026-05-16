@@ -3,7 +3,7 @@ class_name ObstacleSpawner
 
 @export var player: Node3D
 @export var player_path: NodePath
-@export var obstacle_scene: PackedScene
+@export var obstacle_scenes: Array[PackedScene]
 
 const SPAWN_INTERVAL_Y: float = 7.2
 const SPAWN_AHEAD: float = 30.0
@@ -16,9 +16,11 @@ func _ready() -> void:
 	if player == null and not player_path.is_empty():
 		player = get_node_or_null(player_path)
 	_next_spawn_y = (player.global_position.y if player != null else 0.0) - SPAWN_AHEAD
+	if obstacle_scenes.is_empty():
+		push_warning("ObstacleSpawner: obstacle_scenes is empty")
 
 func _process(_delta: float) -> void:
-	if player == null or obstacle_scene == null:
+	if player == null or obstacle_scenes.is_empty():
 		return
 	var player_y: float = player.global_position.y
 	while player_y - SPAWN_AHEAD < _next_spawn_y:
@@ -29,7 +31,8 @@ func _process(_delta: float) -> void:
 			obstacle.queue_free()
 
 func _spawn_at(y: float) -> void:
-	var obstacle: Node3D = obstacle_scene.instantiate()
+	var picked: PackedScene = obstacle_scenes.pick_random()
+	var obstacle: Node3D = picked.instantiate()
 	get_parent().add_child(obstacle)
 	obstacle.global_position = Vector3(
 		randf_range(-CORRIDOR_HALF_WIDTH, CORRIDOR_HALF_WIDTH),
