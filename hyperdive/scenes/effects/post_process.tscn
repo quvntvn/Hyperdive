@@ -4,6 +4,7 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMat_1"]
 shader = ExtResource("HalftoneShader")
+shader_parameter/halftone_intensity = 0.12
 
 [node name="PostProcess" type="CanvasLayer"]
 layer = 0
