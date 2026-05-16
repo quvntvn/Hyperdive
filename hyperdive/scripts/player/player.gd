@@ -3,6 +3,7 @@ class_name PlayerController
 
 const LATERAL_FORCE: float = 25.0
 const MAX_LATERAL_SPEED: float = 12.0
+const MAX_FALL_SPEED: float = 28.0
 const TILT_DEADZONE: float = 0.1
 const TILT_SENSITIVITY: float = 0.25
 const MAX_LIVES: int = 3
@@ -89,4 +90,6 @@ func _physics_process(delta: float) -> void:
 		apply_central_force(Vector3(lateral * LATERAL_FORCE, 0.0, 0.0))
 	var vel: Vector3 = linear_velocity
 	vel.x = clamp(vel.x, -MAX_LATERAL_SPEED, MAX_LATERAL_SPEED)
+	if vel.y < -MAX_FALL_SPEED:
+		vel.y = -MAX_FALL_SPEED
 	linear_velocity = vel
