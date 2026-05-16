@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/obstacle_base.gd" id="Script_1"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_1"]
+shading_mode = 1
+albedo_color = Color(0.486, 0.180, 0.165, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_1"]
+material = SubResource("Mat_1")
+radius = 0.4
+height = 0.8
+
+[sub_resource type="TorusMesh" id="TorusMesh_1"]
+material = SubResource("Mat_1")
+inner_radius = 0.5
+outer_radius = 0.75
+
+[sub_resource type="SphereShape3D" id="SphereShape_1"]
+radius = 0.5
+
+[node name="ObstacleSaturn" type="StaticBody3D" groups=["obstacles"]]
+script = ExtResource("Script_1")
+
+[node name="Sphere" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_1")
+
+[node name="Ring" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.15, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("TorusMesh_1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape_1")
