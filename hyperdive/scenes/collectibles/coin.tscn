@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/collectibles/coin.gd" id="CoinScript"]
+
+[sub_resource type="TorusMesh" id="TorusMesh_1"]
+inner_radius = 0.15
+outer_radius = 0.3
+
+[sub_resource type="StandardMaterial3D" id="CoinMat_1"]
+shading_mode = 1
+albedo_color = Color(0.949, 0.757, 0.306, 1)
+emission_enabled = true
+emission = Color(0.949, 0.757, 0.306, 1)
+emission_energy_multiplier = 0.5
+
+[sub_resource type="SphereShape3D" id="SphereShape_1"]
+radius = 0.4
+
+[node name="Coin" type="Area3D"]
+script = ExtResource("CoinScript")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("TorusMesh_1")
+material_override = SubResource("CoinMat_1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape_1")
