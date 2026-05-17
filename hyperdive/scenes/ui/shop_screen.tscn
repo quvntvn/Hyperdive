@@ -1,0 +1,54 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/shop_screen.gd" id="ShopScript"]
+
+[node name="ShopScreen" type="CanvasLayer"]
+layer = 5
+visible = false
+process_mode = 3
+script = ExtResource("ShopScript")
+
+[node name="Background" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.75)
+
+[node name="ShopPanel" type="Panel" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -340.0
+offset_right = 220.0
+offset_bottom = 340.0
+
+[node name="Layout" type="VBoxContainer" parent="ShopPanel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="ShopPanel/Layout"]
+text = "SHOP"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 56
+theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
+
+[node name="CoinsLabel" type="Label" parent="ShopPanel/Layout"]
+text = "Pièces : 0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
+
+[node name="SkinList" type="VBoxContainer" parent="ShopPanel/Layout"]
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="CloseButton" type="Button" parent="ShopPanel/Layout"]
+custom_minimum_size = Vector2(200.0, 60.0)
+size_flags_horizontal = 4
+text = "FERMER"
