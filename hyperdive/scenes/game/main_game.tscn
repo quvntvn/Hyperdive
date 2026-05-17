@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="PlayerScene"]
 [ext_resource type="Script" path="res://scripts/gameplay/follow_camera.gd" id="FollowCameraScript"]
@@ -11,6 +11,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="GameHUDScene"]
 [ext_resource type="PackedScene" path="res://scenes/effects/post_process.tscn" id="PostProcessScene"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/corridor_walls.tscn" id="CorridorWallsScene"]
+[ext_resource type="Script" path="res://scripts/gameplay/coin_spawner.gd" id="CoinSpawnerScript"]
+[ext_resource type="PackedScene" path="res://scenes/collectibles/coin.tscn" id="CoinScene"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.122, 0.188, 0.369, 1)
@@ -44,6 +46,11 @@ shadow_enabled = true
 
 [node name="CorridorWalls" parent="." instance=ExtResource("CorridorWallsScene")]
 target_path = NodePath("../Player")
+
+[node name="CoinSpawner" type="Node3D" parent="."]
+script = ExtResource("CoinSpawnerScript")
+player_path = NodePath("../Player")
+coin_scene = ExtResource("CoinScene")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.8192, 0.5736, 0, -0.5736, 0.8192, 0, 5, 6)
