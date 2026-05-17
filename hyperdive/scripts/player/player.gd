@@ -3,7 +3,7 @@ class_name PlayerController
 
 const LATERAL_FORCE: float = 25.0
 const MAX_LATERAL_SPEED: float = 12.0
-const MAX_FALL_SPEED: float = 28.0
+const MAX_FALL_SPEED: float = 18.0
 const TILT_DEADZONE: float = 0.1
 const TILT_SENSITIVITY: float = 0.25
 const MAX_LIVES: int = 3
