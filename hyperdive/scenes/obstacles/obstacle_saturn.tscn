@@ -8,16 +8,16 @@ albedo_color = Color(0.486, 0.180, 0.165, 1)
 
 [sub_resource type="SphereMesh" id="SphereMesh_1"]
 material = SubResource("Mat_1")
-radius = 0.4
-height = 0.8
+radius = 0.3
+height = 0.6
 
 [sub_resource type="TorusMesh" id="TorusMesh_1"]
 material = SubResource("Mat_1")
-inner_radius = 0.5
-outer_radius = 0.75
+inner_radius = 0.37
+outer_radius = 0.55
 
 [sub_resource type="SphereShape3D" id="SphereShape_1"]
-radius = 0.5
+radius = 0.37
 
 [node name="ObstacleSaturn" type="StaticBody3D" groups=["obstacles"]]
 script = ExtResource("Script_1")

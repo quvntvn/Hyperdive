@@ -8,13 +8,13 @@ albedo_color = Color(0.949, 0.757, 0.306, 1)
 
 [sub_resource type="CylinderMesh" id="CylMesh_1"]
 material = SubResource("Mat_1")
-top_radius = 0.45
-bottom_radius = 0.45
-height = 2.0
+top_radius = 0.33
+bottom_radius = 0.33
+height = 1.4
 
 [sub_resource type="CylinderShape3D" id="CylShape_1"]
-radius = 0.45
-height = 2.0
+radius = 0.33
+height = 1.4
 
 [node name="ObstaclePillar" type="StaticBody3D" groups=["obstacles"]]
 script = ExtResource("Script_1")

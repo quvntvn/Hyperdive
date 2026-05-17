@@ -8,12 +8,12 @@ albedo_color = Color(0.914, 0.310, 0.216, 1)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_1"]
 material = SubResource("StandardMaterial3D_1")
-radius = 0.3
-height = 1.5
+radius = 0.22
+height = 1.1
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
-radius = 0.3
-height = 1.5
+radius = 0.22
+height = 1.1
 
 [node name="Player" type="RigidBody3D"]
 mass = 1.0
