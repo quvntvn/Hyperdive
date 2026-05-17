@@ -7,7 +7,7 @@ class_name ObstacleSpawner
 
 const SPAWN_INTERVAL_Y: float = 7.2
 const SPAWN_AHEAD: float = 30.0
-const CORRIDOR_HALF_WIDTH: float = 3.0
+const CORRIDOR_HALF_WIDTH: float = 4.5
 const DESPAWN_BEHIND: float = 15.0
 
 var _next_spawn_y: float = 0.0

@@ -7,7 +7,7 @@ class_name CoinSpawner
 
 const SPAWN_INTERVAL_Y: float = 3.6
 const SPAWN_AHEAD: float = 30.0
-const CORRIDOR_HALF_WIDTH: float = 2.5
+const CORRIDOR_HALF_WIDTH: float = 4.0
 const DESPAWN_BEHIND: float = 15.0
 
 var _next_spawn_y: float = -SPAWN_AHEAD
