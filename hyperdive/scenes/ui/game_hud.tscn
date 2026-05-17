@@ -36,3 +36,19 @@ color = Color(0.914, 0.310, 0.216, 1)
 [node name="Life2" type="ColorRect" parent="LivesContainer"]
 custom_minimum_size = Vector2(20.0, 20.0)
 color = Color(0.914, 0.310, 0.216, 1)
+
+[node name="CoinCounter" type="HBoxContainer" parent="."]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -130.0
+offset_right = -20.0
+offset_top = 60.0
+
+[node name="CoinIcon" type="ColorRect" parent="CoinCounter"]
+custom_minimum_size = Vector2(24.0, 24.0)
+color = Color(0.949, 0.757, 0.306, 1)
+
+[node name="CoinLabel" type="Label" parent="CoinCounter"]
+text = "0"
+theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)

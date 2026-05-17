@@ -6,6 +6,7 @@ class_name GameHUD
 var _player: PlayerController
 var _distance_label: Label
 var _life_rects: Array[ColorRect]
+var _coin_label: Label
 
 func _ready() -> void:
 	var node := get_node_or_null(player_path)
@@ -19,6 +20,9 @@ func _ready() -> void:
 		$LivesContainer/Life1 as ColorRect,
 		$LivesContainer/Life2 as ColorRect,
 	]
+	_coin_label = $CoinCounter/CoinLabel
+	_coin_label.text = str(Settings.coins_total)
+	Settings.coin_collected.connect(_on_coin_collected)
 
 func _process(_delta: float) -> void:
 	if _player == null:
@@ -31,3 +35,6 @@ func _on_life_lost(remaining_lives: int) -> void:
 
 func _on_game_over() -> void:
 	print("GAME OVER")
+
+func _on_coin_collected(new_total: int) -> void:
+	_coin_label.text = str(new_total)
