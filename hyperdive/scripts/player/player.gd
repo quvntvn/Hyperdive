@@ -19,6 +19,16 @@ signal game_over
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
+	# MeshInstance3D child holds the capsule — material_override prevents mutating the shared mesh material
+	_apply_skin(Settings.equipped_skin)
+	Settings.equipped_skin_changed.connect(_apply_skin)
+
+func _apply_skin(skin_id: String) -> void:
+	var skin: Dictionary = Catalog.get_skin_by_id(skin_id)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = skin["color"]
+	$MeshInstance3D.material_override = mat
 
 func _on_body_entered(body: Node3D) -> void:
 	if _invincibility_left > 0.0:
@@ -61,6 +71,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				Settings.control_mode = SettingsManager.ControlMode.TILT
 				Settings.save_settings()
 				Settings.control_mode_changed.emit(Settings.control_mode)
+			KEY_S:
+				var shop := get_tree().get_first_node_in_group("shop_screen")
+				if shop:
+					shop.open()
 
 func _get_touch_lateral() -> float:
 	if not _is_touching:
