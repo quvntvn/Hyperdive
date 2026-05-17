@@ -3,8 +3,8 @@
 [ext_resource type="Script" path="res://scripts/collectibles/coin.gd" id="CoinScript"]
 
 [sub_resource type="TorusMesh" id="TorusMesh_1"]
-inner_radius = 0.15
-outer_radius = 0.3
+inner_radius = 0.11
+outer_radius = 0.22
 
 [sub_resource type="StandardMaterial3D" id="CoinMat_1"]
 shading_mode = 1
@@ -14,7 +14,7 @@ emission = Color(0.949, 0.757, 0.306, 1)
 emission_energy_multiplier = 0.5
 
 [sub_resource type="SphereShape3D" id="SphereShape_1"]
-radius = 0.4
+radius = 0.3
 
 [node name="Coin" type="Area3D"]
 script = ExtResource("CoinScript")
