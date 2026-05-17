@@ -18,6 +18,7 @@ signal life_lost(remaining_lives: int)
 signal game_over
 
 func _ready() -> void:
+	Settings.reset_run_stats()
 	body_entered.connect(_on_body_entered)
 	# MeshInstance3D child holds the capsule — material_override prevents mutating the shared mesh material
 	_apply_skin(Settings.equipped_skin)
@@ -39,7 +40,12 @@ func _on_body_entered(body: Node3D) -> void:
 	_invincibility_left = INVINCIBILITY_TIME
 	life_lost.emit(lives)
 	if lives <= 0:
+		var distance: int = int(abs(global_position.y))
+		Settings.update_best_distance(distance)
 		game_over.emit()
+		var go_screen := get_tree().get_first_node_in_group("game_over_screen")
+		if go_screen:
+			go_screen.show_game_over(distance)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
