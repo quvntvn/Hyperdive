@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="PlayerScene"]
 [ext_resource type="Script" path="res://scripts/gameplay/follow_camera.gd" id="FollowCameraScript"]
@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://scripts/gameplay/coin_spawner.gd" id="CoinSpawnerScript"]
 [ext_resource type="PackedScene" path="res://scenes/collectibles/coin.tscn" id="CoinScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/shop_screen.tscn" id="ShopScreenScene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="GameOverScreenScene"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.122, 0.188, 0.369, 1)
@@ -71,3 +72,5 @@ obstacle_scenes = Array[PackedScene]([ExtResource("ObstacleBoxScene"), ExtResour
 player_path = NodePath("../Player")
 
 [node name="ShopScreen" parent="." instance=ExtResource("ShopScreenScene")]
+
+[node name="GameOverScreen" parent="." instance=ExtResource("GameOverScreenScene")]

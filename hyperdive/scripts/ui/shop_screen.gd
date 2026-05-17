@@ -62,4 +62,7 @@ func open() -> void:
 
 func close() -> void:
 	visible = false
-	get_tree().paused = false
+	# Don't unpause if game over screen is still active
+	var go_screen := get_tree().get_first_node_in_group("game_over_screen")
+	if go_screen == null or not (go_screen as CanvasLayer).visible:
+		get_tree().paused = false
