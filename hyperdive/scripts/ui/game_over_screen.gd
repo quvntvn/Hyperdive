@@ -26,12 +26,8 @@ func _on_rejouer_pressed() -> void:
 	get_tree().reload_current_scene()
 
 func _on_shop_pressed() -> void:
-	print("[Shop button] pressed. shop_screen = ", shop_screen)
 	if shop_screen:
-		print("[Shop button] calling open()")
 		shop_screen.open()
-	else:
-		print("[Shop button] ERROR: shop_screen is null")
 
 func _on_quitter_pressed() -> void:
 	get_tree().quit()
