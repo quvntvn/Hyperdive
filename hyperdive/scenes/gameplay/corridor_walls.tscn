@@ -12,10 +12,10 @@ shader_parameter/line_thickness = 0.06
 shader_parameter/line_alpha = 0.35
 
 [sub_resource type="BoxMesh" id="WallMesh_1"]
-size = Vector3(0.5, 200.0, 4.0)
+size = Vector3(0.3, 200.0, 4.0)
 
 [sub_resource type="BoxShape3D" id="WallShape_1"]
-size = Vector3(0.5, 200.0, 4.0)
+size = Vector3(0.3, 200.0, 4.0)
 
 [node name="CorridorWalls" type="Node3D"]
 script = ExtResource("Script_1")
