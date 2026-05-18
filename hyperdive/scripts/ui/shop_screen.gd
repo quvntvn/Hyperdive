@@ -3,6 +3,7 @@ class_name ShopScreen
 
 var _coins_label: Label
 var _skin_list: VBoxContainer
+var _was_paused_before_open: bool = false
 
 func _ready() -> void:
 	add_to_group("shop_screen")
@@ -56,13 +57,11 @@ func refresh() -> void:
 		_skin_list.add_child(row)
 
 func open() -> void:
+	_was_paused_before_open = get_tree().paused
 	visible = true
 	refresh()
 	get_tree().paused = true
 
 func close() -> void:
 	visible = false
-	# Don't unpause if game over screen is still active
-	var go_screen := get_tree().get_first_node_in_group("game_over_screen")
-	if go_screen == null or not (go_screen as CanvasLayer).visible:
-		get_tree().paused = false
+	get_tree().paused = _was_paused_before_open
