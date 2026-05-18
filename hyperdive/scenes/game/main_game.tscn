@@ -55,7 +55,8 @@ player_path = NodePath("../Player")
 coin_scene = ExtResource("CoinScene")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.8192, 0.5736, 0, -0.5736, 0.8192, 0, 5, 9)
+transform = Transform3D(1, 0, 0, 0, 0.8192, 0.5736, 0, -0.5736, 0.8192, 0, 5, 12)
+fov = 80.0
 script = ExtResource("FollowCameraScript")
 target_path = NodePath("../Player")
 
