@@ -6,6 +6,7 @@
 layer = 5
 visible = false
 process_mode = 3
+groups=["shop_screen"]
 script = ExtResource("ShopScript")
 
 [node name="Background" type="ColorRect" parent="."]

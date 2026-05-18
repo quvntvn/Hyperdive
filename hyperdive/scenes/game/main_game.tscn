@@ -75,3 +75,4 @@ player_path = NodePath("../Player")
 [node name="ShopScreen" parent="." instance=ExtResource("ShopScreenScene")]
 
 [node name="GameOverScreen" parent="." instance=ExtResource("GameOverScreenScene")]
+shop_screen = NodePath("../ShopScreen")
