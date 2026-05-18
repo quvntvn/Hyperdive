@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/corridor_walls.gd" id="Script_1"]
 [ext_resource type="Shader" path="res://assets/shaders/wall_pattern.gdshader" id="Shader_1"]
@@ -17,11 +17,18 @@ size = Vector3(0.3, 200.0, 4.0)
 [sub_resource type="BoxShape3D" id="WallShape_1"]
 size = Vector3(0.3, 200.0, 4.0)
 
+[sub_resource type="PhysicsMaterial" id="WallPhysMat_1"]
+friction = 0.0
+rough = false
+bounce = 0.0
+absorbent = false
+
 [node name="CorridorWalls" type="Node3D"]
 script = ExtResource("Script_1")
 
 [node name="LeftWall" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 0, 0)
+physics_material_override = SubResource("WallPhysMat_1")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="LeftWall"]
 mesh = SubResource("WallMesh_1")
@@ -32,6 +39,7 @@ shape = SubResource("WallShape_1")
 
 [node name="RightWall" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 0, 0)
+physics_material_override = SubResource("WallPhysMat_1")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="RightWall"]
 mesh = SubResource("WallMesh_1")
