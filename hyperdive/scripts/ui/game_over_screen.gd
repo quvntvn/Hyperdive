@@ -9,6 +9,9 @@ func _ready() -> void:
 
 func show_game_over(distance: int) -> void:
 	update_stats(distance)
+	var shop = get_tree().get_first_node_in_group("shop_screen")
+	if shop and shop.visible:
+		shop.close()
 	visible = true
 	get_tree().paused = true
 
