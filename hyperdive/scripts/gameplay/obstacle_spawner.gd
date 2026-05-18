@@ -6,7 +6,7 @@ class_name ObstacleSpawner
 @export var obstacle_scenes: Array[PackedScene]
 
 const SPAWN_INTERVAL_Y: float = 7.2
-const SPAWN_AHEAD: float = 30.0
+const SPAWN_AHEAD: float = 60.0
 const CORRIDOR_HALF_WIDTH: float = 4.5
 const DESPAWN_BEHIND: float = 15.0
 
