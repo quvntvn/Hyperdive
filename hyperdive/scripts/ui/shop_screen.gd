@@ -57,10 +57,12 @@ func refresh() -> void:
 		_skin_list.add_child(row)
 
 func open() -> void:
+	print("[ShopScreen.open] called. visible avant = ", visible, " layer = ", layer)
 	_was_paused_before_open = get_tree().paused
 	visible = true
 	refresh()
 	get_tree().paused = true
+	print("[ShopScreen.open] visible après = ", visible)
 
 func close() -> void:
 	visible = false
