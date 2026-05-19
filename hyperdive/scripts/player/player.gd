@@ -115,3 +115,4 @@ func _physics_process(delta: float) -> void:
 	if vel.y < -MAX_FALL_SPEED:
 		vel.y = -MAX_FALL_SPEED
 	linear_velocity = vel
+	Audio.set_whoosh_intensity(linear_velocity.y)

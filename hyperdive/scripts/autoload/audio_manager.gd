@@ -6,14 +6,20 @@ class_name AudioManagerClass
 @export var game_over_sfx: AudioStream
 @export var ui_click_sfx: AudioStream
 @export var gameplay_music: AudioStream
+@export var fall_whoosh: AudioStream
 
 const SFX_POOL_SIZE: int = 6
 const DUCKED_VOLUME_DB: float = -12.0
 const NORMAL_VOLUME_DB: float = 0.0
+const WHOOSH_MIN_DB: float = -25.0
+const WHOOSH_MAX_DB: float = -5.0
+const WHOOSH_MAX_FALL_SPEED: float = 18.0
+const WHOOSH_DUCKED_DB: float = -40.0
 
 var _sfx_pool: Array[AudioStreamPlayer] = []
 var _next_sfx_index: int = 0
 var _music_player: AudioStreamPlayer
+var _whoosh_player: AudioStreamPlayer
 var _is_ducked: bool = false
 
 func _ready() -> void:
@@ -34,6 +40,15 @@ func _ready() -> void:
 		(gameplay_music as AudioStreamMP3).loop = true
 	_music_player.stream = gameplay_music
 	play_music()
+	_whoosh_player = AudioStreamPlayer.new()
+	_whoosh_player.bus = "SFX"
+	_whoosh_player.process_mode = Node.PROCESS_MODE_ALWAYS
+	if fall_whoosh is AudioStreamMP3:
+		(fall_whoosh as AudioStreamMP3).loop = true
+	_whoosh_player.stream = fall_whoosh
+	_whoosh_player.volume_db = WHOOSH_MIN_DB
+	add_child(_whoosh_player)
+	_whoosh_player.play()
 
 func _setup_buses() -> void:
 	if AudioServer.get_bus_index("Music") == -1:
@@ -79,9 +94,17 @@ func resume_music() -> void:
 func duck_music() -> void:
 	if _music_player:
 		_music_player.volume_db = DUCKED_VOLUME_DB
-		_is_ducked = true
+	if _whoosh_player:
+		_whoosh_player.volume_db = WHOOSH_DUCKED_DB
+	_is_ducked = true
 
 func unduck_music() -> void:
 	if _music_player:
 		_music_player.volume_db = NORMAL_VOLUME_DB
-		_is_ducked = false
+	_is_ducked = false
+
+func set_whoosh_intensity(fall_speed: float) -> void:
+	if _is_ducked or _whoosh_player == null:
+		return
+	var t: float = clamp(absf(fall_speed) / WHOOSH_MAX_FALL_SPEED, 0.0, 1.0)
+	_whoosh_player.volume_db = lerpf(WHOOSH_MIN_DB, WHOOSH_MAX_DB, t)
