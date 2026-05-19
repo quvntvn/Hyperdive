@@ -62,6 +62,7 @@ func refresh() -> void:
 
 func open() -> void:
 	_was_paused_before_open = get_tree().paused
+	Audio.duck_music()
 	visible = true
 	refresh()
 	get_tree().paused = true
@@ -72,4 +73,7 @@ func _on_close_pressed() -> void:
 
 func close() -> void:
 	visible = false
+	var go_screen := get_tree().get_first_node_in_group("game_over_screen")
+	if not (go_screen and go_screen.visible):
+		Audio.unduck_music()
 	get_tree().paused = _was_paused_before_open

@@ -22,6 +22,7 @@ func show_game_over(distance: int) -> void:
 			shop_screen = screens[0]
 	if shop_screen and shop_screen.visible:
 		shop_screen.close()
+	Audio.duck_music()
 	visible = true
 	get_tree().paused = true
 
@@ -32,6 +33,7 @@ func update_stats(distance: int) -> void:
 
 func _on_rejouer_pressed() -> void:
 	Audio.play_ui_click()
+	Audio.unduck_music()
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
