@@ -1,20 +1,20 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene format=3 uid="uid://cuukr561ckxcb"]
 
-[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="PlayerScene"]
-[ext_resource type="Script" path="res://scripts/gameplay/follow_camera.gd" id="FollowCameraScript"]
+[ext_resource type="PackedScene" path="res://scenes/collectibles/coin.tscn" id="CoinScene"]
+[ext_resource type="Script" uid="uid://h2dr04ghll1o" path="res://scripts/gameplay/coin_spawner.gd" id="CoinSpawnerScript"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/corridor_walls.tscn" id="CorridorWallsScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_hud.tscn" id="DebugHUDScene"]
-[ext_resource type="Script" path="res://scripts/gameplay/obstacle_spawner.gd" id="SpawnerScript"]
+[ext_resource type="Script" uid="uid://n5w4ipcged50" path="res://scripts/gameplay/follow_camera.gd" id="FollowCameraScript"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="GameHUDScene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="GameOverScreenScene"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_box.tscn" id="ObstacleBoxScene"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_pillar.tscn" id="ObstaclePillarScene"]
-[ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_star.tscn" id="ObstacleStarScene"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_saturn.tscn" id="ObstacleSaturnScene"]
-[ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="GameHUDScene"]
+[ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_star.tscn" id="ObstacleStarScene"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="PlayerScene"]
 [ext_resource type="PackedScene" path="res://scenes/effects/post_process.tscn" id="PostProcessScene"]
-[ext_resource type="PackedScene" path="res://scenes/gameplay/corridor_walls.tscn" id="CorridorWallsScene"]
-[ext_resource type="Script" path="res://scripts/gameplay/coin_spawner.gd" id="CoinSpawnerScript"]
-[ext_resource type="PackedScene" path="res://scenes/collectibles/coin.tscn" id="CoinScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/shop_screen.tscn" id="ShopScreenScene"]
-[ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="GameOverScreenScene"]
+[ext_resource type="Script" uid="uid://bfc2hh6k3qmro" path="res://scripts/gameplay/obstacle_spawner.gd" id="SpawnerScript"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.122, 0.188, 0.369, 1)
@@ -32,47 +32,46 @@ ambient_light_source = 2
 ambient_light_color = Color(0.957, 0.914, 0.804, 1)
 ambient_light_energy = 0.3
 
-[node name="MainGame" type="Node3D"]
+[node name="MainGame" type="Node3D" unique_id=119639008]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2060696144]
 environment = SubResource("Environment_1")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.866, -0.354, -0.354, 0, 0.707, -0.707, 0.5, 0.612, 0.612, 0, 0, 0)
-scale = Vector3(1, 1, 1)
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1538931115]
+transform = Transform3D(0.86601907, -0.3535631, -0.3535593, 0, 0.70710295, -0.7071106, 0.500011, 0.61237127, 0.61236465, 0, 0, 0)
 light_color = Color(1, 0.878, 0.706, 1)
 light_energy = 1.5
 shadow_enabled = true
 
-[node name="Player" parent="." instance=ExtResource("PlayerScene")]
+[node name="Player" parent="." unique_id=1510972425 instance=ExtResource("PlayerScene")]
 
-[node name="CorridorWalls" parent="." instance=ExtResource("CorridorWallsScene")]
+[node name="CorridorWalls" parent="." unique_id=1335965944 instance=ExtResource("CorridorWallsScene")]
 target_path = NodePath("../Player")
 
-[node name="CoinSpawner" type="Node3D" parent="."]
+[node name="CoinSpawner" type="Node3D" parent="." unique_id=874414756]
 script = ExtResource("CoinSpawnerScript")
 player_path = NodePath("../Player")
 coin_scene = ExtResource("CoinScene")
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1806689409]
 transform = Transform3D(1, 0, 0, 0, 0.8192, 0.5736, 0, -0.5736, 0.8192, 0, 5, 12)
 fov = 80.0
 script = ExtResource("FollowCameraScript")
 target_path = NodePath("../Player")
 
-[node name="ObstacleSpawner" type="Node3D" parent="."]
+[node name="ObstacleSpawner" type="Node3D" parent="." unique_id=1107436819]
 script = ExtResource("SpawnerScript")
 player_path = NodePath("../Player")
 obstacle_scenes = Array[PackedScene]([ExtResource("ObstacleBoxScene"), ExtResource("ObstaclePillarScene"), ExtResource("ObstacleStarScene"), ExtResource("ObstacleSaturnScene")])
 
-[node name="PostProcess" parent="." instance=ExtResource("PostProcessScene")]
+[node name="PostProcess" parent="." unique_id=1022185359 instance=ExtResource("PostProcessScene")]
 
-[node name="DebugHUD" parent="." instance=ExtResource("DebugHUDScene")]
+[node name="DebugHUD" parent="." unique_id=1566357559 instance=ExtResource("DebugHUDScene")]
 
-[node name="GameHUD" parent="." instance=ExtResource("GameHUDScene")]
+[node name="GameHUD" parent="." unique_id=998256031 instance=ExtResource("GameHUDScene")]
 player_path = NodePath("../Player")
 
-[node name="ShopScreen" parent="." instance=ExtResource("ShopScreenScene")]
+[node name="ShopScreen" parent="." unique_id=1030946625 instance=ExtResource("ShopScreenScene")]
 
-[node name="GameOverScreen" parent="." instance=ExtResource("GameOverScreenScene")]
+[node name="GameOverScreen" parent="." unique_id=11009195 instance=ExtResource("GameOverScreenScene")]
 shop_screen = NodePath("../ShopScreen")
