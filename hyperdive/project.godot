@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 Settings="*res://scripts/autoload/settings_manager.gd"
 Catalog="*res://scripts/autoload/cosmetics_catalog.gd"
+Audio="*res://scenes/autoload/audio_manager.tscn"
 
 [display]
 

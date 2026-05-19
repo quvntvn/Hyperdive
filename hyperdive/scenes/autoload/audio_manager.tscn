@@ -1,0 +1,14 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/autoload/audio_manager.gd" id="AudioManagerScript"]
+[ext_resource type="AudioStream" uid="uid://di4k4ecufqxed" path="res://assets/audio/sfx/coin_pickup.wav" id="CoinSFX"]
+[ext_resource type="AudioStream" uid="uid://bxx8kjfpnd7su" path="res://assets/audio/sfx/obstacle_hit.wav" id="HitSFX"]
+[ext_resource type="AudioStream" uid="uid://dbvkhag6w1tua" path="res://assets/audio/sfx/game_over.wav" id="GameOverSFX"]
+[ext_resource type="AudioStream" uid="uid://dk42lg6un3p1u" path="res://assets/audio/sfx/ui_click.wav" id="UIClickSFX"]
+
+[node name="AudioManager" type="Node"]
+script = ExtResource("AudioManagerScript")
+coin_sfx = ExtResource("CoinSFX")
+hit_sfx = ExtResource("HitSFX")
+game_over_sfx = ExtResource("GameOverSFX")
+ui_click_sfx = ExtResource("UIClickSFX")
