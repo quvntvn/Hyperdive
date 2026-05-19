@@ -39,9 +39,11 @@ func _on_body_entered(body: Node3D) -> void:
 	lives -= 1
 	_invincibility_left = INVINCIBILITY_TIME
 	life_lost.emit(lives)
+	Audio.play_hit()
 	if lives <= 0:
 		var distance: int = int(abs(global_position.y))
 		Settings.update_best_distance(distance)
+		Audio.play_game_over()
 		game_over.emit()
 		var go_screen := get_tree().get_first_node_in_group("game_over_screen")
 		if go_screen:

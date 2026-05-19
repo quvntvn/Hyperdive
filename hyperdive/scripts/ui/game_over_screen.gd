@@ -31,10 +31,12 @@ func update_stats(distance: int) -> void:
 	%BestLabel.text = "Meilleure distance: " + str(Settings.best_distance) + " m"
 
 func _on_rejouer_pressed() -> void:
+	Audio.play_ui_click()
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
 func _on_shop_pressed() -> void:
+	Audio.play_ui_click()
 	if shop_screen == null:
 		var screens := get_tree().get_nodes_in_group("shop_screen")
 		if screens.size() > 0:
@@ -43,4 +45,5 @@ func _on_shop_pressed() -> void:
 		shop_screen.open()
 
 func _on_quitter_pressed() -> void:
+	Audio.play_ui_click()
 	get_tree().quit()

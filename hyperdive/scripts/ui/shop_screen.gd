@@ -12,7 +12,7 @@ func _ready() -> void:
 	Settings.coin_collected.connect(func(_n: int) -> void: refresh())
 	Settings.owned_skins_changed.connect(refresh)
 	Settings.equipped_skin_changed.connect(func(_id: String) -> void: refresh())
-	$ShopPanel/Layout/CloseButton.pressed.connect(close)
+	$ShopPanel/Layout/CloseButton.pressed.connect(_on_close_pressed)
 	refresh()
 
 func refresh() -> void:
@@ -46,10 +46,14 @@ func refresh() -> void:
 			btn.disabled = true
 		elif skin_id in Settings.owned_skins:
 			btn.text = "ÉQUIPER"
-			btn.pressed.connect(Settings.equip_skin.bind(skin_id))
+			btn.pressed.connect(func() -> void:
+				Audio.play_ui_click()
+				Settings.equip_skin(skin_id))
 		elif Settings.coins_total >= price:
 			btn.text = "ACHETER"
-			btn.pressed.connect(Settings.buy_skin.bind(skin_id))
+			btn.pressed.connect(func() -> void:
+				Audio.play_ui_click()
+				Settings.buy_skin(skin_id))
 		else:
 			btn.text = "ACHETER"
 			btn.disabled = true
@@ -61,6 +65,10 @@ func open() -> void:
 	visible = true
 	refresh()
 	get_tree().paused = true
+
+func _on_close_pressed() -> void:
+	Audio.play_ui_click()
+	close()
 
 func close() -> void:
 	visible = false
