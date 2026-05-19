@@ -1,16 +1,25 @@
 extends CanvasLayer
 class_name GameOverScreen
 
-@export var shop_screen: CanvasLayer
+var shop_screen: CanvasLayer
 
 func _ready() -> void:
 	add_to_group("game_over_screen")
 	$GameOverPanel/Layout/ButtonsContainer/RejouerButton.pressed.connect(_on_rejouer_pressed)
 	$GameOverPanel/Layout/ButtonsContainer/ShopButton.pressed.connect(_on_shop_pressed)
 	$GameOverPanel/Layout/ButtonsContainer/QuitterButton.pressed.connect(_on_quitter_pressed)
+	var screens := get_tree().get_nodes_in_group("shop_screen")
+	if screens.size() > 0:
+		shop_screen = screens[0]
+	else:
+		push_warning("GameOverScreen: aucun node dans le groupe 'shop_screen' trouvé")
 
 func show_game_over(distance: int) -> void:
 	update_stats(distance)
+	if shop_screen == null:
+		var screens := get_tree().get_nodes_in_group("shop_screen")
+		if screens.size() > 0:
+			shop_screen = screens[0]
 	if shop_screen and shop_screen.visible:
 		shop_screen.close()
 	visible = true
@@ -26,6 +35,10 @@ func _on_rejouer_pressed() -> void:
 	get_tree().reload_current_scene()
 
 func _on_shop_pressed() -> void:
+	if shop_screen == null:
+		var screens := get_tree().get_nodes_in_group("shop_screen")
+		if screens.size() > 0:
+			shop_screen = screens[0]
 	if shop_screen:
 		shop_screen.open()
 
