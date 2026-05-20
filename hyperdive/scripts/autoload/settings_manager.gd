@@ -19,6 +19,8 @@ const SAVE_PATH: String = "user://settings.cfg"
 
 func _ready() -> void:
 	load_settings()
+	if OS.has_feature("mobile"):
+		control_mode = ControlMode.TOUCH
 
 func add_coin() -> void:
 	coins_total += 1
