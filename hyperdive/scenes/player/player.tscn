@@ -1,15 +1,24 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="PlayerScript"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
-shading_mode = 1
+[sub_resource type="StandardMaterial3D" id="BodyMaterial"]
 albedo_color = Color(0.914, 0.310, 0.216, 1)
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_1"]
-material = SubResource("StandardMaterial3D_1")
-radius = 0.22
-height = 1.1
+[sub_resource type="BoxMesh" id="TorsoMesh"]
+size = Vector3(0.26, 0.40, 0.16)
+
+[sub_resource type="SphereMesh" id="HeadMesh"]
+radius = 0.13
+height = 0.26
+
+[sub_resource type="CapsuleMesh" id="ArmMesh"]
+radius = 0.05
+height = 0.36
+
+[sub_resource type="CapsuleMesh" id="LegMesh"]
+radius = 0.06
+height = 0.40
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.22
@@ -26,8 +35,37 @@ axis_lock_angular_y = true
 axis_lock_angular_z = true
 script = ExtResource("PlayerScript")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-mesh = SubResource("CapsuleMesh_1")
+[node name="Character" type="Node3D" parent="."]
+
+[node name="Torso" type="MeshInstance3D" parent="Character"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+mesh = SubResource("TorsoMesh")
+material_override = SubResource("BodyMaterial")
+
+[node name="Head" type="MeshInstance3D" parent="Character"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.42, 0)
+mesh = SubResource("HeadMesh")
+material_override = SubResource("BodyMaterial")
+
+[node name="ArmLeft" type="MeshInstance3D" parent="Character"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.19, 0.1, 0)
+mesh = SubResource("ArmMesh")
+material_override = SubResource("BodyMaterial")
+
+[node name="ArmRight" type="MeshInstance3D" parent="Character"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19, 0.1, 0)
+mesh = SubResource("ArmMesh")
+material_override = SubResource("BodyMaterial")
+
+[node name="LegLeft" type="MeshInstance3D" parent="Character"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, -0.28, 0)
+mesh = SubResource("LegMesh")
+material_override = SubResource("BodyMaterial")
+
+[node name="LegRight" type="MeshInstance3D" parent="Character"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, -0.28, 0)
+mesh = SubResource("LegMesh")
+material_override = SubResource("BodyMaterial")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_1")
