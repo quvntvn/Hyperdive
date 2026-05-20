@@ -16,6 +16,7 @@ func _ready() -> void:
 	_style_button(%JouerButton)
 	_style_button(%ShopButton)
 	_style_button(%QuitterButton)
+	_animate_title()
 
 func update_stats() -> void:
 	%BestLabel.text = "Meilleure distance: " + str(Settings.best_distance) + " m"
@@ -56,6 +57,6 @@ func _style_button(btn: Button) -> void:
 	btn.add_theme_color_override("font_pressed_color", Color(0.85, 0.82, 0.72))
 
 func _animate_title() -> void:
-	var tween := create_tween().set_loops()
+	var tween: Tween = create_tween().set_loops()
 	tween.tween_property(%TitleLabel, "modulate", Color(1.15, 1.15, 1.15, 1.0), 1.8).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(%TitleLabel, "modulate", Color(1.0, 1.0, 1.0, 1.0), 1.8).set_trans(Tween.TRANS_SINE)
