@@ -24,6 +24,7 @@ alignment = 1
 theme_override_constants/separation = 32
 
 [node name="TitleLabel" type="Label" parent="Layout"]
+unique_name_in_owner = true
 text = "HYPERDIVE"
 clip_text = false
 horizontal_alignment = 1
