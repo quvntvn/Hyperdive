@@ -1,19 +1,57 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="MainMenuScript"]
 [ext_resource type="PackedScene" path="res://scenes/ui/shop_screen.tscn" id="ShopScene"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/corridor_walls.tscn" id="CorridorWallsScene"]
+[ext_resource type="PackedScene" path="res://scenes/effects/post_process.tscn" id="PostProcessScene"]
+[ext_resource type="Script" path="res://scripts/ui/menu_camera.gd" id="MenuCameraScript"]
 
-[node name="MainMenu" type="Control"]
-anchor_right = 1.0
-anchor_bottom = 1.0
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
+sky_top_color = Color(0.122, 0.188, 0.369, 1)
+sky_horizon_color = Color(0.957, 0.914, 0.804, 1)
+ground_bottom_color = Color(0.239, 0.173, 0.118, 1)
+ground_horizon_color = Color(0.957, 0.914, 0.804, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("ProceduralSkyMaterial_1")
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+ambient_light_source = 2
+ambient_light_color = Color(0.957, 0.914, 0.804, 1)
+ambient_light_energy = 0.3
+
+[node name="MainMenu" type="Node3D"]
 script = ExtResource("MainMenuScript")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.86601907, -0.3535631, -0.3535593, 0, 0.70710295, -0.7071106, 0.500011, 0.61237127, 0.61236465, 0, 0, 0)
+light_color = Color(1, 0.878, 0.706, 1)
+light_energy = 1.5
+shadow_enabled = true
+
+[node name="CorridorWalls" parent="." instance=ExtResource("CorridorWallsScene")]
+
+[node name="PreviewCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.8192, 0.5736, 0, -0.5736, 0.8192, 0, 5, 12)
+fov = 80.0
+script = ExtResource("MenuCameraScript")
+
+[node name="PostProcess" parent="." instance=ExtResource("PostProcessScene")]
+
+[node name="MenuUI" type="CanvasLayer" parent="."]
+layer = 1
+
+[node name="Screen" type="Control" parent="MenuUI"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.957, 0.914, 0.804, 1)
+mouse_filter = 2
 
-[node name="Layout" type="VBoxContainer" parent="."]
+[node name="Layout" type="VBoxContainer" parent="MenuUI/Screen"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 40.0
@@ -23,7 +61,7 @@ offset_bottom = -60.0
 alignment = 1
 theme_override_constants/separation = 32
 
-[node name="TitleLabel" type="Label" parent="Layout"]
+[node name="TitleLabel" type="Label" parent="MenuUI/Screen/Layout"]
 unique_name_in_owner = true
 text = "HYPERDIVE"
 clip_text = false
@@ -32,53 +70,53 @@ autowrap_mode = 0
 theme_override_font_sizes/font_size = 80
 theme_override_colors/font_color = Color(0.914, 0.310, 0.216, 1)
 
-[node name="SubtitleLabel" type="Label" parent="Layout"]
+[node name="SubtitleLabel" type="Label" parent="MenuUI/Screen/Layout"]
 text = "TRAVERSE LE CIEL DE 1962"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 24
-theme_override_colors/font_color = Color(0.239, 0.173, 0.118, 1)
+theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
 
-[node name="Spacer1" type="Control" parent="Layout"]
+[node name="Spacer1" type="Control" parent="MenuUI/Screen/Layout"]
 custom_minimum_size = Vector2(0, 60)
 
-[node name="StatsContainer" type="VBoxContainer" parent="Layout"]
+[node name="StatsContainer" type="VBoxContainer" parent="MenuUI/Screen/Layout"]
 theme_override_constants/separation = 8
 
-[node name="BestLabel" type="Label" parent="Layout/StatsContainer"]
+[node name="BestLabel" type="Label" parent="MenuUI/Screen/Layout/StatsContainer"]
 unique_name_in_owner = true
 text = "Meilleure distance: 0 m"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
 
-[node name="CoinsLabel" type="Label" parent="Layout/StatsContainer"]
+[node name="CoinsLabel" type="Label" parent="MenuUI/Screen/Layout/StatsContainer"]
 unique_name_in_owner = true
 text = "Pièces totales: 0"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
 
-[node name="Spacer2" type="Control" parent="Layout"]
+[node name="Spacer2" type="Control" parent="MenuUI/Screen/Layout"]
 custom_minimum_size = Vector2(0, 60)
 
-[node name="ButtonsContainer" type="VBoxContainer" parent="Layout"]
+[node name="ButtonsContainer" type="VBoxContainer" parent="MenuUI/Screen/Layout"]
 theme_override_constants/separation = 16
 
-[node name="JouerButton" type="Button" parent="Layout/ButtonsContainer"]
+[node name="JouerButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 80)
 size_flags_horizontal = 4
 text = "JOUER"
 theme_override_font_sizes/font_size = 36
 
-[node name="ShopButton" type="Button" parent="Layout/ButtonsContainer"]
+[node name="ShopButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 56)
 size_flags_horizontal = 4
 text = "SHOP"
 theme_override_font_sizes/font_size = 24
 
-[node name="QuitterButton" type="Button" parent="Layout/ButtonsContainer"]
+[node name="QuitterButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 56)
 size_flags_horizontal = 4

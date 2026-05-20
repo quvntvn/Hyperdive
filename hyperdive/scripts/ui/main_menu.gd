@@ -1,4 +1,4 @@
-extends Control
+extends Node3D
 class_name MainMenu
 
 func _ready() -> void:
