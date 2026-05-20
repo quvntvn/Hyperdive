@@ -11,8 +11,8 @@ class_name AudioManagerClass
 const SFX_POOL_SIZE: int = 6
 const DUCKED_VOLUME_DB: float = -12.0
 const NORMAL_VOLUME_DB: float = 0.0
-const WHOOSH_MIN_DB: float = -20.0
-const WHOOSH_MAX_DB: float = -4.0
+const WHOOSH_MIN_DB: float = -10.0
+const WHOOSH_MAX_DB: float = 0.0
 const WHOOSH_MAX_FALL_SPEED: float = 18.0
 const WHOOSH_DUCKED_DB: float = -40.0
 
@@ -25,6 +25,9 @@ var _is_ducked: bool = false
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_setup_buses()
+	Settings._apply_bus_volume("Master", Settings.master_volume)
+	Settings._apply_bus_volume("Music", Settings.music_volume)
+	Settings._apply_bus_volume("SFX", Settings.sfx_volume)
 	for i in SFX_POOL_SIZE:
 		var player := AudioStreamPlayer.new()
 		player.bus = "SFX"
