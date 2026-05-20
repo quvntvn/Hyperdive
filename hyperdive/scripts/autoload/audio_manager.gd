@@ -11,8 +11,8 @@ class_name AudioManagerClass
 const SFX_POOL_SIZE: int = 6
 const DUCKED_VOLUME_DB: float = -12.0
 const NORMAL_VOLUME_DB: float = 0.0
-const WHOOSH_MIN_DB: float = -25.0
-const WHOOSH_MAX_DB: float = -5.0
+const WHOOSH_MIN_DB: float = -20.0
+const WHOOSH_MAX_DB: float = -4.0
 const WHOOSH_MAX_FALL_SPEED: float = 18.0
 const WHOOSH_DUCKED_DB: float = -40.0
 
@@ -102,6 +102,15 @@ func unduck_music() -> void:
 	if _music_player:
 		_music_player.volume_db = NORMAL_VOLUME_DB
 	_is_ducked = false
+
+func play_whoosh() -> void:
+	if _whoosh_player:
+		_whoosh_player.volume_db = WHOOSH_MIN_DB
+		_whoosh_player.play()
+
+func stop_whoosh() -> void:
+	if _whoosh_player:
+		_whoosh_player.stop()
 
 func set_whoosh_intensity(fall_speed: float) -> void:
 	if _is_ducked or _whoosh_player == null:

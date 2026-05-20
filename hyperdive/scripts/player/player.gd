@@ -18,6 +18,7 @@ signal life_lost(remaining_lives: int)
 signal game_over
 
 func _ready() -> void:
+	Audio.play_whoosh()
 	Settings.reset_run_stats()
 	body_entered.connect(_on_body_entered)
 	# MeshInstance3D child holds the capsule — material_override prevents mutating the shared mesh material
