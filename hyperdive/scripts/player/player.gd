@@ -22,16 +22,14 @@ func _ready() -> void:
 	Audio.play_whoosh()
 	Settings.reset_run_stats()
 	body_entered.connect(_on_body_entered)
-	# MeshInstance3D child holds the capsule — material_override prevents mutating the shared mesh material
 	_apply_skin(Settings.equipped_skin)
 	Settings.equipped_skin_changed.connect(_apply_skin)
 
 func _apply_skin(skin_id: String) -> void:
 	var skin: Dictionary = Catalog.get_skin_by_id(skin_id)
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = skin["color"]
-	$MeshInstance3D.material_override = mat
+	var mat := $Character/Torso.material_override as StandardMaterial3D
+	if mat:
+		mat.albedo_color = skin["color"]
 
 func _on_body_entered(body: Node3D) -> void:
 	if _invincibility_left > 0.0:
