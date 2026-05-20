@@ -1,0 +1,85 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="MainMenuScript"]
+[ext_resource type="PackedScene" path="res://scenes/ui/shop_screen.tscn" id="ShopScene"]
+
+[node name="MainMenu" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("MainMenuScript")
+
+[node name="Background" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.957, 0.914, 0.804, 1)
+
+[node name="Layout" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 60.0
+offset_right = -40.0
+offset_bottom = -60.0
+alignment = 1
+theme_override_constants/separation = 32
+
+[node name="TitleLabel" type="Label" parent="Layout"]
+text = "HYPERDIVE"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 96
+theme_override_colors/font_color = Color(0.914, 0.310, 0.216, 1)
+
+[node name="SubtitleLabel" type="Label" parent="Layout"]
+text = "TRAVERSE LE CIEL DE 1962"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.239, 0.173, 0.118, 1)
+
+[node name="Spacer1" type="Control" parent="Layout"]
+custom_minimum_size = Vector2(0, 60)
+
+[node name="StatsContainer" type="VBoxContainer" parent="Layout"]
+theme_override_constants/separation = 8
+
+[node name="BestLabel" type="Label" parent="Layout/StatsContainer"]
+unique_name_in_owner = true
+text = "Meilleure distance: 0 m"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
+
+[node name="CoinsLabel" type="Label" parent="Layout/StatsContainer"]
+unique_name_in_owner = true
+text = "Pièces totales: 0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
+
+[node name="Spacer2" type="Control" parent="Layout"]
+custom_minimum_size = Vector2(0, 60)
+
+[node name="ButtonsContainer" type="VBoxContainer" parent="Layout"]
+theme_override_constants/separation = 16
+
+[node name="JouerButton" type="Button" parent="Layout/ButtonsContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 80)
+size_flags_horizontal = 4
+text = "JOUER"
+theme_override_font_sizes/font_size = 36
+
+[node name="ShopButton" type="Button" parent="Layout/ButtonsContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 56)
+size_flags_horizontal = 4
+text = "SHOP"
+theme_override_font_sizes/font_size = 24
+
+[node name="QuitterButton" type="Button" parent="Layout/ButtonsContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 56)
+size_flags_horizontal = 4
+text = "QUITTER"
+theme_override_font_sizes/font_size = 24
+
+[node name="ShopScreen" parent="." instance=ExtResource("ShopScene")]
