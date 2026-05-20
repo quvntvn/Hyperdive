@@ -23,6 +23,8 @@ func _ready() -> void:
 	_coin_label = $CoinCounter/CoinLabel
 	_coin_label.text = str(Settings.coins_total)
 	Settings.coin_collected.connect(_on_coin_collected)
+	%PauseButton.pressed.connect(_on_pause_pressed)
+	_style_pause_button()
 
 func _process(_delta: float) -> void:
 	if _player == null:
@@ -38,3 +40,29 @@ func _on_game_over() -> void:
 
 func _on_coin_collected(new_total: int) -> void:
 	_coin_label.text = str(new_total)
+
+func _on_pause_pressed() -> void:
+	Audio.play_ui_click()
+	var pause := get_tree().get_first_node_in_group("pause_screen")
+	if pause:
+		pause.open()
+
+func _style_pause_button() -> void:
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color(0.235, 0.682, 0.639, 0.85)
+	normal.set_corner_radius_all(8)
+	normal.content_margin_left = 8
+	normal.content_margin_right = 8
+	normal.content_margin_top = 8
+	normal.content_margin_bottom = 8
+	%PauseButton.add_theme_stylebox_override("normal", normal)
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.32, 0.78, 0.73, 0.95)
+	%PauseButton.add_theme_stylebox_override("hover", hover)
+	var pressed_style := normal.duplicate() as StyleBoxFlat
+	pressed_style.bg_color = Color(0.18, 0.55, 0.51, 1.0)
+	%PauseButton.add_theme_stylebox_override("pressed", pressed_style)
+	%PauseButton.add_theme_stylebox_override("focus", normal.duplicate())
+	%PauseButton.add_theme_color_override("font_color", Color(0.957, 0.914, 0.804))
+	%PauseButton.add_theme_color_override("font_hover_color", Color(1, 1, 1))
+	%PauseButton.add_theme_color_override("font_pressed_color", Color(0.85, 0.82, 0.72))
