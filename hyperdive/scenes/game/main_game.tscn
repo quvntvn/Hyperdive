@@ -3,7 +3,8 @@
 [ext_resource type="PackedScene" path="res://scenes/collectibles/coin.tscn" id="CoinScene"]
 [ext_resource type="Script" uid="uid://h2dr04ghll1o" path="res://scripts/gameplay/coin_spawner.gd" id="CoinSpawnerScript"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/corridor_walls.tscn" id="CorridorWallsScene"]
-[ext_resource type="PackedScene" path="res://scenes/ui/debug_hud.tscn" id="DebugHUDScene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_screen.tscn" id="PauseScreenScene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_screen.tscn" id="SettingsScreenScene"]
 [ext_resource type="Script" uid="uid://n5w4ipcged50" path="res://scripts/gameplay/follow_camera.gd" id="FollowCameraScript"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="GameHUDScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="GameOverScreenScene"]
@@ -66,11 +67,13 @@ obstacle_scenes = Array[PackedScene]([ExtResource("ObstacleBoxScene"), ExtResour
 
 [node name="PostProcess" parent="." unique_id=1022185359 instance=ExtResource("PostProcessScene")]
 
-[node name="DebugHUD" parent="." unique_id=1566357559 instance=ExtResource("DebugHUDScene")]
-
 [node name="GameHUD" parent="." unique_id=998256031 instance=ExtResource("GameHUDScene")]
 player_path = NodePath("../Player")
 
 [node name="ShopScreen" parent="." unique_id=1030946625 instance=ExtResource("ShopScreenScene")]
 
 [node name="GameOverScreen" parent="." unique_id=11009195 instance=ExtResource("GameOverScreenScene")]
+
+[node name="PauseScreen" parent="." instance=ExtResource("PauseScreenScene")]
+
+[node name="SettingsScreen" parent="." instance=ExtResource("SettingsScreenScene")]
