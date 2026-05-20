@@ -7,8 +7,12 @@ signal control_mode_changed(new_mode: ControlMode)
 signal coin_collected(new_total: int)
 signal owned_skins_changed
 signal equipped_skin_changed(skin_id: String)
+signal volume_changed
 
 var control_mode: ControlMode = ControlMode.KEYBOARD
+var master_volume: float = 1.0
+var music_volume: float = 1.0
+var sfx_volume: float = 1.0
 var coins_total: int = 0
 var coins_this_run: int = 0
 var best_distance: int = 0
@@ -19,8 +23,41 @@ const SAVE_PATH: String = "user://settings.cfg"
 
 func _ready() -> void:
 	load_settings()
-	if OS.has_feature("mobile"):
+	if OS.has_feature("mobile") and control_mode == ControlMode.KEYBOARD:
 		control_mode = ControlMode.TOUCH
+
+func _apply_bus_volume(bus_name: String, linear: float) -> void:
+	var idx: int = AudioServer.get_bus_index(bus_name)
+	if idx < 0:
+		return
+	if linear <= 0.001:
+		AudioServer.set_bus_mute(idx, true)
+	else:
+		AudioServer.set_bus_mute(idx, false)
+		AudioServer.set_bus_volume_db(idx, linear_to_db(linear))
+
+func set_master_volume(v: float) -> void:
+	master_volume = clampf(v, 0.0, 1.0)
+	_apply_bus_volume("Master", master_volume)
+	volume_changed.emit()
+	save_settings()
+
+func set_music_volume(v: float) -> void:
+	music_volume = clampf(v, 0.0, 1.0)
+	_apply_bus_volume("Music", music_volume)
+	volume_changed.emit()
+	save_settings()
+
+func set_sfx_volume(v: float) -> void:
+	sfx_volume = clampf(v, 0.0, 1.0)
+	_apply_bus_volume("SFX", sfx_volume)
+	volume_changed.emit()
+	save_settings()
+
+func set_control_mode_value(mode: ControlMode) -> void:
+	control_mode = mode
+	control_mode_changed.emit(control_mode)
+	save_settings()
 
 func add_coin() -> void:
 	coins_total += 1
@@ -60,6 +97,9 @@ func equip_skin(skin_id: String) -> bool:
 func save_settings() -> void:
 	var cfg: ConfigFile = ConfigFile.new()
 	cfg.set_value("input", "control_mode", control_mode)
+	cfg.set_value("audio", "master_volume", master_volume)
+	cfg.set_value("audio", "music_volume", music_volume)
+	cfg.set_value("audio", "sfx_volume", sfx_volume)
 	cfg.set_value("stats", "coins_total", coins_total)
 	cfg.set_value("stats", "best_distance", best_distance)
 	cfg.set_value("cosmetics", "owned_skins", owned_skins)
@@ -71,6 +111,9 @@ func load_settings() -> void:
 	if cfg.load(SAVE_PATH) != OK:
 		return
 	control_mode = cfg.get_value("input", "control_mode", ControlMode.KEYBOARD)
+	master_volume = cfg.get_value("audio", "master_volume", 1.0)
+	music_volume = cfg.get_value("audio", "music_volume", 1.0)
+	sfx_volume = cfg.get_value("audio", "sfx_volume", 1.0)
 	coins_total = cfg.get_value("stats", "coins_total", 0)
 	best_distance = cfg.get_value("stats", "best_distance", 0)
 	owned_skins.assign(cfg.get_value("cosmetics", "owned_skins", ["default"]))
