@@ -25,8 +25,10 @@ theme_override_constants/separation = 32
 
 [node name="TitleLabel" type="Label" parent="Layout"]
 text = "HYPERDIVE"
+clip_text = false
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 96
+autowrap_mode = 0
+theme_override_font_sizes/font_size = 80
 theme_override_colors/font_color = Color(0.914, 0.310, 0.216, 1)
 
 [node name="SubtitleLabel" type="Label" parent="Layout"]
