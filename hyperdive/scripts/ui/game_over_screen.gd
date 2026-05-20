@@ -7,7 +7,7 @@ func _ready() -> void:
 	add_to_group("game_over_screen")
 	$GameOverPanel/Layout/ButtonsContainer/RejouerButton.pressed.connect(_on_rejouer_pressed)
 	$GameOverPanel/Layout/ButtonsContainer/ShopButton.pressed.connect(_on_shop_pressed)
-	$GameOverPanel/Layout/ButtonsContainer/QuitterButton.pressed.connect(_on_quitter_pressed)
+	$GameOverPanel/Layout/ButtonsContainer/MenuButton.pressed.connect(_on_menu_pressed)
 	var screens := get_tree().get_nodes_in_group("shop_screen")
 	if screens.size() > 0:
 		shop_screen = screens[0]
@@ -46,6 +46,9 @@ func _on_shop_pressed() -> void:
 	if shop_screen:
 		shop_screen.open()
 
-func _on_quitter_pressed() -> void:
+func _on_menu_pressed() -> void:
 	Audio.play_ui_click()
-	get_tree().quit()
+	Audio.unduck_music()
+	Audio.stop_whoosh()
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")

@@ -74,6 +74,6 @@ theme_override_font_sizes/font_size = 28
 custom_minimum_size = Vector2(0.0, 56.0)
 text = "SHOP"
 
-[node name="QuitterButton" type="Button" parent="GameOverPanel/Layout/ButtonsContainer"]
+[node name="MenuButton" type="Button" parent="GameOverPanel/Layout/ButtonsContainer"]
 custom_minimum_size = Vector2(0.0, 56.0)
-text = "QUITTER"
+text = "MENU"
