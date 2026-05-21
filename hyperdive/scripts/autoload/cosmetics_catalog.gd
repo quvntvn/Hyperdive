@@ -28,3 +28,17 @@ func get_trail(id: String) -> Dictionary:
 		if trail["id"] == id:
 			return trail
 	return TRAILS[0]
+
+const THEMES: Array[Dictionary] = [
+	{"id": "default",  "name": "1962",              "wall_color": Color(0.239, 0.173, 0.118), "line_color": Color(0.949, 0.757, 0.306), "sky_top": Color(0.122, 0.188, 0.369), "sky_horizon": Color(0.957, 0.914, 0.804), "price": 0},
+	{"id": "minuit",   "name": "Minuit",             "wall_color": Color(0.10,  0.13,  0.25),  "line_color": Color(0.235, 0.682, 0.639), "sky_top": Color(0.04,  0.05,  0.12),  "sky_horizon": Color(0.18,  0.22,  0.35),  "price": 30},
+	{"id": "sunset",   "name": "Coucher de soleil",  "wall_color": Color(0.30,  0.15,  0.13),  "line_color": Color(0.914, 0.310, 0.216), "sky_top": Color(0.45,  0.20,  0.25),  "sky_horizon": Color(0.96,  0.65,  0.35),  "price": 40},
+	{"id": "ocean",    "name": "Océan",              "wall_color": Color(0.10,  0.22,  0.22),  "line_color": Color(0.957, 0.914, 0.804), "sky_top": Color(0.08,  0.25,  0.35),  "sky_horizon": Color(0.45,  0.75,  0.78),  "price": 35},
+	{"id": "mono",     "name": "Monochrome",         "wall_color": Color(0.25,  0.24,  0.22),  "line_color": Color(0.95,  0.93,  0.88),  "sky_top": Color(0.35,  0.34,  0.32),  "sky_horizon": Color(0.90,  0.88,  0.84),  "price": 50},
+]
+
+func get_theme(id: String) -> Dictionary:
+	for theme in THEMES:
+		if theme["id"] == id:
+			return theme
+	return THEMES[0]

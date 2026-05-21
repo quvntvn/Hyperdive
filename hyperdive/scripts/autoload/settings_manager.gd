@@ -11,6 +11,8 @@ signal owned_skins_changed
 signal equipped_skin_changed(skin_id: String)
 signal owned_trails_changed
 signal equipped_trail_changed(trail_id: String)
+signal owned_themes_changed
+signal equipped_theme_changed(theme_id: String)
 signal volume_changed
 
 var control_mode: ControlMode = ControlMode.KEYBOARD
@@ -24,6 +26,8 @@ var owned_skins: Array[String] = ["default"]
 var equipped_skin: String = "default"
 var owned_trails: Array[String] = ["default"]
 var equipped_trail: String = "default"
+var owned_themes: Array[String] = ["default"]
+var equipped_theme: String = "default"
 var campaign_level: int = 1
 var active_mode: String = "infinite"
 var active_level: int = 1
@@ -124,6 +128,27 @@ func equip_trail(trail_id: String) -> bool:
 	save_settings()
 	return true
 
+func buy_theme(theme_id: String) -> bool:
+	var theme: Dictionary = Catalog.get_theme(theme_id)
+	if coins_total < theme["price"]:
+		return false
+	if theme_id in owned_themes:
+		return false
+	coins_total -= theme["price"]
+	owned_themes.append(theme_id)
+	owned_themes_changed.emit()
+	coin_collected.emit(coins_total)
+	save_settings()
+	return true
+
+func equip_theme(theme_id: String) -> bool:
+	if not theme_id in owned_themes:
+		return false
+	equipped_theme = theme_id
+	equipped_theme_changed.emit(theme_id)
+	save_settings()
+	return true
+
 func get_level_duration(level: int) -> float:
 	return 30.0 + float(level - 1) * 5.0
 
@@ -152,6 +177,8 @@ func save_settings() -> void:
 	cfg.set_value("cosmetics", "equipped_skin", equipped_skin)
 	cfg.set_value("cosmetics", "owned_trails", owned_trails)
 	cfg.set_value("cosmetics", "equipped_trail", equipped_trail)
+	cfg.set_value("cosmetics", "owned_themes", owned_themes)
+	cfg.set_value("cosmetics", "equipped_theme", equipped_theme)
 	cfg.set_value("campaign", "campaign_level", campaign_level)
 	cfg.save(SAVE_PATH)
 
@@ -169,4 +196,6 @@ func load_settings() -> void:
 	equipped_skin = cfg.get_value("cosmetics", "equipped_skin", "default")
 	owned_trails.assign(cfg.get_value("cosmetics", "owned_trails", ["default"]))
 	equipped_trail = cfg.get_value("cosmetics", "equipped_trail", "default")
+	owned_themes.assign(cfg.get_value("cosmetics", "owned_themes", ["default"]))
+	equipped_theme = cfg.get_value("cosmetics", "equipped_theme", "default")
 	campaign_level = cfg.get_value("campaign", "campaign_level", 1)
