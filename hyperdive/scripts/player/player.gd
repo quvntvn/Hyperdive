@@ -14,6 +14,7 @@ var _is_touching: bool = false
 var _touch_target_x: float = 0.0
 var lives: int = MAX_LIVES
 var _invincibility_left: float = 0.0
+var _base_skin_color: Color = Color.WHITE
 
 signal life_lost(remaining_lives: int)
 signal game_over
@@ -24,12 +25,14 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	_apply_skin(Settings.equipped_skin)
 	Settings.equipped_skin_changed.connect(_apply_skin)
+	_update_damage_state(MAX_LIVES)
 
 func _apply_skin(skin_id: String) -> void:
 	var skin: Dictionary = Catalog.get_skin_by_id(skin_id)
+	_base_skin_color = skin["color"]
 	var mat := $Character/Torso.material_override as StandardMaterial3D
 	if mat:
-		mat.albedo_color = skin["color"]
+		mat.albedo_color = _base_skin_color
 
 func _on_body_entered(body: Node3D) -> void:
 	if _invincibility_left > 0.0:
@@ -37,6 +40,7 @@ func _on_body_entered(body: Node3D) -> void:
 	if not body.is_in_group("obstacles"):
 		return
 	lives -= 1
+	_update_damage_state(lives)
 	_invincibility_left = INVINCIBILITY_TIME
 	life_lost.emit(lives)
 	Audio.play_hit()
@@ -96,6 +100,29 @@ func _update_touch_target(screen_pos: Vector2) -> void:
 	var screen_width: float = get_viewport().get_visible_rect().size.x
 	var normalized: float = clampf(screen_pos.x / screen_width, 0.0, 1.0)
 	_touch_target_x = lerpf(-5.0, 5.0, normalized)
+
+func _update_damage_state(p_lives: int) -> void:
+	var arm_l := $Character/ArmLeft
+	var arm_r := $Character/ArmRight
+	var leg_r := $Character/LegRight
+	var head := $Character/Head
+	var arm_l_rot := Vector3.ZERO
+	var arm_r_rot := Vector3.ZERO
+	var leg_r_rot := Vector3.ZERO
+	var head_rot := Vector3.ZERO
+	match p_lives:
+		2:
+			arm_r_rot = Vector3(0, 0, -50)
+		1:
+			arm_r_rot = Vector3(0, 0, -90)
+			arm_l_rot = Vector3(0, 0, 50)
+			leg_r_rot = Vector3(35, 0, 0)
+			head_rot = Vector3(0, 0, 25)
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(arm_l, "rotation_degrees", arm_l_rot, 0.2)
+	tween.tween_property(arm_r, "rotation_degrees", arm_r_rot, 0.2)
+	tween.tween_property(leg_r, "rotation_degrees", leg_r_rot, 0.2)
+	tween.tween_property(head, "rotation_degrees", head_rot, 0.2)
 
 func _physics_process(delta: float) -> void:
 	_invincibility_left = maxf(_invincibility_left - delta, 0.0)
