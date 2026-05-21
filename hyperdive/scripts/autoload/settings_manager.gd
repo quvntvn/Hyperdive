@@ -3,6 +3,8 @@ class_name SettingsManager
 
 enum ControlMode { KEYBOARD, TOUCH, TILT }
 
+const INFINITE_UNLOCK_LEVEL: int = 5
+
 signal control_mode_changed(new_mode: ControlMode)
 signal coin_collected(new_total: int)
 signal owned_skins_changed
@@ -22,6 +24,9 @@ var owned_skins: Array[String] = ["default"]
 var equipped_skin: String = "default"
 var owned_trails: Array[String] = ["default"]
 var equipped_trail: String = "default"
+var campaign_level: int = 1
+var active_mode: String = "infinite"
+var active_level: int = 1
 
 const SAVE_PATH: String = "user://settings.cfg"
 
@@ -119,6 +124,22 @@ func equip_trail(trail_id: String) -> bool:
 	save_settings()
 	return true
 
+func get_level_duration(level: int) -> float:
+	return 30.0 + float(level - 1) * 5.0
+
+func get_level_reward(level: int) -> int:
+	return 20 + level * 10
+
+func is_infinite_unlocked() -> bool:
+	return campaign_level > INFINITE_UNLOCK_LEVEL
+
+func complete_current_level() -> void:
+	coins_total += get_level_reward(active_level)
+	coin_collected.emit(coins_total)
+	if active_level == campaign_level:
+		campaign_level += 1
+	save_settings()
+
 func save_settings() -> void:
 	var cfg: ConfigFile = ConfigFile.new()
 	cfg.set_value("input", "control_mode", control_mode)
@@ -131,6 +152,7 @@ func save_settings() -> void:
 	cfg.set_value("cosmetics", "equipped_skin", equipped_skin)
 	cfg.set_value("cosmetics", "owned_trails", owned_trails)
 	cfg.set_value("cosmetics", "equipped_trail", equipped_trail)
+	cfg.set_value("campaign", "campaign_level", campaign_level)
 	cfg.save(SAVE_PATH)
 
 func load_settings() -> void:
@@ -147,3 +169,4 @@ func load_settings() -> void:
 	equipped_skin = cfg.get_value("cosmetics", "equipped_skin", "default")
 	owned_trails.assign(cfg.get_value("cosmetics", "owned_trails", ["default"]))
 	equipped_trail = cfg.get_value("cosmetics", "equipped_trail", "default")
+	campaign_level = cfg.get_value("campaign", "campaign_level", 1)
