@@ -2,11 +2,13 @@ extends Node3D
 class_name MainMenu
 
 func _ready() -> void:
+	%CampagneButton.pressed.connect(_on_campagne_pressed)
 	%JouerButton.pressed.connect(_on_jouer_pressed)
 	%ShopButton.pressed.connect(_on_shop_pressed)
 	%ReglagesButton.pressed.connect(_on_reglages_pressed)
 	%QuitterButton.pressed.connect(_on_quitter_pressed)
 
+	_update_infinite_button()
 	update_stats()
 	Settings.coin_collected.connect(func(_n: int) -> void: update_stats())
 
@@ -14,18 +16,34 @@ func _ready() -> void:
 	Audio.unduck_music()
 	Audio.play_music()
 
+	_style_button(%CampagneButton)
 	_style_button(%JouerButton)
 	_style_button(%ShopButton)
 	_style_button(%ReglagesButton)
 	_style_button(%QuitterButton)
 	_animate_title()
 
+func _update_infinite_button() -> void:
+	if Settings.is_infinite_unlocked():
+		%JouerButton.disabled = false
+		%JouerButton.text = "JOUER (INFINI)"
+		%InfiniLockedLabel.visible = false
+	else:
+		%JouerButton.disabled = true
+		%JouerButton.text = "INFINI — Niv. 5"
+		%InfiniLockedLabel.visible = true
+
 func update_stats() -> void:
 	%BestLabel.text = "Meilleure distance: " + str(Settings.best_distance) + " m"
 	%CoinsLabel.text = "Pièces totales: " + str(Settings.coins_total)
 
+func _on_campagne_pressed() -> void:
+	Audio.play_ui_click()
+	get_tree().change_scene_to_file("res://scenes/ui/level_screen.tscn")
+
 func _on_jouer_pressed() -> void:
 	Audio.play_ui_click()
+	Settings.active_mode = "infinite"
 	get_tree().change_scene_to_file("res://scenes/game/main_game.tscn")
 
 func _on_shop_pressed() -> void:

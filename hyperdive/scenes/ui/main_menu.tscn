@@ -103,12 +103,27 @@ custom_minimum_size = Vector2(0, 60)
 [node name="ButtonsContainer" type="VBoxContainer" parent="MenuUI/Screen/Layout"]
 theme_override_constants/separation = 16
 
-[node name="JouerButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
+[node name="CampagneButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 80)
 size_flags_horizontal = 4
-text = "JOUER"
+text = "CAMPAGNE"
 theme_override_font_sizes/font_size = 36
+
+[node name="JouerButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 64)
+size_flags_horizontal = 4
+text = "INFINI — Niv. 5"
+disabled = true
+theme_override_font_sizes/font_size = 28
+
+[node name="InfiniLockedLabel" type="Label" parent="MenuUI/Screen/Layout/ButtonsContainer"]
+unique_name_in_owner = true
+text = "Débloqué au niveau 5"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 0.6)
 
 [node name="ShopButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
