@@ -7,6 +7,8 @@ signal control_mode_changed(new_mode: ControlMode)
 signal coin_collected(new_total: int)
 signal owned_skins_changed
 signal equipped_skin_changed(skin_id: String)
+signal owned_trails_changed
+signal equipped_trail_changed(trail_id: String)
 signal volume_changed
 
 var control_mode: ControlMode = ControlMode.KEYBOARD
@@ -18,6 +20,8 @@ var coins_this_run: int = 0
 var best_distance: int = 0
 var owned_skins: Array[String] = ["default"]
 var equipped_skin: String = "default"
+var owned_trails: Array[String] = ["default"]
+var equipped_trail: String = "default"
 
 const SAVE_PATH: String = "user://settings.cfg"
 
@@ -94,6 +98,27 @@ func equip_skin(skin_id: String) -> bool:
 	save_settings()
 	return true
 
+func buy_trail(trail_id: String) -> bool:
+	var trail: Dictionary = Catalog.get_trail(trail_id)
+	if coins_total < trail["price"]:
+		return false
+	if trail_id in owned_trails:
+		return false
+	coins_total -= trail["price"]
+	owned_trails.append(trail_id)
+	owned_trails_changed.emit()
+	coin_collected.emit(coins_total)
+	save_settings()
+	return true
+
+func equip_trail(trail_id: String) -> bool:
+	if not trail_id in owned_trails:
+		return false
+	equipped_trail = trail_id
+	equipped_trail_changed.emit(trail_id)
+	save_settings()
+	return true
+
 func save_settings() -> void:
 	var cfg: ConfigFile = ConfigFile.new()
 	cfg.set_value("input", "control_mode", control_mode)
@@ -104,6 +129,8 @@ func save_settings() -> void:
 	cfg.set_value("stats", "best_distance", best_distance)
 	cfg.set_value("cosmetics", "owned_skins", owned_skins)
 	cfg.set_value("cosmetics", "equipped_skin", equipped_skin)
+	cfg.set_value("cosmetics", "owned_trails", owned_trails)
+	cfg.set_value("cosmetics", "equipped_trail", equipped_trail)
 	cfg.save(SAVE_PATH)
 
 func load_settings() -> void:
@@ -118,3 +145,5 @@ func load_settings() -> void:
 	best_distance = cfg.get_value("stats", "best_distance", 0)
 	owned_skins.assign(cfg.get_value("cosmetics", "owned_skins", ["default"]))
 	equipped_skin = cfg.get_value("cosmetics", "equipped_skin", "default")
+	owned_trails.assign(cfg.get_value("cosmetics", "owned_trails", ["default"]))
+	equipped_trail = cfg.get_value("cosmetics", "equipped_trail", "default")
