@@ -32,7 +32,7 @@ func _apply_skin(skin_id: String) -> void:
 	_base_skin_color = skin["color"]
 	var mat := $Character/Torso.material_override as StandardMaterial3D
 	if mat:
-		mat.albedo_color = _base_skin_color
+		_update_body_color(lives)
 
 func _on_body_entered(body: Node3D) -> void:
 	if _invincibility_left > 0.0:
@@ -123,6 +123,15 @@ func _update_damage_state(p_lives: int) -> void:
 	tween.tween_property(arm_r, "rotation_degrees", arm_r_rot, 0.2)
 	tween.tween_property(leg_r, "rotation_degrees", leg_r_rot, 0.2)
 	tween.tween_property(head, "rotation_degrees", head_rot, 0.2)
+	_update_body_color(p_lives)
+
+func _update_body_color(p_lives: int) -> void:
+	var mat := $Character/Torso.material_override as StandardMaterial3D
+	if mat == null:
+		return
+	var damage_t: float = 1.0 - float(p_lives) / float(MAX_LIVES)
+	var bruised := Color(0.35, 0.28, 0.38)
+	mat.albedo_color = _base_skin_color.lerp(bruised, damage_t * 0.5)
 
 func _physics_process(delta: float) -> void:
 	_invincibility_left = maxf(_invincibility_left - delta, 0.0)
