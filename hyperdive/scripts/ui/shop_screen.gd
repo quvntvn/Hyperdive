@@ -5,6 +5,7 @@ var _coins_label: Label
 var _item_list: VBoxContainer
 var _skins_btn: Button
 var _trails_btn: Button
+var _themes_btn: Button
 var _was_paused_before_open: bool = false
 var _current_category: String = "skins"
 
@@ -14,14 +15,18 @@ func _ready() -> void:
 	_item_list = $ShopPanel/Layout/ItemList
 	_skins_btn = $ShopPanel/Layout/CategoryButtons/SkinsCatBtn
 	_trails_btn = $ShopPanel/Layout/CategoryButtons/TrailsCatBtn
+	_themes_btn = $ShopPanel/Layout/CategoryButtons/ThemesCatBtn
 	Settings.coin_collected.connect(func(_n: int) -> void: refresh())
 	Settings.owned_skins_changed.connect(refresh)
 	Settings.equipped_skin_changed.connect(func(_id: String) -> void: refresh())
 	Settings.owned_trails_changed.connect(refresh)
 	Settings.equipped_trail_changed.connect(func(_id: String) -> void: refresh())
+	Settings.owned_themes_changed.connect(refresh)
+	Settings.equipped_theme_changed.connect(func(_id: String) -> void: refresh())
 	$ShopPanel/Layout/CloseButton.pressed.connect(_on_close_pressed)
 	_skins_btn.pressed.connect(_on_skins_pressed)
 	_trails_btn.pressed.connect(_on_trails_pressed)
+	_themes_btn.pressed.connect(_on_themes_pressed)
 	refresh()
 
 func _on_skins_pressed() -> void:
@@ -34,17 +39,25 @@ func _on_trails_pressed() -> void:
 	_current_category = "trails"
 	refresh()
 
+func _on_themes_pressed() -> void:
+	Audio.play_ui_click()
+	_current_category = "themes"
+	refresh()
+
 func refresh() -> void:
 	_coins_label.text = "Pièces : " + str(Settings.coins_total)
 	_skins_btn.disabled = _current_category == "skins"
 	_trails_btn.disabled = _current_category == "trails"
+	_themes_btn.disabled = _current_category == "themes"
 	for child in _item_list.get_children():
 		_item_list.remove_child(child)
 		child.queue_free()
 	if _current_category == "skins":
 		_refresh_skins()
-	else:
+	elif _current_category == "trails":
 		_refresh_trails()
+	else:
+		_refresh_themes()
 
 func _refresh_skins() -> void:
 	for skin in Catalog.SKINS:
@@ -122,6 +135,54 @@ func _refresh_trails() -> void:
 			btn.pressed.connect(func() -> void:
 				Audio.play_ui_click()
 				Settings.buy_trail(trail_id))
+		else:
+			btn.text = "ACHETER"
+			btn.disabled = true
+		row.add_child(btn)
+		_item_list.add_child(row)
+
+func _refresh_themes() -> void:
+	for theme in Catalog.THEMES:
+		var theme_id: String = theme["id"]
+		var price: int = theme["price"]
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
+		var preview_box := HBoxContainer.new()
+		preview_box.add_theme_constant_override("separation", 4)
+		var swatch_wall := ColorRect.new()
+		swatch_wall.custom_minimum_size = Vector2(30.0, 64.0)
+		swatch_wall.color = theme["wall_color"]
+		var swatch_line := ColorRect.new()
+		swatch_line.custom_minimum_size = Vector2(30.0, 64.0)
+		swatch_line.color = theme["line_color"]
+		preview_box.add_child(swatch_wall)
+		preview_box.add_child(swatch_line)
+		row.add_child(preview_box)
+		var info := VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var name_label := Label.new()
+		name_label.text = theme["name"]
+		name_label.add_theme_font_size_override("font_size", 24)
+		var price_label := Label.new()
+		price_label.text = "Prix : " + str(price) if price > 0 else "Gratuit"
+		info.add_child(name_label)
+		info.add_child(price_label)
+		row.add_child(info)
+		var btn := Button.new()
+		btn.custom_minimum_size = Vector2(110.0, 48.0)
+		if theme_id == Settings.equipped_theme:
+			btn.text = "ÉQUIPÉ"
+			btn.disabled = true
+		elif theme_id in Settings.owned_themes:
+			btn.text = "ÉQUIPER"
+			btn.pressed.connect(func() -> void:
+				Audio.play_ui_click()
+				Settings.equip_theme(theme_id))
+		elif Settings.coins_total >= price:
+			btn.text = "ACHETER"
+			btn.pressed.connect(func() -> void:
+				Audio.play_ui_click()
+				Settings.buy_theme(theme_id))
 		else:
 			btn.text = "ACHETER"
 			btn.disabled = true

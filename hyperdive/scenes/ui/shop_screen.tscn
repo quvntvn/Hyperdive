@@ -59,6 +59,10 @@ disabled = true
 custom_minimum_size = Vector2(120.0, 44.0)
 text = "TRAILS"
 
+[node name="ThemesCatBtn" type="Button" parent="ShopPanel/Layout/CategoryButtons"]
+custom_minimum_size = Vector2(120.0, 44.0)
+text = "THÈMES"
+
 [node name="ItemList" type="VBoxContainer" parent="ShopPanel/Layout"]
 size_flags_vertical = 3
 theme_override_constants/separation = 12
