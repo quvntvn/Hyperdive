@@ -16,6 +16,7 @@ var lives: int = MAX_LIVES
 var _invincibility_left: float = 0.0
 var _is_dead: bool = false
 var _base_skin_color: Color = Color.WHITE
+var _trail_gradient: Gradient
 
 signal life_lost(remaining_lives: int)
 signal game_over
@@ -28,6 +29,8 @@ func _ready() -> void:
 	Settings.equipped_skin_changed.connect(_apply_skin)
 	_update_damage_state(MAX_LIVES)
 	_setup_fall_trail()
+	_apply_trail()
+	Settings.equipped_trail_changed.connect(func(_id: String) -> void: _apply_trail())
 
 func _setup_fall_trail() -> void:
 	var trail := GPUParticles3D.new()
@@ -45,11 +48,11 @@ func _setup_fall_trail() -> void:
 	mat.gravity = Vector3.ZERO
 	mat.scale_min = 0.12
 	mat.scale_max = 0.06
-	var gradient := Gradient.new()
-	gradient.set_color(0, Color(0.949, 0.757, 0.306, 1.0))
-	gradient.set_color(1, Color(0.949, 0.757, 0.306, 0.0))
+	_trail_gradient = Gradient.new()
+	_trail_gradient.set_color(0, Color(0.949, 0.757, 0.306, 1.0))
+	_trail_gradient.set_color(1, Color(0.949, 0.757, 0.306, 0.0))
 	var grad_tex := GradientTexture1D.new()
-	grad_tex.gradient = gradient
+	grad_tex.gradient = _trail_gradient
 	mat.color_ramp = grad_tex
 	trail.process_material = mat
 
@@ -59,6 +62,13 @@ func _setup_fall_trail() -> void:
 	trail.draw_pass_1 = sphere
 
 	add_child(trail)
+
+func _apply_trail() -> void:
+	if _trail_gradient == null:
+		return
+	var c: Color = Catalog.get_trail(Settings.equipped_trail)["color"]
+	_trail_gradient.set_color(0, Color(c.r, c.g, c.b, 1.0))
+	_trail_gradient.set_color(1, Color(c.r, c.g, c.b, 0.0))
 
 func _apply_skin(skin_id: String) -> void:
 	var skin: Dictionary = Catalog.get_skin_by_id(skin_id)
