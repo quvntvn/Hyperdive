@@ -74,6 +74,8 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	lives -= 1
 	_update_damage_state(lives)
+	_flash_hit()
+	_shake_camera(0.3)
 	_invincibility_left = INVINCIBILITY_TIME
 	life_lost.emit(lives)
 	Audio.play_hit()
@@ -176,13 +178,30 @@ func _update_damage_state(p_lives: int) -> void:
 	tween.tween_property(head, "rotation_degrees", head_rot, 0.2)
 	_update_body_color(p_lives)
 
+func _get_damage_color(p_lives: int) -> Color:
+	var damage_t: float = 1.0 - float(p_lives) / float(MAX_LIVES)
+	var bruised := Color(0.35, 0.28, 0.38)
+	return _base_skin_color.lerp(bruised, damage_t * 0.5)
+
 func _update_body_color(p_lives: int) -> void:
 	var mat := $Character/Torso.material_override as StandardMaterial3D
 	if mat == null:
 		return
-	var damage_t: float = 1.0 - float(p_lives) / float(MAX_LIVES)
-	var bruised := Color(0.35, 0.28, 0.38)
-	mat.albedo_color = _base_skin_color.lerp(bruised, damage_t * 0.5)
+	mat.albedo_color = _get_damage_color(p_lives)
+
+func _flash_hit() -> void:
+	var mat := $Character/Torso.material_override as StandardMaterial3D
+	if mat == null:
+		return
+	var recover_color := _get_damage_color(lives)
+	var tween := create_tween()
+	tween.tween_property(mat, "albedo_color", Color.WHITE, 0.05)
+	tween.tween_property(mat, "albedo_color", recover_color, 0.10)
+
+func _shake_camera(amount: float) -> void:
+	var cam := get_tree().get_first_node_in_group("follow_camera")
+	if cam and cam.has_method("shake"):
+		cam.shake(amount)
 
 func _physics_process(delta: float) -> void:
 	_invincibility_left = maxf(_invincibility_left - delta, 0.0)
