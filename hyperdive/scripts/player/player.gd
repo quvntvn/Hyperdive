@@ -14,6 +14,7 @@ var _is_touching: bool = false
 var _touch_target_x: float = 0.0
 var lives: int = MAX_LIVES
 var _invincibility_left: float = 0.0
+var _is_dead: bool = false
 var _base_skin_color: Color = Color.WHITE
 
 signal life_lost(remaining_lives: int)
@@ -35,7 +36,7 @@ func _apply_skin(skin_id: String) -> void:
 		_update_body_color(lives)
 
 func _on_body_entered(body: Node3D) -> void:
-	if _invincibility_left > 0.0:
+	if _invincibility_left > 0.0 or _is_dead:
 		return
 	if not body.is_in_group("obstacles"):
 		return
@@ -45,6 +46,9 @@ func _on_body_entered(body: Node3D) -> void:
 	life_lost.emit(lives)
 	Audio.play_hit()
 	if lives <= 0:
+		_is_dead = true
+		_collapse_ragdoll()
+		await get_tree().create_timer(0.4).timeout
 		var distance: int = int(abs(global_position.y))
 		Settings.update_best_distance(distance)
 		Audio.play_game_over()
@@ -52,6 +56,21 @@ func _on_body_entered(body: Node3D) -> void:
 		var go_screen := get_tree().get_first_node_in_group("game_over_screen")
 		if go_screen:
 			go_screen.show_game_over(distance)
+
+func _collapse_ragdoll() -> void:
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property($Character/ArmLeft, "rotation_degrees",
+		Vector3(randf_range(-120.0, 120.0), 0.0, randf_range(-120.0, 120.0)), 0.4)
+	tween.tween_property($Character/ArmRight, "rotation_degrees",
+		Vector3(randf_range(-120.0, 120.0), 0.0, randf_range(-120.0, 120.0)), 0.4)
+	tween.tween_property($Character/LegLeft, "rotation_degrees",
+		Vector3(randf_range(-120.0, 120.0), 0.0, randf_range(-120.0, 120.0)), 0.4)
+	tween.tween_property($Character/LegRight, "rotation_degrees",
+		Vector3(randf_range(-120.0, 120.0), 0.0, randf_range(-120.0, 120.0)), 0.4)
+	tween.tween_property($Character/Head, "rotation_degrees",
+		Vector3(randf_range(-120.0, 120.0), 0.0, randf_range(-120.0, 120.0)), 0.4)
+	tween.tween_property($Character, "rotation_degrees",
+		Vector3(0.0, 0.0, randf_range(-60.0, 60.0)), 0.4)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if Settings.control_mode == SettingsManager.ControlMode.TOUCH:
