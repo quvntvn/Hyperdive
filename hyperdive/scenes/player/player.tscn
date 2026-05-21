@@ -21,8 +21,8 @@ radius = 0.06
 height = 0.40
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
-radius = 0.22
-height = 1.1
+radius = 0.44
+height = 2.2
 
 [node name="Player" type="RigidBody3D"]
 mass = 1.0
@@ -36,6 +36,7 @@ axis_lock_angular_z = true
 script = ExtResource("PlayerScript")
 
 [node name="Character" type="Node3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
 
 [node name="Torso" type="MeshInstance3D" parent="Character"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
