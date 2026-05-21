@@ -27,6 +27,38 @@ func _ready() -> void:
 	_apply_skin(Settings.equipped_skin)
 	Settings.equipped_skin_changed.connect(_apply_skin)
 	_update_damage_state(MAX_LIVES)
+	_setup_fall_trail()
+
+func _setup_fall_trail() -> void:
+	var trail := GPUParticles3D.new()
+	trail.name = "FallTrail"
+	trail.amount = 20
+	trail.lifetime = 0.5
+	trail.local_coords = false
+	trail.emitting = true
+
+	var mat := ParticleProcessMaterial.new()
+	mat.direction = Vector3(0.0, 1.0, 0.0)
+	mat.spread = 20.0
+	mat.initial_velocity_min = 1.5
+	mat.initial_velocity_max = 2.5
+	mat.gravity = Vector3.ZERO
+	mat.scale_min = 0.12
+	mat.scale_max = 0.06
+	var gradient := Gradient.new()
+	gradient.set_color(0, Color(0.949, 0.757, 0.306, 1.0))
+	gradient.set_color(1, Color(0.949, 0.757, 0.306, 0.0))
+	var grad_tex := GradientTexture1D.new()
+	grad_tex.gradient = gradient
+	mat.color_ramp = grad_tex
+	trail.process_material = mat
+
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.06
+	sphere.height = 0.12
+	trail.draw_pass_1 = sphere
+
+	add_child(trail)
 
 func _apply_skin(skin_id: String) -> void:
 	var skin: Dictionary = Catalog.get_skin_by_id(skin_id)
