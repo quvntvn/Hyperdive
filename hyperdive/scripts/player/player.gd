@@ -35,8 +35,8 @@ func _ready() -> void:
 func _setup_fall_trail() -> void:
 	var trail := GPUParticles3D.new()
 	trail.name = "FallTrail"
-	trail.amount = 20
-	trail.lifetime = 0.5
+	trail.amount = 40
+	trail.lifetime = 0.8
 	trail.local_coords = false
 	trail.emitting = true
 
@@ -46,8 +46,8 @@ func _setup_fall_trail() -> void:
 	mat.initial_velocity_min = 1.5
 	mat.initial_velocity_max = 2.5
 	mat.gravity = Vector3.ZERO
-	mat.scale_min = 0.12
-	mat.scale_max = 0.06
+	mat.scale_min = 0.18
+	mat.scale_max = 0.36
 	_trail_gradient = Gradient.new()
 	_trail_gradient.set_color(0, Color(0.949, 0.757, 0.306, 1.0))
 	_trail_gradient.set_color(1, Color(0.949, 0.757, 0.306, 0.0))
