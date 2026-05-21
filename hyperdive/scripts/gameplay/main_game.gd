@@ -26,6 +26,4 @@ func _process(delta: float) -> void:
 func _on_campaign_success() -> void:
 	_success_handled = true
 	_campaign_active = false
-	Settings.complete_current_level()
-	get_tree().paused = false
-	get_tree().change_scene_to_file("res://scenes/ui/level_screen.tscn")
+	($Player as PlayerController)._on_level_survived()

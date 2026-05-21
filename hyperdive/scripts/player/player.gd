@@ -15,6 +15,8 @@ var _touch_target_x: float = 0.0
 var lives: int = MAX_LIVES
 var _invincibility_left: float = 0.0
 var _is_dead: bool = false
+var _parachute_active: bool = false
+var _level_completed: bool = false
 var _base_skin_color: Color = Color.WHITE
 var _trail_gradient: Gradient
 
@@ -77,8 +79,24 @@ func _apply_skin(skin_id: String) -> void:
 	if mat:
 		_update_body_color(lives)
 
+func _on_level_survived() -> void:
+	if _level_completed:
+		return
+	_level_completed = true
+	_parachute_active = true
+	_invincibility_left = 10.0
+	var para := $Character/Parachute
+	para.visible = true
+	para.scale = Vector3.ZERO
+	var t := create_tween()
+	t.tween_property(para, "scale", Vector3.ONE, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	Audio.set_whoosh_intensity(0.0)
+	await get_tree().create_timer(0.6).timeout
+	Settings.complete_current_level()
+	get_tree().change_scene_to_file("res://scenes/ui/level_screen.tscn")
+
 func _on_body_entered(body: Node3D) -> void:
-	if _invincibility_left > 0.0 or _is_dead:
+	if _invincibility_left > 0.0 or _is_dead or _level_completed:
 		return
 	if not body.is_in_group("obstacles"):
 		return
@@ -215,6 +233,11 @@ func _shake_camera(amount: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	_invincibility_left = maxf(_invincibility_left - delta, 0.0)
+	if _parachute_active:
+		linear_velocity.y = maxf(linear_velocity.y, -1.5)
+		linear_velocity.x = move_toward(linear_velocity.x, 0.0, 10.0 * delta)
+		Audio.set_whoosh_intensity(linear_velocity.y)
+		return
 	if Settings.control_mode == SettingsManager.ControlMode.TOUCH:
 		if _is_touching:
 			var diff: float = _touch_target_x - global_position.x
