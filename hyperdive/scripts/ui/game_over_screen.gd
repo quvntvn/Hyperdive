@@ -51,4 +51,5 @@ func _on_menu_pressed() -> void:
 	Audio.unduck_music()
 	Audio.stop_whoosh()
 	get_tree().paused = false
+	Settings.active_mode = "infinite"
 	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")

@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://cuukr561ckxcb"]
 
+[ext_resource type="Script" path="res://scripts/gameplay/main_game.gd" id="MainGameScript"]
 [ext_resource type="PackedScene" path="res://scenes/collectibles/coin.tscn" id="CoinScene"]
 [ext_resource type="Script" uid="uid://h2dr04ghll1o" path="res://scripts/gameplay/coin_spawner.gd" id="CoinSpawnerScript"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/corridor_walls.tscn" id="CorridorWallsScene"]
@@ -34,6 +35,7 @@ ambient_light_color = Color(0.957, 0.914, 0.804, 1)
 ambient_light_energy = 0.3
 
 [node name="MainGame" type="Node3D" unique_id=119639008]
+script = ExtResource("MainGameScript")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2060696144]
 environment = SubResource("Environment_1")

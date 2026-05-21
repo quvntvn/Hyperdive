@@ -7,6 +7,7 @@ var _player: PlayerController
 var _distance_label: Label
 var _life_rects: Array[ColorRect]
 var _coin_label: Label
+var _campaign_mode: bool = false
 
 func _ready() -> void:
 	var node := get_node_or_null(player_path)
@@ -26,8 +27,15 @@ func _ready() -> void:
 	%PauseButton.pressed.connect(_on_pause_pressed)
 	_style_pause_button()
 
+func set_campaign_mode(enabled: bool) -> void:
+	_campaign_mode = enabled
+	$CoinCounter.visible = not enabled
+
+func update_campaign_time(seconds: float) -> void:
+	_distance_label.text = "Temps : " + str(ceili(seconds)) + "s"
+
 func _process(_delta: float) -> void:
-	if _player == null:
+	if _player == null or _campaign_mode:
 		return
 	_distance_label.text = str(int(abs(_player.global_position.y))) + " m"
 
