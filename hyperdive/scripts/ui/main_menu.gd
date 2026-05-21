@@ -6,7 +6,6 @@ func _ready() -> void:
 	%JouerButton.pressed.connect(_on_jouer_pressed)
 	%ShopButton.pressed.connect(_on_shop_pressed)
 	%ReglagesButton.pressed.connect(_on_reglages_pressed)
-	%QuitterButton.pressed.connect(_on_quitter_pressed)
 
 	_update_infinite_button()
 	update_stats()
@@ -20,7 +19,6 @@ func _ready() -> void:
 	_style_button(%JouerButton)
 	_style_button(%ShopButton)
 	_style_button(%ReglagesButton)
-	_style_button(%QuitterButton)
 	_animate_title()
 
 func _update_infinite_button() -> void:
@@ -57,10 +55,6 @@ func _on_reglages_pressed() -> void:
 	var s := get_tree().get_first_node_in_group("settings_screen")
 	if s:
 		s.open()
-
-func _on_quitter_pressed() -> void:
-	Audio.play_ui_click()
-	get_tree().quit()
 
 func _style_button(btn: Button) -> void:
 	var normal := StyleBoxFlat.new()

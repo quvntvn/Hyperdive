@@ -139,13 +139,6 @@ size_flags_horizontal = 4
 text = "RÉGLAGES"
 theme_override_font_sizes/font_size = 24
 
-[node name="QuitterButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 56)
-size_flags_horizontal = 4
-text = "QUITTER"
-theme_override_font_sizes/font_size = 24
-
 [node name="ShopScreen" parent="." instance=ExtResource("ShopScene")]
 
 [node name="SettingsScreen" parent="." instance=ExtResource("SettingsScene")]
