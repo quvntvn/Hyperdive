@@ -1,8 +1,9 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="MainMenuScript"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_screen.tscn" id="SettingsScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/shop_screen.tscn" id="ShopScene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/missions_screen.tscn" id="MissionsScene"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/corridor_walls.tscn" id="CorridorWallsScene"]
 [ext_resource type="PackedScene" path="res://scenes/effects/post_process.tscn" id="PostProcessScene"]
 [ext_resource type="Script" path="res://scripts/ui/menu_camera.gd" id="MenuCameraScript"]
@@ -132,6 +133,13 @@ size_flags_horizontal = 4
 text = "SHOP"
 theme_override_font_sizes/font_size = 24
 
+[node name="DefisButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 56)
+size_flags_horizontal = 4
+text = "DÉFIS"
+theme_override_font_sizes/font_size = 24
+
 [node name="ReglagesButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 56)
@@ -142,3 +150,5 @@ theme_override_font_sizes/font_size = 24
 [node name="ShopScreen" parent="." instance=ExtResource("ShopScene")]
 
 [node name="SettingsScreen" parent="." instance=ExtResource("SettingsScene")]
+
+[node name="MissionsScreen" parent="." instance=ExtResource("MissionsScene")]

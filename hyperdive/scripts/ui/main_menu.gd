@@ -5,6 +5,7 @@ func _ready() -> void:
 	%CampagneButton.pressed.connect(_on_campagne_pressed)
 	%JouerButton.pressed.connect(_on_jouer_pressed)
 	%ShopButton.pressed.connect(_on_shop_pressed)
+	%DefisButton.pressed.connect(_on_defis_pressed)
 	%ReglagesButton.pressed.connect(_on_reglages_pressed)
 
 	_update_infinite_button()
@@ -18,13 +19,14 @@ func _ready() -> void:
 	_style_button(%CampagneButton)
 	_style_button(%JouerButton)
 	_style_button(%ShopButton)
+	_style_button(%DefisButton)
 	_style_button(%ReglagesButton)
 	_animate_title()
 
 func _update_infinite_button() -> void:
 	if Settings.is_infinite_unlocked():
 		%JouerButton.disabled = false
-		%JouerButton.text = "JOUER (INFINI)"
+		%JouerButton.text = "JOUER"
 		%InfiniLockedLabel.visible = false
 	else:
 		%JouerButton.disabled = true
@@ -32,8 +34,8 @@ func _update_infinite_button() -> void:
 		%InfiniLockedLabel.visible = true
 
 func update_stats() -> void:
-	%BestLabel.text = "Meilleure distance: " + str(Settings.best_distance) + " m"
-	%CoinsLabel.text = "Pièces totales: " + str(Settings.coins_total)
+	%BestLabel.text = "Record : " + str(Settings.best_distance) + " m"
+	%CoinsLabel.text = "Pièces : " + str(Settings.coins_total)
 
 func _on_campagne_pressed() -> void:
 	Audio.play_ui_click()
@@ -49,6 +51,12 @@ func _on_shop_pressed() -> void:
 	var shop := get_tree().get_first_node_in_group("shop_screen")
 	if shop:
 		shop.open()
+
+func _on_defis_pressed() -> void:
+	Audio.play_ui_click()
+	var missions := get_tree().get_first_node_in_group("missions_screen")
+	if missions:
+		missions.open()
 
 func _on_reglages_pressed() -> void:
 	Audio.play_ui_click()
