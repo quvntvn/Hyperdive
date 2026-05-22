@@ -9,6 +9,7 @@ const TILT_SENSITIVITY: float = 0.25
 const MAX_LIVES: int = 3
 const INVINCIBILITY_TIME: float = 1.0
 const TOUCH_FOLLOW_SPEED: float = 8.0
+const TRAIL_BASE_AMOUNT: int = 40
 
 var _is_touching: bool = false
 var _touch_target_x: float = 0.0
@@ -20,6 +21,7 @@ var _level_completed: bool = false
 var _run_time: float = 0.0
 var _base_skin_color: Color = Color.WHITE
 var _trail_gradient: Gradient
+var _trail_node: GPUParticles3D
 
 signal life_lost(remaining_lives: int)
 signal game_over
@@ -36,12 +38,13 @@ func _ready() -> void:
 	_update_damage_state(MAX_LIVES)
 	_setup_fall_trail()
 	_apply_trail()
+	_update_trail_state(MAX_LIVES)
 	Settings.equipped_trail_changed.connect(func(_id: String) -> void: _apply_trail())
 
 func _setup_fall_trail() -> void:
 	var trail := GPUParticles3D.new()
 	trail.name = "FallTrail"
-	trail.amount = 40
+	trail.amount = TRAIL_BASE_AMOUNT
 	trail.lifetime = 0.8
 	trail.local_coords = false
 	trail.emitting = true
@@ -68,6 +71,22 @@ func _setup_fall_trail() -> void:
 	trail.draw_pass_1 = sphere
 
 	add_child(trail)
+	_trail_node = trail
+
+func _update_trail_state(p_lives: int) -> void:
+	if _trail_node == null:
+		return
+	match p_lives:
+		3:
+			_trail_node.emitting = false
+		2:
+			_trail_node.emitting = true
+			_trail_node.amount = TRAIL_BASE_AMOUNT
+		1:
+			_trail_node.emitting = true
+			_trail_node.amount = TRAIL_BASE_AMOUNT * 2
+		_:
+			_trail_node.emitting = false
 
 func _apply_trail() -> void:
 	if _trail_gradient == null:
@@ -110,6 +129,7 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	lives -= 1
 	_update_damage_state(lives)
+	_update_trail_state(lives)
 	_flash_hit()
 	_shake_camera(0.3)
 	_invincibility_left = INVINCIBILITY_TIME
