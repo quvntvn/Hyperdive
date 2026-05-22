@@ -17,6 +17,7 @@ var _invincibility_left: float = 0.0
 var _is_dead: bool = false
 var _parachute_active: bool = false
 var _level_completed: bool = false
+var _run_time: float = 0.0
 var _base_skin_color: Color = Color.WHITE
 var _trail_gradient: Gradient
 
@@ -26,6 +27,9 @@ signal game_over
 func _ready() -> void:
 	Audio.play_whoosh()
 	Settings.reset_run_stats()
+	Settings.daily_games += 1
+	Settings.update_daily_progress()
+	Settings.save_settings()
 	body_entered.connect(_on_body_entered)
 	_apply_skin(Settings.equipped_skin)
 	Settings.equipped_skin_changed.connect(_apply_skin)
@@ -85,6 +89,10 @@ func _on_level_survived() -> void:
 	_level_completed = true
 	_parachute_active = true
 	_invincibility_left = 10.0
+	var distance: int = int(abs(global_position.y))
+	Settings.daily_distance += distance
+	Settings.daily_time += int(_run_time)
+	Settings.update_daily_progress()
 	var para := $Character/Parachute
 	para.visible = true
 	para.scale = Vector3.ZERO
@@ -113,6 +121,10 @@ func _on_body_entered(body: Node3D) -> void:
 		await get_tree().create_timer(0.4).timeout
 		var distance: int = int(abs(global_position.y))
 		Settings.update_best_distance(distance)
+		Settings.daily_distance += distance
+		Settings.daily_time += int(_run_time)
+		Settings.update_daily_progress()
+		Settings.save_settings()
 		Audio.play_game_over()
 		game_over.emit()
 		var go_screen := get_tree().get_first_node_in_group("game_over_screen")
@@ -232,6 +244,8 @@ func _shake_camera(amount: float) -> void:
 		cam.shake(amount)
 
 func _physics_process(delta: float) -> void:
+	if not _is_dead and not _level_completed:
+		_run_time += delta
 	_invincibility_left = maxf(_invincibility_left - delta, 0.0)
 	if _parachute_active:
 		linear_velocity.y = maxf(linear_velocity.y, -1.5)
