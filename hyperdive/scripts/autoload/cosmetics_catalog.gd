@@ -16,11 +16,14 @@ func get_skin_by_id(id: String) -> Dictionary:
 	return SKINS[0]
 
 const TRAILS: Array[Dictionary] = [
-	{"id": "default",   "name": "Moutarde",  "color": Color(0.949, 0.757, 0.306), "price": 0},
-	{"id": "turquoise", "name": "Turquoise", "color": Color(0.235, 0.682, 0.639), "price": 15},
-	{"id": "orange",    "name": "Orange",    "color": Color(0.914, 0.310, 0.216), "price": 20},
-	{"id": "bordeaux",  "name": "Bordeaux",  "color": Color(0.486, 0.180, 0.165), "price": 25},
-	{"id": "creme",     "name": "Crème",     "color": Color(0.957, 0.914, 0.804), "price": 30},
+	{"id": "sang",     "name": "Sang",        "color": Color(0.70, 0.05, 0.05), "price": 0},
+	{"id": "royal",    "name": "Sang royal",   "color": Color(0.15, 0.20, 0.70), "price": 15},
+	{"id": "bile",     "name": "Bile",         "color": Color(0.45, 0.62, 0.10), "price": 20},
+	{"id": "ichor",    "name": "Sang d'or",    "color": Color(0.95, 0.75, 0.12), "price": 25},
+	{"id": "encre",    "name": "Encre",        "color": Color(0.22, 0.10, 0.32), "price": 30},
+	{"id": "antigel",  "name": "Antigel",      "color": Color(0.20, 0.85, 0.75), "price": 35},
+	{"id": "lait",     "name": "Lait",         "color": Color(0.96, 0.95, 0.90), "price": 40},
+	{"id": "petrole",  "name": "Pétrole",      "color": Color(0.10, 0.10, 0.13), "price": 45},
 ]
 
 func get_trail(id: String) -> Dictionary:
