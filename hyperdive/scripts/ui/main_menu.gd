@@ -6,7 +6,7 @@ func _ready() -> void:
 	%JouerButton.pressed.connect(_on_jouer_pressed)
 	%ShopButton.pressed.connect(_on_shop_pressed)
 	%DefisButton.pressed.connect(_on_defis_pressed)
-	%ReglagesButton.pressed.connect(_on_reglages_pressed)
+	%SettingsGearButton.pressed.connect(_on_reglages_pressed)
 
 	_update_infinite_button()
 	update_stats()
@@ -20,7 +20,6 @@ func _ready() -> void:
 	_style_button(%JouerButton)
 	_style_button(%ShopButton)
 	_style_button(%DefisButton)
-	_style_button(%ReglagesButton)
 	_animate_title()
 
 func _update_infinite_button() -> void:
