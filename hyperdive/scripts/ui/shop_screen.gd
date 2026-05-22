@@ -12,7 +12,7 @@ var _current_category: String = "skins"
 func _ready() -> void:
 	add_to_group("shop_screen")
 	_coins_label = $ShopPanel/Layout/CoinsLabel
-	_item_list = $ShopPanel/Layout/ItemList
+	_item_list = $ShopPanel/Layout/ScrollContainer/ItemList
 	_skins_btn = $ShopPanel/Layout/CategoryButtons/SkinsCatBtn
 	_trails_btn = $ShopPanel/Layout/CategoryButtons/TrailsCatBtn
 	_themes_btn = $ShopPanel/Layout/CategoryButtons/ThemesCatBtn

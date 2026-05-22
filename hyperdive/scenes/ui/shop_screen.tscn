@@ -63,8 +63,12 @@ text = "SANG"
 custom_minimum_size = Vector2(120.0, 44.0)
 text = "THÈMES"
 
-[node name="ItemList" type="VBoxContainer" parent="ShopPanel/Layout"]
+[node name="ScrollContainer" type="ScrollContainer" parent="ShopPanel/Layout"]
 size_flags_vertical = 3
+scroll_horizontal_enabled = false
+
+[node name="ItemList" type="VBoxContainer" parent="ShopPanel/Layout/ScrollContainer"]
+size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
 [node name="CloseButton" type="Button" parent="ShopPanel/Layout"]
