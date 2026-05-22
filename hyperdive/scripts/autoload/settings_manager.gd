@@ -13,6 +13,7 @@ signal owned_trails_changed
 signal equipped_trail_changed(trail_id: String)
 signal owned_themes_changed
 signal equipped_theme_changed(theme_id: String)
+signal mission_claimed
 signal volume_changed
 
 var control_mode: ControlMode = ControlMode.KEYBOARD
@@ -28,6 +29,7 @@ var owned_trails: Array[String] = ["default"]
 var equipped_trail: String = "default"
 var owned_themes: Array[String] = ["default"]
 var equipped_theme: String = "default"
+var claimed_missions: Array[String] = []
 var campaign_level: int = 1
 var active_mode: String = "infinite"
 var active_level: int = 1
@@ -149,6 +151,37 @@ func equip_theme(theme_id: String) -> bool:
 	save_settings()
 	return true
 
+func get_mission_progress(mission: Dictionary) -> int:
+	match mission["type"]:
+		"campaign_level":
+			return campaign_level
+		"distance":
+			return best_distance
+		"owned_skins":
+			return owned_skins.size()
+		"owned_themes":
+			return owned_themes.size()
+		"trail_equipped":
+			return 1 if equipped_trail != "default" else 0
+	return 0
+
+func is_mission_complete(mission: Dictionary) -> bool:
+	return get_mission_progress(mission) >= mission["target"]
+
+func is_mission_claimed(id: String) -> bool:
+	return id in claimed_missions
+
+func claim_mission(mission: Dictionary) -> bool:
+	var id: String = mission["id"]
+	if not is_mission_complete(mission) or is_mission_claimed(id):
+		return false
+	coins_total += mission["reward"]
+	claimed_missions.append(id)
+	coin_collected.emit(coins_total)
+	mission_claimed.emit()
+	save_settings()
+	return true
+
 func get_level_duration(level: int) -> float:
 	return 30.0 + float(level - 1) * 5.0
 
@@ -179,6 +212,7 @@ func save_settings() -> void:
 	cfg.set_value("cosmetics", "equipped_trail", equipped_trail)
 	cfg.set_value("cosmetics", "owned_themes", owned_themes)
 	cfg.set_value("cosmetics", "equipped_theme", equipped_theme)
+	cfg.set_value("missions", "claimed_missions", claimed_missions)
 	cfg.set_value("campaign", "campaign_level", campaign_level)
 	cfg.save(SAVE_PATH)
 
@@ -198,4 +232,5 @@ func load_settings() -> void:
 	equipped_trail = cfg.get_value("cosmetics", "equipped_trail", "default")
 	owned_themes.assign(cfg.get_value("cosmetics", "owned_themes", ["default"]))
 	equipped_theme = cfg.get_value("cosmetics", "equipped_theme", "default")
+	claimed_missions.assign(cfg.get_value("missions", "claimed_missions", []))
 	campaign_level = cfg.get_value("campaign", "campaign_level", 1)
