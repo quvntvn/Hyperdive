@@ -29,7 +29,7 @@ func show_game_over(distance: int) -> void:
 func update_stats(distance: int) -> void:
 	%DistanceLabel.text = "Distance: " + str(distance) + " m"
 	%CoinsRunLabel.text = "Pièces ce run: " + str(Settings.coins_this_run)
-	%BestLabel.text = "Meilleure distance: " + str(Settings.best_distance) + " m"
+	%BestLabel.text = "Record : " + str(Settings.best_distance) + " m"
 
 func _on_rejouer_pressed() -> void:
 	Audio.play_ui_click()

@@ -1,18 +1,18 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene format=3 uid="uid://bw552mkdb2lfy"]
 
-[ext_resource type="Script" path="res://scripts/autoload/audio_manager.gd" id="AudioManagerScript"]
-[ext_resource type="AudioStream" uid="uid://dwfu1v5lrcraq" path="res://assets/audio/sfx/coin_pickup.mp3" id="CoinSFX"]
-[ext_resource type="AudioStream" uid="uid://bn3ww2oygwx8b" path="res://assets/audio/sfx/obstacle_hit.mp3" id="HitSFX"]
+[ext_resource type="AudioStream" uid="uid://dkmgvhi0xg2n5" path="res://assets/audio/sfx/ui_click.mp3" id="5_s06pa"]
+[ext_resource type="Script" uid="uid://ckvw0lu8pyptl" path="res://scripts/autoload/audio_manager.gd" id="AudioManagerScript"]
+[ext_resource type="AudioStream" uid="uid://lx2leo67hbba" path="res://assets/audio/sfx/coin_pickup.mp3" id="CoinSFX"]
+[ext_resource type="AudioStream" uid="uid://e5dm2ifod6wr" path="res://assets/audio/music/fall_whoosh.mp3" id="FallWhoosh"]
 [ext_resource type="AudioStream" uid="uid://y2q28f0cqtwu" path="res://assets/audio/sfx/game_over.mp3" id="GameOverSFX"]
-[ext_resource type="AudioStream" uid="uid://dk42lg6un3p1u" path="res://assets/audio/sfx/ui_click.wav" id="UIClickSFX"]
-[ext_resource type="AudioStream" path="res://assets/audio/music/gameplay_loop.mp3" id="GameplayMusic"]
-[ext_resource type="AudioStream" path="res://assets/audio/music/fall_whoosh.mp3" id="FallWhoosh"]
+[ext_resource type="AudioStream" uid="uid://bryp327lrs56n" path="res://assets/audio/music/gameplay_loop.mp3" id="GameplayMusic"]
+[ext_resource type="AudioStream" uid="uid://bn3ww2oygwx8b" path="res://assets/audio/sfx/obstacle_hit.mp3" id="HitSFX"]
 
-[node name="AudioManager" type="Node"]
+[node name="AudioManager" type="Node" unique_id=173985583]
 script = ExtResource("AudioManagerScript")
 coin_sfx = ExtResource("CoinSFX")
 hit_sfx = ExtResource("HitSFX")
 game_over_sfx = ExtResource("GameOverSFX")
-ui_click_sfx = ExtResource("UIClickSFX")
+ui_click_sfx = ExtResource("5_s06pa")
 gameplay_music = ExtResource("GameplayMusic")
 fall_whoosh = ExtResource("FallWhoosh")
