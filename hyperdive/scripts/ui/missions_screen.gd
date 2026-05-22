@@ -10,6 +10,7 @@ func _ready() -> void:
 	_mission_list = $Panel/Layout/ScrollContainer/MissionList
 	$Panel/Layout/MenuButton.pressed.connect(_on_menu_pressed)
 	Settings.mission_claimed.connect(func() -> void: refresh())
+	Settings.daily_claimed_signal.connect(func() -> void: refresh())
 	Settings.coin_collected.connect(func(_n: int) -> void: refresh())
 	refresh()
 
@@ -18,8 +19,78 @@ func refresh() -> void:
 	for child in _mission_list.get_children():
 		_mission_list.remove_child(child)
 		child.queue_free()
+	_add_section_label("DÉFIS DU JOUR", Color(0.914, 0.310, 0.216))
+	for ch in Settings.daily_challenges:
+		_build_daily_row(ch)
+	var sep := HSeparator.new()
+	_mission_list.add_child(sep)
+	_add_section_label("DÉFIS PERMANENTS", Color(0.957, 0.914, 0.804))
 	for mission in Catalog.MISSIONS:
 		_build_row(mission)
+
+func _add_section_label(title: String, color: Color) -> void:
+	var lbl := Label.new()
+	lbl.text = title
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 24)
+	lbl.add_theme_color_override("font_color", color)
+	_mission_list.add_child(lbl)
+
+func _build_daily_row(ch: Dictionary) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var desc_label := Label.new()
+	desc_label.text = ch["desc"]
+	desc_label.add_theme_font_size_override("font_size", 18)
+	desc_label.add_theme_color_override("font_color", Color(0.80, 0.78, 0.72))
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.add_child(desc_label)
+	row.add_child(info)
+	var id: String = ch["id"]
+	var progress: int = Settings.daily_progress.get(id, 0)
+	var target: int = ch["target"]
+	var reward: int = ch["reward"]
+	if Settings.is_daily_claimed(id):
+		var claimed_label := Label.new()
+		claimed_label.text = "✓ Réclamé"
+		claimed_label.add_theme_font_size_override("font_size", 18)
+		claimed_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.58))
+		row.add_child(claimed_label)
+	elif Settings.is_daily_complete(ch):
+		var btn := Button.new()
+		btn.text = "RÉCLAMER " + str(reward)
+		btn.custom_minimum_size = Vector2(148.0, 48.0)
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0.235, 0.682, 0.639)
+		style.set_corner_radius_all(6)
+		style.content_margin_left = 10.0
+		style.content_margin_right = 10.0
+		btn.add_theme_stylebox_override("normal", style)
+		var hover_style := style.duplicate() as StyleBoxFlat
+		hover_style.bg_color = Color(0.32, 0.78, 0.73)
+		btn.add_theme_stylebox_override("hover", hover_style)
+		btn.add_theme_color_override("font_color", Color(0.957, 0.914, 0.804))
+		btn.pressed.connect(func() -> void:
+			Audio.play_ui_click()
+			Settings.claim_daily(ch))
+		row.add_child(btn)
+	else:
+		var prog_label := Label.new()
+		prog_label.text = _format_daily_progress(ch, progress, target)
+		prog_label.add_theme_font_size_override("font_size", 18)
+		prog_label.add_theme_color_override("font_color", Color(0.949, 0.757, 0.306))
+		row.add_child(prog_label)
+	_mission_list.add_child(row)
+
+func _format_daily_progress(ch: Dictionary, progress: int, target: int) -> String:
+	match ch["type"]:
+		"distance": return "%d/%d m" % [progress, target]
+		"coins":    return "%d/%d pièces" % [progress, target]
+		"time":     return "%ds/%ds" % [progress, target]
+		"games":    return "%d/%d parties" % [progress, target]
+	return "%d/%d" % [progress, target]
 
 func _build_row(mission: Dictionary) -> void:
 	var row := HBoxContainer.new()
@@ -92,6 +163,7 @@ func _format_progress(mission: Dictionary, progress: int, target: int) -> String
 	return "%d/%d" % [progress, target]
 
 func open() -> void:
+	Settings.ensure_daily_challenges()
 	visible = true
 	refresh()
 
