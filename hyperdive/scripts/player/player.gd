@@ -68,6 +68,11 @@ func _setup_fall_trail() -> void:
 	var sphere := SphereMesh.new()
 	sphere.radius = 0.06
 	sphere.height = 0.12
+	var sphere_mat := StandardMaterial3D.new()
+	sphere_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	sphere_mat.vertex_color_use_as_albedo = true
+	sphere_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	sphere.surface_set_material(0, sphere_mat)
 	trail.draw_pass_1 = sphere
 
 	add_child(trail)
