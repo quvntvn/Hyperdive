@@ -26,8 +26,8 @@ Audio="*res://scenes/autoload/audio_manager.tscn"
 window/size/viewport_width=540
 window/size/viewport_height=960
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
-window/handheld/orientation="portrait"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
 
 [input]
 
@@ -50,7 +50,9 @@ pointing/emulate_touch_from_mouse=true
 
 [physics]
 
+common/physics_ticks_per_second=120
 3d/physics_engine="Jolt Physics"
+common/physics_interpolation=true
 
 [rendering]
 
