@@ -57,7 +57,7 @@ disabled = true
 
 [node name="TrailsCatBtn" type="Button" parent="ShopPanel/Layout/CategoryButtons"]
 custom_minimum_size = Vector2(120.0, 44.0)
-text = "TRAILS"
+text = "SANG"
 
 [node name="ThemesCatBtn" type="Button" parent="ShopPanel/Layout/CategoryButtons"]
 custom_minimum_size = Vector2(120.0, 44.0)
