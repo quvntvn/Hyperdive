@@ -14,6 +14,7 @@ signal equipped_trail_changed(trail_id: String)
 signal owned_themes_changed
 signal equipped_theme_changed(theme_id: String)
 signal mission_claimed
+signal daily_claimed_signal
 signal volume_changed
 
 var control_mode: ControlMode = ControlMode.KEYBOARD
@@ -34,10 +35,27 @@ var campaign_level: int = 1
 var active_mode: String = "infinite"
 var active_level: int = 1
 
+var daily_date: String = ""
+var daily_challenges: Array = []
+var daily_progress: Dictionary = {}
+var daily_claimed: Array[String] = []
+var daily_coins: int = 0
+var daily_distance: int = 0
+var daily_time: int = 0
+var daily_games: int = 0
+
 const SAVE_PATH: String = "user://settings.cfg"
+
+const DAILY_POOL: Array = [
+	{"type": "distance", "targets": [300, 500, 800]},
+	{"type": "coins",    "targets": [20, 40, 60]},
+	{"type": "time",     "targets": [60, 120, 180]},
+	{"type": "games",    "targets": [3, 5, 8]},
+]
 
 func _ready() -> void:
 	load_settings()
+	ensure_daily_challenges()
 	if OS.has_feature("mobile") and control_mode == ControlMode.KEYBOARD:
 		control_mode = ControlMode.TOUCH
 
@@ -77,6 +95,8 @@ func set_control_mode_value(mode: ControlMode) -> void:
 func add_coin() -> void:
 	coins_total += 1
 	coins_this_run += 1
+	daily_coins += 1
+	update_daily_progress()
 	coin_collected.emit(coins_total)
 	save_settings()
 
@@ -182,6 +202,89 @@ func claim_mission(mission: Dictionary) -> bool:
 	save_settings()
 	return true
 
+func _today_string() -> String:
+	var d: Dictionary = Time.get_date_dict_from_system()
+	return "%04d-%02d-%02d" % [int(d.year), int(d.month), int(d.day)]
+
+func ensure_daily_challenges() -> void:
+	var today: String = _today_string()
+	if daily_date == today:
+		return
+	daily_date = today
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(daily_date.replace("-", ""))
+	var available: Array[int] = [0, 1, 2, 3]
+	var chosen: Array[int] = []
+	while chosen.size() < 3:
+		var pick: int = rng.randi_range(0, available.size() - 1)
+		chosen.append(available[pick])
+		available.remove_at(pick)
+	daily_challenges = []
+	var slot: int = 0
+	for pool_idx in chosen:
+		var entry: Dictionary = DAILY_POOL[pool_idx]
+		var targets: Array = entry["targets"]
+		var target: int = targets[rng.randi_range(0, targets.size() - 1)]
+		daily_challenges.append(_make_daily_challenge(entry["type"], target, slot))
+		slot += 1
+	daily_progress = {}
+	daily_claimed.clear()
+	daily_coins = 0
+	daily_distance = 0
+	daily_time = 0
+	daily_games = 0
+	save_settings()
+
+func _make_daily_challenge(type: String, target: int, slot: int) -> Dictionary:
+	var id: String = "daily_" + str(slot)
+	var desc: String
+	var reward: int
+	match type:
+		"distance":
+			desc = "Parcours %dm cumulé aujourd'hui" % target
+			reward = target / 10
+		"coins":
+			desc = "Ramasse %d pièces aujourd'hui" % target
+			reward = target
+		"time":
+			desc = "Joue %ds aujourd'hui" % target
+			reward = target / 2
+		"games":
+			desc = "Joue %d parties aujourd'hui" % target
+			reward = target * 8
+		_:
+			desc = "?"
+			reward = 0
+	return {"id": id, "type": type, "target": target, "desc": desc, "reward": reward}
+
+func update_daily_progress() -> void:
+	for ch in daily_challenges:
+		var val: int
+		match ch["type"]:
+			"distance": val = daily_distance
+			"coins":    val = daily_coins
+			"time":     val = daily_time
+			"games":    val = daily_games
+			_:          val = 0
+		daily_progress[ch["id"]] = val
+
+func is_daily_complete(ch: Dictionary) -> bool:
+	return daily_progress.get(ch["id"], 0) >= ch["target"]
+
+func is_daily_claimed(id: String) -> bool:
+	return id in daily_claimed
+
+func claim_daily(ch: Dictionary) -> bool:
+	var id: String = ch["id"]
+	if not is_daily_complete(ch) or is_daily_claimed(id):
+		return false
+	coins_total += ch["reward"]
+	daily_claimed.append(id)
+	coin_collected.emit(coins_total)
+	daily_claimed_signal.emit()
+	save_settings()
+	return true
+
 func get_level_duration(level: int) -> float:
 	return 30.0 + float(level - 1) * 5.0
 
@@ -214,6 +317,14 @@ func save_settings() -> void:
 	cfg.set_value("cosmetics", "equipped_theme", equipped_theme)
 	cfg.set_value("missions", "claimed_missions", claimed_missions)
 	cfg.set_value("campaign", "campaign_level", campaign_level)
+	cfg.set_value("daily", "date", daily_date)
+	cfg.set_value("daily", "challenges", daily_challenges)
+	cfg.set_value("daily", "progress", daily_progress)
+	cfg.set_value("daily", "claimed", daily_claimed)
+	cfg.set_value("daily", "coins", daily_coins)
+	cfg.set_value("daily", "distance", daily_distance)
+	cfg.set_value("daily", "time", daily_time)
+	cfg.set_value("daily", "games", daily_games)
 	cfg.save(SAVE_PATH)
 
 func load_settings() -> void:
@@ -234,3 +345,11 @@ func load_settings() -> void:
 	equipped_theme = cfg.get_value("cosmetics", "equipped_theme", "default")
 	claimed_missions.assign(cfg.get_value("missions", "claimed_missions", []))
 	campaign_level = cfg.get_value("campaign", "campaign_level", 1)
+	daily_date = cfg.get_value("daily", "date", "")
+	daily_challenges = cfg.get_value("daily", "challenges", [])
+	daily_progress = cfg.get_value("daily", "progress", {})
+	daily_claimed.assign(cfg.get_value("daily", "claimed", []))
+	daily_coins = cfg.get_value("daily", "coins", 0)
+	daily_distance = cfg.get_value("daily", "distance", 0)
+	daily_time = cfg.get_value("daily", "time", 0)
+	daily_games = cfg.get_value("daily", "games", 0)
