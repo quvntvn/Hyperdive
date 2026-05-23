@@ -9,6 +9,7 @@ const TILT_SENSITIVITY: float = 0.25
 const TOUCH_FOLLOW_SPEED: float = 8.0
 const TRAIL_BASE_AMOUNT: int = 40
 const WALL_HIT_COOLDOWN: float = 0.3
+const CHARACTER_BASE_ROT := Vector3(180.0, 0.0, 0.0)
 
 var _is_touching: bool = false
 var _wall_hit_cooldown: float = 0.0
@@ -31,6 +32,7 @@ func _ready() -> void:
 	Settings.daily_games += 1
 	Settings.update_daily_progress()
 	Settings.save_settings()
+	$Character.rotation_degrees = CHARACTER_BASE_ROT
 	body_entered.connect(_on_body_entered)
 	_apply_skin(Settings.equipped_skin)
 	Settings.equipped_skin_changed.connect(_apply_skin)
@@ -249,8 +251,8 @@ func _shake_camera(amount: float) -> void:
 func _body_recoil() -> void:
 	var tween := create_tween()
 	tween.tween_property($Character, "rotation_degrees",
-		Vector3(randf_range(-12.0, 12.0), 0.0, randf_range(-8.0, 8.0)), 0.05)
-	tween.tween_property($Character, "rotation_degrees", Vector3.ZERO, 0.15)
+		CHARACTER_BASE_ROT + Vector3(randf_range(-12.0, 12.0), 0.0, randf_range(-8.0, 8.0)), 0.05)
+	tween.tween_property($Character, "rotation_degrees", CHARACTER_BASE_ROT, 0.15)
 
 func _physics_process(delta: float) -> void:
 	if _is_dead:
@@ -285,11 +287,12 @@ func _process(delta: float) -> void:
 	_jolt = move_toward(_jolt, 0.0, delta * 4.0)
 	var lateral: float = linear_velocity.x
 	# speed, phase, base_z, z_amp, x_amp, lat_z, jolt_z, jolt_x
-	_apply_limb_sway($Character/ArmLeft,  lateral, delta, 3.1, 0.0, -150.0, 21.0,  9.0, -1.2,  45.0,  12.0)
-	_apply_limb_sway($Character/ArmRight, lateral, delta, 2.8, 1.7,  150.0, 18.0, 11.0, -1.2, -38.0, -20.0)
-	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.3, 0.9,  -22.0,  9.0, 11.0, -0.5,  25.0,  30.0)
-	_apply_limb_sway($Character/LegRight, lateral, delta, 2.6, 2.4,   22.0,  8.0, 12.0, -0.5, -20.0, -25.0)
-	_apply_limb_sway($Character/Head,     lateral, delta, 1.8, 3.2,    0.0,  8.0,  5.0, -0.4,  20.0,   8.0)
+	# lat_z positif car Character est flippé X=180° (Z local = -Z monde)
+	_apply_limb_sway($Character/ArmLeft,  lateral, delta, 3.1, 0.0,  80.0, 21.0,  9.0, 1.2,  45.0,  12.0)
+	_apply_limb_sway($Character/ArmRight, lateral, delta, 2.8, 1.7, -80.0, 18.0, 11.0, 1.2, -38.0, -20.0)
+	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.3, 0.9,  40.0,  9.0, 11.0, 0.5,  25.0,  30.0)
+	_apply_limb_sway($Character/LegRight, lateral, delta, 2.6, 2.4, -40.0,  8.0, 12.0, 0.5, -20.0, -25.0)
+	_apply_limb_sway($Character/Head,     lateral, delta, 1.8, 3.2,   0.0,  8.0,  5.0, 0.4,  20.0,   8.0)
 
 func _apply_limb_sway(node: Node3D, lateral: float, delta: float,
 		speed: float, phase: float,
