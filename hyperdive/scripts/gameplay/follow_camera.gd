@@ -20,6 +20,9 @@ func _ready() -> void:
 func shake(amount: float) -> void:
 	_shake_intensity = amount
 
+func set_target(node: Node3D) -> void:
+	target = node
+
 func _process(delta: float) -> void:
 	if target == null:
 		return
