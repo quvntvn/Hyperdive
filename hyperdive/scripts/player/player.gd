@@ -136,6 +136,8 @@ func _trigger_ragdoll() -> void:
 	$CollisionShape3D.disabled = true
 	freeze = true
 	Audio.set_whoosh_intensity(0.0)
+	if _trail_node:
+		_trail_node.emitting = false
 
 	var rag: Node3D = preload("res://scenes/player/ragdoll.tscn").instantiate()
 	get_tree().current_scene.add_child(rag)
