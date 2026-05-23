@@ -286,21 +286,22 @@ func _process(delta: float) -> void:
 	_sway_time += delta
 	_jolt = move_toward(_jolt, 0.0, delta * 4.0)
 	var lateral: float = linear_velocity.x
-	# speed, phase, base_z, z_amp, x_amp, lat_z, jolt_z, jolt_x
+	# speed, phase, base_z, z_amp, x_amp, lat_z, jolt_z, jolt_x, base_x
 	# lat_z positif car Character est flippé X=180° (Z local = -Z monde)
-	_apply_limb_sway($Character/ArmLeft,  lateral, delta, 3.1, 0.0,  80.0, 21.0,  9.0, 1.2,  45.0,  12.0)
-	_apply_limb_sway($Character/ArmRight, lateral, delta, 2.8, 1.7, -80.0, 18.0, 11.0, 1.2, -38.0, -20.0)
-	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.3, 0.9,  40.0,  9.0, 11.0, 0.5,  25.0,  30.0)
-	_apply_limb_sway($Character/LegRight, lateral, delta, 2.6, 2.4, -40.0,  8.0, 12.0, 0.5, -20.0, -25.0)
-	_apply_limb_sway($Character/Head,     lateral, delta, 1.8, 3.2,   0.0,  8.0,  5.0, 0.4,  20.0,   8.0)
+	# base_x positif = bras tirés légèrement vers l'arrière (vers la caméra)
+	_apply_limb_sway($Character/ArmLeft,  lateral, delta, 3.1, 0.0,  115.0, 15.0,  7.0, 1.2,  40.0,  10.0, 22.0)
+	_apply_limb_sway($Character/ArmRight, lateral, delta, 2.8, 1.7, -115.0, 13.0,  7.0, 1.2, -35.0, -18.0, 22.0)
+	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.3, 0.9,   58.0,  9.0, 10.0, 0.5,  25.0,  28.0)
+	_apply_limb_sway($Character/LegRight, lateral, delta, 2.6, 2.4,  -58.0,  8.0, 10.0, 0.5, -20.0, -24.0)
+	_apply_limb_sway($Character/Head,     lateral, delta, 1.8, 3.2,    0.0,  8.0,  5.0, 0.4,  20.0,   8.0)
 
 func _apply_limb_sway(node: Node3D, lateral: float, delta: float,
 		speed: float, phase: float,
 		base_z: float, z_amp: float, x_amp: float, lat_z: float,
-		jolt_z: float, jolt_x: float) -> void:
+		jolt_z: float, jolt_x: float, base_x: float = 0.0) -> void:
 	var s: float = sin(_sway_time * speed + phase)
 	var target := Vector3(
-		s * x_amp + _jolt * jolt_x,
+		base_x + s * x_amp + _jolt * jolt_x,
 		0.0,
 		base_z + s * z_amp + lateral * lat_z + _jolt * jolt_z
 	)
