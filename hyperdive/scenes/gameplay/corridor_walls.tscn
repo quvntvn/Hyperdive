@@ -26,7 +26,7 @@ absorbent = false
 [node name="CorridorWalls" type="Node3D"]
 script = ExtResource("Script_1")
 
-[node name="LeftWall" type="StaticBody3D" parent="."]
+[node name="LeftWall" type="StaticBody3D" parent="." groups=["walls"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 0, 0)
 physics_material_override = SubResource("WallPhysMat_1")
 
@@ -38,7 +38,7 @@ material_override = SubResource("ShaderMat_1")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="LeftWall"]
 shape = SubResource("WallShape_1")
 
-[node name="RightWall" type="StaticBody3D" parent="."]
+[node name="RightWall" type="StaticBody3D" parent="." groups=["walls"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 0, 0)
 physics_material_override = SubResource("WallPhysMat_1")
 

@@ -8,8 +8,10 @@ const TILT_DEADZONE: float = 0.1
 const TILT_SENSITIVITY: float = 0.25
 const TOUCH_FOLLOW_SPEED: float = 8.0
 const TRAIL_BASE_AMOUNT: int = 40
+const WALL_HIT_COOLDOWN: float = 0.3
 
 var _is_touching: bool = false
+var _wall_hit_cooldown: float = 0.0
 var _touch_target_x: float = 0.0
 var _is_dead: bool = false
 var _parachute_active: bool = false
@@ -109,6 +111,13 @@ func _on_level_survived() -> void:
 
 func _on_body_entered(body: Node3D) -> void:
 	if _is_dead or _level_completed:
+		return
+	if body.is_in_group("walls"):
+		if _wall_hit_cooldown <= 0.0:
+			Audio.play_hit()
+			_shake_camera(0.15)
+			_jolt = 0.4
+			_wall_hit_cooldown = WALL_HIT_COOLDOWN
 		return
 	if not body.is_in_group("obstacles"):
 		return
@@ -244,6 +253,7 @@ func _body_recoil() -> void:
 func _physics_process(delta: float) -> void:
 	if _is_dead:
 		return
+	_wall_hit_cooldown = maxf(_wall_hit_cooldown - delta, 0.0)
 	if not _level_completed:
 		_run_time += delta
 	if _parachute_active:
