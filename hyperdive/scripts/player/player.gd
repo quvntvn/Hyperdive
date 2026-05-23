@@ -139,6 +139,7 @@ func _on_body_entered(body: Node3D) -> void:
 	_update_trail_state(lives)
 	_flash_hit()
 	_shake_camera(0.3)
+	_body_recoil()
 	_jolt = 1.0
 	_invincibility_left = INVINCIBILITY_TIME
 	life_lost.emit(lives)
@@ -271,6 +272,12 @@ func _shake_camera(amount: float) -> void:
 	if cam and cam.has_method("shake"):
 		cam.shake(amount)
 
+func _body_recoil() -> void:
+	var tween := create_tween()
+	tween.tween_property($Character, "rotation_degrees",
+		Vector3(randf_range(-12.0, 12.0), 0.0, randf_range(-8.0, 8.0)), 0.05)
+	tween.tween_property($Character, "rotation_degrees", Vector3.ZERO, 0.15)
+
 func _physics_process(delta: float) -> void:
 	if _is_dead:
 		return
@@ -304,11 +311,11 @@ func _process(delta: float) -> void:
 	_jolt = move_toward(_jolt, 0.0, delta * 4.0)
 	var lateral: float = linear_velocity.x
 	# speed, phase, base_z, z_amp, x_amp, lat_z, jolt_z, jolt_x
-	_apply_limb_sway($Character/ArmLeft,  lateral, delta, 3.1, 0.0, -150.0, 14.0, 6.0, -1.2,  18.0,   5.0)
-	_apply_limb_sway($Character/ArmRight, lateral, delta, 2.8, 1.7,  150.0, 12.0, 7.0, -1.2, -15.0,  -8.0)
-	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.3, 0.9,  -22.0,  6.0, 7.0, -0.5,  10.0,  12.0)
-	_apply_limb_sway($Character/LegRight, lateral, delta, 2.6, 2.4,   22.0,  5.0, 8.0, -0.5,  -8.0, -10.0)
-	_apply_limb_sway($Character/Head,     lateral, delta, 1.8, 3.2,    0.0,  5.0, 3.0, -0.4,   8.0,   3.0)
+	_apply_limb_sway($Character/ArmLeft,  lateral, delta, 3.1, 0.0, -150.0, 21.0,  9.0, -1.2,  45.0,  12.0)
+	_apply_limb_sway($Character/ArmRight, lateral, delta, 2.8, 1.7,  150.0, 18.0, 11.0, -1.2, -38.0, -20.0)
+	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.3, 0.9,  -22.0,  9.0, 11.0, -0.5,  25.0,  30.0)
+	_apply_limb_sway($Character/LegRight, lateral, delta, 2.6, 2.4,   22.0,  8.0, 12.0, -0.5, -20.0, -25.0)
+	_apply_limb_sway($Character/Head,     lateral, delta, 1.8, 3.2,    0.0,  8.0,  5.0, -0.4,  20.0,   8.0)
 
 func _apply_limb_sway(node: Node3D, lateral: float, delta: float,
 		speed: float, phase: float,
