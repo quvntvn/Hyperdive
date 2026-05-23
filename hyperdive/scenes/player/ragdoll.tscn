@@ -1,0 +1,139 @@
+[gd_scene load_steps=10 format=3]
+
+[sub_resource type="StandardMaterial3D" id="BodyMat"]
+local_to_scene = true
+shading_mode = 1
+albedo_color = Color(0.914, 0.310, 0.216, 1)
+
+[sub_resource type="BoxMesh" id="TorsoMesh"]
+size = Vector3(0.39, 0.60, 0.24)
+
+[sub_resource type="SphereMesh" id="HeadMesh"]
+radius = 0.195
+height = 0.39
+
+[sub_resource type="CapsuleMesh" id="ArmMesh"]
+radius = 0.075
+height = 0.54
+
+[sub_resource type="CapsuleMesh" id="LegMesh"]
+radius = 0.09
+height = 0.60
+
+[sub_resource type="BoxShape3D" id="TorsoShape"]
+size = Vector3(0.39, 0.60, 0.24)
+
+[sub_resource type="SphereShape3D" id="HeadShape"]
+radius = 0.195
+
+[sub_resource type="CapsuleShape3D" id="ArmShape"]
+radius = 0.075
+height = 0.54
+
+[sub_resource type="CapsuleShape3D" id="LegShape"]
+radius = 0.09
+height = 0.60
+
+[node name="Ragdoll" type="Node3D"]
+
+[node name="Torso" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+mass = 3.0
+continuous_cd = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Torso"]
+mesh = SubResource("TorsoMesh")
+material_override = SubResource("BodyMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Torso"]
+shape = SubResource("TorsoShape")
+
+[node name="Head" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.63, 0)
+mass = 1.0
+continuous_cd = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Head"]
+mesh = SubResource("HeadMesh")
+material_override = SubResource("BodyMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Head"]
+shape = SubResource("HeadShape")
+
+[node name="ArmLeft" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.285, 0.15, 0)
+mass = 0.8
+continuous_cd = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ArmLeft"]
+mesh = SubResource("ArmMesh")
+material_override = SubResource("BodyMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ArmLeft"]
+shape = SubResource("ArmShape")
+
+[node name="ArmRight" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.285, 0.15, 0)
+mass = 0.8
+continuous_cd = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ArmRight"]
+mesh = SubResource("ArmMesh")
+material_override = SubResource("BodyMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ArmRight"]
+shape = SubResource("ArmShape")
+
+[node name="LegLeft" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.105, -0.42, 0)
+mass = 1.0
+continuous_cd = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="LegLeft"]
+mesh = SubResource("LegMesh")
+material_override = SubResource("BodyMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LegLeft"]
+shape = SubResource("LegShape")
+
+[node name="LegRight" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.105, -0.42, 0)
+mass = 1.0
+continuous_cd = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="LegRight"]
+mesh = SubResource("LegMesh")
+material_override = SubResource("BodyMat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LegRight"]
+shape = SubResource("LegShape")
+
+[node name="NeckJoint" type="PinJoint3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+node_a = NodePath("../Torso")
+node_b = NodePath("../Head")
+exclude_nodes_from_collision = true
+
+[node name="ShoulderLJoint" type="PinJoint3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.20, 0.30, 0)
+node_a = NodePath("../Torso")
+node_b = NodePath("../ArmLeft")
+exclude_nodes_from_collision = true
+
+[node name="ShoulderRJoint" type="PinJoint3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.20, 0.30, 0)
+node_a = NodePath("../Torso")
+node_b = NodePath("../ArmRight")
+exclude_nodes_from_collision = true
+
+[node name="HipLJoint" type="PinJoint3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.105, -0.15, 0)
+node_a = NodePath("../Torso")
+node_b = NodePath("../LegLeft")
+exclude_nodes_from_collision = true
+
+[node name="HipRJoint" type="PinJoint3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.105, -0.15, 0)
+node_a = NodePath("../Torso")
+node_b = NodePath("../LegRight")
+exclude_nodes_from_collision = true
