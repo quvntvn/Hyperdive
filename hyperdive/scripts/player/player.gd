@@ -139,6 +139,7 @@ func _on_body_entered(body: Node3D) -> void:
 	_update_trail_state(lives)
 	_flash_hit()
 	_shake_camera(0.3)
+	_jolt = 1.0
 	_invincibility_left = INVINCIBILITY_TIME
 	life_lost.emit(lives)
 	Audio.play_hit()
