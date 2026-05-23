@@ -9,7 +9,7 @@ const TILT_SENSITIVITY: float = 0.25
 const TOUCH_FOLLOW_SPEED: float = 8.0
 const TRAIL_BASE_AMOUNT: int = 40
 const WALL_HIT_COOLDOWN: float = 0.3
-const CHARACTER_BASE_ROT := Vector3(180.0, 0.0, 0.0)
+const CHARACTER_BASE_ROT := Vector3(205.0, 0.0, 0.0)
 
 var _is_touching: bool = false
 var _wall_hit_cooldown: float = 0.0
