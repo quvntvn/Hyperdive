@@ -241,27 +241,6 @@ func _update_touch_target(screen_pos: Vector2) -> void:
 	_touch_target_x = lerpf(-5.0, 5.0, normalized)
 
 func _update_damage_state(p_lives: int) -> void:
-	var arm_l := $Character/ArmLeft
-	var arm_r := $Character/ArmRight
-	var leg_r := $Character/LegRight
-	var head := $Character/Head
-	var arm_l_rot := Vector3.ZERO
-	var arm_r_rot := Vector3.ZERO
-	var leg_r_rot := Vector3.ZERO
-	var head_rot := Vector3.ZERO
-	match p_lives:
-		2:
-			arm_r_rot = Vector3(0, 0, -50)
-		1:
-			arm_r_rot = Vector3(0, 0, -90)
-			arm_l_rot = Vector3(0, 0, 50)
-			leg_r_rot = Vector3(35, 0, 0)
-			head_rot = Vector3(0, 0, 25)
-	var tween := create_tween().set_parallel(true)
-	tween.tween_property(arm_l, "rotation_degrees", arm_l_rot, 0.2)
-	tween.tween_property(arm_r, "rotation_degrees", arm_r_rot, 0.2)
-	tween.tween_property(leg_r, "rotation_degrees", leg_r_rot, 0.2)
-	tween.tween_property(head, "rotation_degrees", head_rot, 0.2)
 	_update_body_color(p_lives)
 
 func _get_damage_color(p_lives: int) -> Color:
