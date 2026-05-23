@@ -22,6 +22,8 @@ var _run_time: float = 0.0
 var _base_skin_color: Color = Color.WHITE
 var _trail_gradient: Gradient
 var _trail_node: GPUParticles3D
+var _sway_time: float = 0.0
+var _jolt: float = 0.0
 
 signal life_lost(remaining_lives: int)
 signal game_over
@@ -293,3 +295,28 @@ func _physics_process(delta: float) -> void:
 	if linear_velocity.y < -MAX_FALL_SPEED:
 		linear_velocity.y = -MAX_FALL_SPEED
 	Audio.set_whoosh_intensity(linear_velocity.y)
+
+func _process(delta: float) -> void:
+	if _is_dead or _parachute_active:
+		return
+	_sway_time += delta
+	_jolt = move_toward(_jolt, 0.0, delta * 4.0)
+	var lateral: float = linear_velocity.x
+	# speed, phase, z_amp, x_amp, lat_z, jolt_z, jolt_x
+	_apply_limb_sway($Character/ArmLeft,  lateral, delta, 3.1, 0.0, 14.0, 6.0, -1.2,  18.0,   5.0)
+	_apply_limb_sway($Character/ArmRight, lateral, delta, 2.8, 1.7, 12.0, 7.0, -1.2, -15.0,  -8.0)
+	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.3, 0.9,  6.0, 7.0, -0.5,  10.0,  12.0)
+	_apply_limb_sway($Character/LegRight, lateral, delta, 2.6, 2.4,  5.0, 8.0, -0.5,  -8.0, -10.0)
+	_apply_limb_sway($Character/Head,     lateral, delta, 1.8, 3.2,  5.0, 3.0, -0.4,   8.0,   3.0)
+
+func _apply_limb_sway(node: Node3D, lateral: float, delta: float,
+		speed: float, phase: float,
+		z_amp: float, x_amp: float, lat_z: float,
+		jolt_z: float, jolt_x: float) -> void:
+	var s: float = sin(_sway_time * speed + phase)
+	var target := Vector3(
+		s * x_amp + _jolt * jolt_x,
+		0.0,
+		s * z_amp + lateral * lat_z + _jolt * jolt_z
+	)
+	node.rotation_degrees = node.rotation_degrees.lerp(target, delta * 8.0)
