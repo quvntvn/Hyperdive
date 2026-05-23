@@ -291,8 +291,8 @@ func _process(delta: float) -> void:
 	# base_x positif = bras tirés légèrement vers l'arrière (vers la caméra)
 	_apply_limb_sway($Character/ArmLeft,  lateral, delta, 3.1, 0.0,  115.0, 15.0,  7.0, 1.2,  40.0,  10.0, 22.0)
 	_apply_limb_sway($Character/ArmRight, lateral, delta, 2.8, 1.7, -115.0, 13.0,  7.0, 1.2, -35.0, -18.0, 22.0)
-	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.3, 0.9,   58.0,  9.0, 10.0, 0.5,  25.0,  28.0)
-	_apply_limb_sway($Character/LegRight, lateral, delta, 2.6, 2.4,  -58.0,  8.0, 10.0, 0.5, -20.0, -24.0)
+	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.3, 0.9,  -35.0,  9.0, 10.0, 0.5, -22.0,  28.0)
+	_apply_limb_sway($Character/LegRight, lateral, delta, 2.6, 2.4,   35.0,  8.0, 10.0, 0.5,  20.0, -24.0)
 	_apply_limb_sway($Character/Head,     lateral, delta, 1.8, 3.2,    0.0,  8.0,  5.0, 0.4,  20.0,   8.0)
 
 func _apply_limb_sway(node: Node3D, lateral: float, delta: float,
