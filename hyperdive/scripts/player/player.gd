@@ -6,15 +6,11 @@ const MAX_LATERAL_SPEED: float = 12.0
 const MAX_FALL_SPEED: float = 18.0
 const TILT_DEADZONE: float = 0.1
 const TILT_SENSITIVITY: float = 0.25
-const MAX_LIVES: int = 3
-const INVINCIBILITY_TIME: float = 1.0
 const TOUCH_FOLLOW_SPEED: float = 8.0
 const TRAIL_BASE_AMOUNT: int = 40
 
 var _is_touching: bool = false
 var _touch_target_x: float = 0.0
-var lives: int = MAX_LIVES
-var _invincibility_left: float = 0.0
 var _is_dead: bool = false
 var _parachute_active: bool = false
 var _level_completed: bool = false
@@ -25,7 +21,6 @@ var _trail_node: GPUParticles3D
 var _sway_time: float = 0.0
 var _jolt: float = 0.0
 
-signal life_lost(remaining_lives: int)
 signal game_over
 
 func _ready() -> void:
@@ -37,10 +32,9 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	_apply_skin(Settings.equipped_skin)
 	Settings.equipped_skin_changed.connect(_apply_skin)
-	_update_damage_state(MAX_LIVES)
+	_update_body_color()
 	_setup_fall_trail()
 	_apply_trail()
-	_update_trail_state(MAX_LIVES)
 	Settings.equipped_trail_changed.connect(func(_id: String) -> void: _apply_trail())
 
 func _setup_fall_trail() -> void:
@@ -80,21 +74,6 @@ func _setup_fall_trail() -> void:
 	add_child(trail)
 	_trail_node = trail
 
-func _update_trail_state(p_lives: int) -> void:
-	if _trail_node == null:
-		return
-	match p_lives:
-		3:
-			_trail_node.emitting = false
-		2:
-			_trail_node.emitting = true
-			_trail_node.amount = TRAIL_BASE_AMOUNT
-		1:
-			_trail_node.emitting = true
-			_trail_node.amount = TRAIL_BASE_AMOUNT * 2
-		_:
-			_trail_node.emitting = false
-
 func _apply_trail() -> void:
 	if _trail_gradient == null:
 		return
@@ -107,14 +86,13 @@ func _apply_skin(skin_id: String) -> void:
 	_base_skin_color = skin["color"]
 	var mat := $Character/Torso.material_override as StandardMaterial3D
 	if mat:
-		_update_body_color(lives)
+		_update_body_color()
 
 func _on_level_survived() -> void:
 	if _level_completed:
 		return
 	_level_completed = true
 	_parachute_active = true
-	_invincibility_left = 10.0
 	var distance: int = int(abs(global_position.y))
 	Settings.daily_distance += distance
 	Settings.daily_time += int(_run_time)
@@ -130,23 +108,17 @@ func _on_level_survived() -> void:
 	get_tree().change_scene_to_file("res://scenes/ui/level_screen.tscn")
 
 func _on_body_entered(body: Node3D) -> void:
-	if _invincibility_left > 0.0 or _is_dead or _level_completed:
+	if _is_dead or _level_completed:
 		return
 	if not body.is_in_group("obstacles"):
 		return
-	lives -= 1
-	_update_damage_state(lives)
-	_update_trail_state(lives)
 	_flash_hit()
 	_shake_camera(0.3)
 	_body_recoil()
 	_jolt = 1.0
-	_invincibility_left = INVINCIBILITY_TIME
-	life_lost.emit(lives)
 	Audio.play_hit()
-	if lives <= 0:
-		_is_dead = true
-		_trigger_ragdoll()
+	_is_dead = true
+	_trigger_ragdoll()
 
 func _trigger_ragdoll() -> void:
 	var death_xform := global_transform
@@ -244,28 +216,19 @@ func _update_touch_target(screen_pos: Vector2) -> void:
 	var normalized: float = clampf(screen_pos.x / screen_width, 0.0, 1.0)
 	_touch_target_x = lerpf(-5.0, 5.0, normalized)
 
-func _update_damage_state(p_lives: int) -> void:
-	_update_body_color(p_lives)
-
-func _get_damage_color(p_lives: int) -> Color:
-	var damage_t: float = 1.0 - float(p_lives) / float(MAX_LIVES)
-	var bruised := Color(0.35, 0.28, 0.38)
-	return _base_skin_color.lerp(bruised, damage_t * 0.5)
-
-func _update_body_color(p_lives: int) -> void:
+func _update_body_color() -> void:
 	var mat := $Character/Torso.material_override as StandardMaterial3D
 	if mat == null:
 		return
-	mat.albedo_color = _get_damage_color(p_lives)
+	mat.albedo_color = _base_skin_color
 
 func _flash_hit() -> void:
 	var mat := $Character/Torso.material_override as StandardMaterial3D
 	if mat == null:
 		return
-	var recover_color := _get_damage_color(lives)
 	var tween := create_tween()
 	tween.tween_property(mat, "albedo_color", Color.WHITE, 0.05)
-	tween.tween_property(mat, "albedo_color", recover_color, 0.10)
+	tween.tween_property(mat, "albedo_color", _base_skin_color, 0.10)
 
 func _shake_camera(amount: float) -> void:
 	var cam := get_tree().get_first_node_in_group("follow_camera")
@@ -283,7 +246,6 @@ func _physics_process(delta: float) -> void:
 		return
 	if not _level_completed:
 		_run_time += delta
-	_invincibility_left = maxf(_invincibility_left - delta, 0.0)
 	if _parachute_active:
 		linear_velocity.y = maxf(linear_velocity.y, -1.5)
 		linear_velocity.x = move_toward(linear_velocity.x, 0.0, 10.0 * delta)
