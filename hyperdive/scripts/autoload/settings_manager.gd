@@ -26,8 +26,8 @@ var coins_this_run: int = 0
 var best_distance: int = 0
 var owned_skins: Array[String] = ["default"]
 var equipped_skin: String = "default"
-var owned_trails: Array[String] = ["sang"]
-var equipped_trail: String = "sang"
+var owned_trails: Array[String] = ["none"]
+var equipped_trail: String = "none"
 var owned_themes: Array[String] = ["default"]
 var equipped_theme: String = "default"
 var claimed_missions: Array[String] = []
@@ -304,13 +304,13 @@ func complete_current_level() -> void:
 func _migrate_trails() -> void:
 	var legacy_ids: Array[String] = ["default", "turquoise", "orange", "mustard", "bordeaux", "creme"]
 	if equipped_trail in legacy_ids:
-		equipped_trail = "sang"
+		equipped_trail = "none"
 	var cleaned: Array[String] = []
 	for tid in owned_trails:
 		if not tid in legacy_ids:
 			cleaned.append(tid)
-	if not "sang" in cleaned:
-		cleaned.insert(0, "sang")
+	if not "none" in cleaned:
+		cleaned.insert(0, "none")
 	owned_trails.assign(cleaned)
 
 func save_settings() -> void:
@@ -351,8 +351,8 @@ func load_settings() -> void:
 	best_distance = cfg.get_value("stats", "best_distance", 0)
 	owned_skins.assign(cfg.get_value("cosmetics", "owned_skins", ["default"]))
 	equipped_skin = cfg.get_value("cosmetics", "equipped_skin", "default")
-	owned_trails.assign(cfg.get_value("cosmetics", "owned_trails", ["sang"]))
-	equipped_trail = cfg.get_value("cosmetics", "equipped_trail", "sang")
+	owned_trails.assign(cfg.get_value("cosmetics", "owned_trails", ["none"]))
+	equipped_trail = cfg.get_value("cosmetics", "equipped_trail", "none")
 	_migrate_trails()
 	owned_themes.assign(cfg.get_value("cosmetics", "owned_themes", ["default"]))
 	equipped_theme = cfg.get_value("cosmetics", "equipped_theme", "default")

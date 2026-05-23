@@ -16,7 +16,8 @@ func get_skin_by_id(id: String) -> Dictionary:
 	return SKINS[0]
 
 const TRAILS: Array[Dictionary] = [
-	{"id": "sang",     "name": "Sang",        "color": Color(0.70, 0.05, 0.05), "price": 0},
+	{"id": "none",     "name": "Aucun",       "color": Color(0.0,  0.0,  0.0,  0.0), "price": 0},
+	{"id": "sang",     "name": "Sang",        "color": Color(0.70, 0.05, 0.05), "price": 15},
 	{"id": "royal",    "name": "Sang royal",   "color": Color(0.15, 0.20, 0.70), "price": 15},
 	{"id": "bile",     "name": "Bile",         "color": Color(0.45, 0.62, 0.10), "price": 20},
 	{"id": "ichor",    "name": "Sang d'or",    "color": Color(0.95, 0.75, 0.12), "price": 25},

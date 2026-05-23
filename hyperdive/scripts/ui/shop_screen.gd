@@ -108,7 +108,17 @@ func _refresh_trails() -> void:
 		row.add_theme_constant_override("separation", 12)
 		var preview := ColorRect.new()
 		preview.custom_minimum_size = Vector2(64.0, 64.0)
-		preview.color = trail["color"]
+		if trail_id == "none":
+			preview.color = Color(0.3, 0.3, 0.3, 0.4)
+			var dash := Label.new()
+			dash.text = "–"
+			dash.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			dash.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			dash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			dash.add_theme_font_size_override("font_size", 32)
+			preview.add_child(dash)
+		else:
+			preview.color = trail["color"]
 		row.add_child(preview)
 		var info := VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -116,7 +126,7 @@ func _refresh_trails() -> void:
 		name_label.text = trail["name"]
 		name_label.add_theme_font_size_override("font_size", 24)
 		var price_label := Label.new()
-		price_label.text = "Prix : " + str(price)
+		price_label.text = "Prix : " + str(price) if price > 0 else "Gratuit"
 		info.add_child(name_label)
 		info.add_child(price_label)
 		row.add_child(info)
