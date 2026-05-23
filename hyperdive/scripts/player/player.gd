@@ -142,34 +142,55 @@ func _on_body_entered(body: Node3D) -> void:
 	Audio.play_hit()
 	if lives <= 0:
 		_is_dead = true
-		_collapse_ragdoll()
-		await get_tree().create_timer(0.4).timeout
-		var distance: int = int(abs(global_position.y))
-		Settings.update_best_distance(distance)
-		Settings.daily_distance += distance
-		Settings.daily_time += int(_run_time)
-		Settings.update_daily_progress()
-		Settings.save_settings()
-		Audio.play_game_over()
-		game_over.emit()
-		var go_screen := get_tree().get_first_node_in_group("game_over_screen")
-		if go_screen:
-			go_screen.show_game_over(distance)
+		_trigger_ragdoll()
 
-func _collapse_ragdoll() -> void:
-	var tween := create_tween().set_parallel(true)
-	tween.tween_property($Character/ArmLeft, "rotation_degrees",
-		Vector3(randf_range(-120.0, 120.0), 0.0, randf_range(-120.0, 120.0)), 0.4)
-	tween.tween_property($Character/ArmRight, "rotation_degrees",
-		Vector3(randf_range(-120.0, 120.0), 0.0, randf_range(-120.0, 120.0)), 0.4)
-	tween.tween_property($Character/LegLeft, "rotation_degrees",
-		Vector3(randf_range(-120.0, 120.0), 0.0, randf_range(-120.0, 120.0)), 0.4)
-	tween.tween_property($Character/LegRight, "rotation_degrees",
-		Vector3(randf_range(-120.0, 120.0), 0.0, randf_range(-120.0, 120.0)), 0.4)
-	tween.tween_property($Character/Head, "rotation_degrees",
-		Vector3(randf_range(-120.0, 120.0), 0.0, randf_range(-120.0, 120.0)), 0.4)
-	tween.tween_property($Character, "rotation_degrees",
-		Vector3(0.0, 0.0, randf_range(-60.0, 60.0)), 0.4)
+func _trigger_ragdoll() -> void:
+	var death_xform := global_transform
+	var death_vel := linear_velocity
+	$Character.visible = false
+	$CollisionShape3D.disabled = true
+	freeze = true
+	Audio.set_whoosh_intensity(0.0)
+
+	var rag: Node3D = preload("res://scenes/player/ragdoll.tscn").instantiate()
+	get_tree().current_scene.add_child(rag)
+	rag.global_transform = death_xform
+
+	var skin_col: Color = _base_skin_color
+	for part: Node in rag.get_children():
+		if part is RigidBody3D:
+			var mi: MeshInstance3D = part.get_node_or_null("MeshInstance3D")
+			if mi and mi.material_override:
+				(mi.material_override as StandardMaterial3D).albedo_color = skin_col
+			var rb := part as RigidBody3D
+			rb.linear_velocity = Vector3(
+				randf_range(-2.0, 2.0),
+				maxf(death_vel.y, -6.0),
+				randf_range(-2.0, 2.0)
+			)
+			rb.apply_torque_impulse(Vector3(
+				randf_range(-3.0, 3.0),
+				randf_range(-3.0, 3.0),
+				randf_range(-3.0, 3.0)
+			))
+
+	var cam := get_tree().get_first_node_in_group("follow_camera")
+	if cam and cam.has_method("set_target"):
+		cam.set_target(rag.get_node("Torso"))
+
+	await get_tree().create_timer(1.2).timeout
+
+	var distance: int = int(abs(global_position.y))
+	Settings.update_best_distance(distance)
+	Settings.daily_distance += distance
+	Settings.daily_time += int(_run_time)
+	Settings.update_daily_progress()
+	Settings.save_settings()
+	Audio.play_game_over()
+	game_over.emit()
+	var go_screen := get_tree().get_first_node_in_group("game_over_screen")
+	if go_screen:
+		go_screen.show_game_over(distance)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if Settings.control_mode == SettingsManager.ControlMode.TOUCH:
@@ -269,7 +290,9 @@ func _shake_camera(amount: float) -> void:
 		cam.shake(amount)
 
 func _physics_process(delta: float) -> void:
-	if not _is_dead and not _level_completed:
+	if _is_dead:
+		return
+	if not _level_completed:
 		_run_time += delta
 	_invincibility_left = maxf(_invincibility_left - delta, 0.0)
 	if _parachute_active:
