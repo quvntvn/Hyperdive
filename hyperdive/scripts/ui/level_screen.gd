@@ -8,6 +8,7 @@ func _ready() -> void:
 	%RewardLabel.text = "Récompense : " + str(Settings.get_level_reward(lvl)) + " pièces"
 	%CommencerButton.pressed.connect(_on_commencer_pressed)
 	%MenuButton.pressed.connect(_on_menu_pressed)
+	UIAnimations.pop_in($Panel, $Background)
 
 func _on_commencer_pressed() -> void:
 	Audio.play_ui_click()

@@ -25,6 +25,7 @@ func show_game_over(distance: int) -> void:
 	Audio.duck_music()
 	visible = true
 	get_tree().paused = true
+	UIAnimations.pop_in($GameOverPanel, $Background)
 
 func update_stats(distance: int) -> void:
 	%DistanceLabel.text = "Distance: " + str(distance) + " m"

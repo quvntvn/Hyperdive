@@ -146,6 +146,7 @@ func open() -> void:
 	Settings.ensure_daily_challenges()
 	visible = true
 	refresh()
+	UIAnimations.pop_in($Panel, $Background)
 
 func _on_menu_pressed() -> void:
 	Audio.play_ui_click()

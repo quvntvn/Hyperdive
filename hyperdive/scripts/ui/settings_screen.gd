@@ -21,6 +21,7 @@ func open() -> void:
 	get_tree().paused = true
 	_refresh_values()
 	visible = true
+	UIAnimations.pop_in($SettingsPanel, $Background)
 
 func close() -> void:
 	Audio.play_ui_click()

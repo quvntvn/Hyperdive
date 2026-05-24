@@ -12,6 +12,7 @@ func open() -> void:
 	visible = true
 	get_tree().paused = true
 	Audio.duck_music()
+	UIAnimations.pop_in($PausePanel, $Background)
 
 func close() -> void:
 	visible = false

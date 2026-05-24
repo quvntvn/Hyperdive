@@ -205,6 +205,7 @@ func open() -> void:
 	visible = true
 	refresh()
 	get_tree().paused = true
+	UIAnimations.pop_in($ShopPanel, $Background)
 
 func _on_close_pressed() -> void:
 	Audio.play_ui_click()
