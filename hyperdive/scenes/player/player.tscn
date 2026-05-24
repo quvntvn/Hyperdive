@@ -67,12 +67,12 @@ mesh = SubResource("ArmMesh")
 material_override = SubResource("BodyMaterial")
 
 [node name="LegLeft" type="MeshInstance3D" parent="Character"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, -0.28, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13, -0.28, 0)
 mesh = SubResource("LegMesh")
 material_override = SubResource("BodyMaterial")
 
 [node name="LegRight" type="MeshInstance3D" parent="Character"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, -0.28, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, -0.28, 0)
 mesh = SubResource("LegMesh")
 material_override = SubResource("BodyMaterial")
 
