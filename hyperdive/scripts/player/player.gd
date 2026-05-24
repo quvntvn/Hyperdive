@@ -215,10 +215,13 @@ func _unhandled_input(event: InputEvent) -> void:
 					shop.open()
 
 func _get_tilt_lateral() -> float:
-	var accel_x: float = Input.get_accelerometer().x
-	if abs(accel_x) < TILT_DEADZONE:
+	# get_gravity() = composante gravité filtrée, plus stable que get_accelerometer()
+	# En portrait Android, incliner à droite → gravity.x > 0 (gravity tire vers la droite du device)
+	# Si le sens est inversé sur le téléphone, inverser le signe ici (-gravity.x)
+	var ax: float = Input.get_gravity().x
+	if abs(ax) < TILT_DEADZONE:
 		return 0.0
-	return clamp(accel_x * TILT_SENSITIVITY, -1.0, 1.0)
+	return clampf(ax * TILT_SENSITIVITY, -1.0, 1.0)
 
 func _get_lateral_input() -> float:
 	match Settings.control_mode:
@@ -275,6 +278,9 @@ func _physics_process(delta: float) -> void:
 			linear_velocity.x = clampf(diff * TOUCH_FOLLOW_SPEED, -MAX_LATERAL_SPEED, MAX_LATERAL_SPEED)
 		else:
 			linear_velocity.x = move_toward(linear_velocity.x, 0.0, MAX_LATERAL_SPEED * delta * 4.0)
+	elif Settings.control_mode == SettingsManager.ControlMode.TILT:
+		var lateral: float = _get_tilt_lateral()
+		linear_velocity.x = lerpf(linear_velocity.x, lateral * MAX_LATERAL_SPEED, delta * 6.0)
 	else:
 		var lateral: float = _get_lateral_input()
 		if lateral != 0.0:
