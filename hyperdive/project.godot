@@ -54,6 +54,10 @@ common/physics_ticks_per_second=120
 3d/physics_engine="Jolt Physics"
 common/physics_interpolation=true
 
+[gui]
+
+theme/custom="res://resources/ui/main_theme.tres"
+
 [rendering]
 
 rendering_device/driver.windows="d3d12"

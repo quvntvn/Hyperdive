@@ -1,0 +1,144 @@
+[gd_resource type="Theme" load_steps=14 format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/Poppins-Regular.ttf" id="FontRegular"]
+[ext_resource type="FontFile" path="res://assets/fonts/Poppins-Medium.ttf" id="FontMedium"]
+[ext_resource type="FontFile" path="res://assets/fonts/Poppins-Bold.ttf" id="FontBold"]
+
+[sub_resource type="StyleBoxFlat" id="BtnNormal"]
+bg_color = Color(0.235, 0.682, 0.639, 1.0)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+content_margin_left = 14.0
+content_margin_right = 14.0
+content_margin_top = 10.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="BtnHover"]
+bg_color = Color(0.32, 0.78, 0.73, 1.0)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+content_margin_left = 14.0
+content_margin_right = 14.0
+content_margin_top = 10.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="BtnPressed"]
+bg_color = Color(0.18, 0.55, 0.51, 1.0)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+content_margin_left = 14.0
+content_margin_right = 14.0
+content_margin_top = 10.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="BtnDisabled"]
+bg_color = Color(0.28, 0.28, 0.26, 0.65)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+content_margin_left = 14.0
+content_margin_right = 14.0
+content_margin_top = 10.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="BtnFocus"]
+bg_color = Color(0.235, 0.682, 0.639, 1.0)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+content_margin_left = 14.0
+content_margin_right = 14.0
+content_margin_top = 10.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="PanelStyle"]
+bg_color = Color(0.10, 0.14, 0.25, 0.93)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+content_margin_left = 20.0
+content_margin_right = 20.0
+content_margin_top = 20.0
+content_margin_bottom = 20.0
+border_width_left = 1
+border_width_right = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(0.235, 0.682, 0.639, 0.25)
+
+[sub_resource type="StyleBoxEmpty" id="EmptyStyle"]
+
+[sub_resource type="StyleBoxFlat" id="ScrollBg"]
+bg_color = Color(0.15, 0.15, 0.14, 0.35)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="ScrollGrabber"]
+bg_color = Color(0.235, 0.682, 0.639, 0.55)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="ScrollGrabberHover"]
+bg_color = Color(0.32, 0.78, 0.73, 0.75)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[resource]
+default_font = ExtResource("FontRegular")
+default_font_size = 22
+
+Button/colors/font_color = Color(0.957, 0.914, 0.804, 1.0)
+Button/colors/font_hover_color = Color(1.0, 1.0, 1.0, 1.0)
+Button/colors/font_pressed_color = Color(0.85, 0.82, 0.72, 1.0)
+Button/colors/font_disabled_color = Color(0.55, 0.55, 0.52, 1.0)
+Button/colors/font_focus_color = Color(0.957, 0.914, 0.804, 1.0)
+Button/fonts/font = ExtResource("FontMedium")
+Button/font_sizes/font_size = 22
+Button/styles/normal = SubResource("BtnNormal")
+Button/styles/hover = SubResource("BtnHover")
+Button/styles/pressed = SubResource("BtnPressed")
+Button/styles/disabled = SubResource("BtnDisabled")
+Button/styles/focus = SubResource("BtnFocus")
+
+Label/colors/font_color = Color(0.957, 0.914, 0.804, 1.0)
+Label/fonts/font = ExtResource("FontRegular")
+Label/font_sizes/font_size = 22
+
+Panel/styles/panel = SubResource("PanelStyle")
+PanelContainer/styles/panel = SubResource("PanelStyle")
+
+ScrollContainer/styles/panel = SubResource("EmptyStyle")
+
+VScrollBar/styles/scroll = SubResource("ScrollBg")
+VScrollBar/styles/scroll_in_progress = SubResource("ScrollBg")
+VScrollBar/styles/grabber = SubResource("ScrollGrabber")
+VScrollBar/styles/grabber_highlight = SubResource("ScrollGrabberHover")
+VScrollBar/styles/grabber_pressed = SubResource("ScrollGrabberHover")
+
+HScrollBar/styles/scroll = SubResource("ScrollBg")
+HScrollBar/styles/grabber = SubResource("ScrollGrabber")
+HScrollBar/styles/grabber_highlight = SubResource("ScrollGrabberHover")
+HScrollBar/styles/grabber_pressed = SubResource("ScrollGrabberHover")
+
+Title/fonts/font = ExtResource("FontBold")
+Title/font_sizes/font_size = 52
+Title/colors/font_color = Color(0.914, 0.310, 0.216, 1.0)
+
+Subtitle/fonts/font = ExtResource("FontMedium")
+Subtitle/font_sizes/font_size = 32
+Subtitle/colors/font_color = Color(0.949, 0.757, 0.306, 1.0)
