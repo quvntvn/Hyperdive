@@ -148,10 +148,12 @@ HScrollBar/styles/grabber = SubResource("ScrollGrabber")
 HScrollBar/styles/grabber_highlight = SubResource("ScrollGrabberHover")
 HScrollBar/styles/grabber_pressed = SubResource("ScrollGrabberHover")
 
+Title/variation_base_type = "Label"
 Title/fonts/font = ExtResource("FontBold")
-Title/font_sizes/font_size = 52
+Title/font_sizes/font_size = 56
 Title/colors/font_color = Color(0.914, 0.310, 0.216, 1.0)
 
+Subtitle/variation_base_type = "Label"
 Subtitle/fonts/font = ExtResource("FontMedium")
 Subtitle/font_sizes/font_size = 32
 Subtitle/colors/font_color = Color(0.949, 0.757, 0.306, 1.0)

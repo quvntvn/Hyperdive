@@ -71,6 +71,7 @@ clip_text = false
 horizontal_alignment = 1
 autowrap_mode = 0
 theme_type_variation = &"Title"
+theme_override_font_sizes/font_size = 72
 
 [node name="SubtitleLabel" type="Label" parent="MenuUI/Screen/Layout"]
 text = "TRAVERSE LE CIEL DE 1962"
