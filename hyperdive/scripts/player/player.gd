@@ -148,7 +148,6 @@ func _on_body_entered(body: Node3D) -> void:
 	_trigger_ragdoll()
 
 func _trigger_ragdoll() -> void:
-	var death_xform := global_transform
 	var death_vel := linear_velocity
 	$Character.visible = false
 	$CollisionShape3D.disabled = true
@@ -158,8 +157,12 @@ func _trigger_ragdoll() -> void:
 		_trail_node.emitting = false
 
 	var rag: Node3D = preload("res://scenes/player/ragdoll.tscn").instantiate()
+	# Position et rotation AVANT add_child : les RigidBody3D enfants calculent leur
+	# global_transform depuis ce transform au premier frame physique.
+	# global_rotation du Character = ~205° autour de X (tête en bas), sans le scale 1.5.
+	rag.position = global_position
+	rag.rotation = $Character.global_rotation
 	get_tree().current_scene.add_child(rag)
-	rag.global_transform = death_xform
 
 	var skin_col: Color = _base_skin_color
 	for part: Node in rag.get_children():
