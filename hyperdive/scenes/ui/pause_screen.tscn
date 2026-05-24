@@ -36,8 +36,7 @@ theme_override_constants/separation = 20
 [node name="TitleLabel" type="Label" parent="PausePanel/Layout"]
 text = "PAUSE"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 56
-theme_override_colors/font_color = Color(0.914, 0.310, 0.216, 1)
+theme_type_variation = &"Title"
 
 [node name="Spacer" type="Control" parent="PausePanel/Layout"]
 size_flags_vertical = 3

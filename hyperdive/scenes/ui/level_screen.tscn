@@ -35,8 +35,7 @@ theme_override_constants/separation = 20
 unique_name_in_owner = true
 text = "NIVEAU 1"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 64
-theme_override_colors/font_color = Color(0.914, 0.310, 0.216, 1)
+theme_type_variation = &"Title"
 
 [node name="DurationLabel" type="Label" parent="Panel/Layout"]
 unique_name_in_owner = true

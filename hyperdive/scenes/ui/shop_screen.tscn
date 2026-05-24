@@ -36,8 +36,7 @@ theme_override_constants/separation = 16
 [node name="TitleLabel" type="Label" parent="ShopPanel/Layout"]
 text = "SHOP"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 56
-theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
+theme_type_variation = &"Title"
 
 [node name="CoinsLabel" type="Label" parent="ShopPanel/Layout"]
 text = "Pièces : 0"

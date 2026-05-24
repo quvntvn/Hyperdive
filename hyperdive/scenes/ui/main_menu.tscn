@@ -70,8 +70,7 @@ text = "HYPERDIVE"
 clip_text = false
 horizontal_alignment = 1
 autowrap_mode = 0
-theme_override_font_sizes/font_size = 80
-theme_override_colors/font_color = Color(0.914, 0.310, 0.216, 1)
+theme_type_variation = &"Title"
 
 [node name="SubtitleLabel" type="Label" parent="MenuUI/Screen/Layout"]
 text = "TRAVERSE LE CIEL DE 1962"
