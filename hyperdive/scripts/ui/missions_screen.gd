@@ -10,6 +10,7 @@ func _ready() -> void:
 	_mission_list = $Panel/Layout/ScrollContainer/MissionList
 	$Panel/Layout/MenuButton.pressed.connect(_on_menu_pressed)
 	Settings.mission_claimed.connect(func() -> void: refresh())
+	UIAnimations.wire_buttons(self)
 	Settings.daily_claimed_signal.connect(func() -> void: refresh())
 	Settings.coin_collected.connect(func(_n: int) -> void: refresh())
 	refresh()
@@ -27,6 +28,7 @@ func refresh() -> void:
 	_add_section_label("DÉFIS PERMANENTS", Color(0.957, 0.914, 0.804))
 	for mission in Catalog.MISSIONS:
 		_build_row(mission)
+	UIAnimations.wire_buttons(_mission_list)
 
 func _add_section_label(title: String, color: Color) -> void:
 	var lbl := Label.new()

@@ -8,6 +8,7 @@ func _ready() -> void:
 	$GameOverPanel/Layout/ButtonsContainer/RejouerButton.pressed.connect(_on_rejouer_pressed)
 	$GameOverPanel/Layout/ButtonsContainer/ShopButton.pressed.connect(_on_shop_pressed)
 	$GameOverPanel/Layout/ButtonsContainer/MenuButton.pressed.connect(_on_menu_pressed)
+	UIAnimations.wire_buttons(self)
 	var screens := get_tree().get_nodes_in_group("shop_screen")
 	if screens.size() > 0:
 		shop_screen = screens[0]

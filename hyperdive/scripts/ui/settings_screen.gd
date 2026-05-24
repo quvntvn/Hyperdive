@@ -10,6 +10,7 @@ func _ready() -> void:
 	%MusicSlider.value_changed.connect(Settings.set_music_volume)
 	%SfxSlider.value_changed.connect(Settings.set_sfx_volume)
 	%CloseButton.pressed.connect(close)
+	UIAnimations.wire_buttons(self)
 
 func _refresh_values() -> void:
 	%MasterSlider.set_value_no_signal(Settings.master_volume)

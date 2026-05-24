@@ -7,6 +7,7 @@ func _ready() -> void:
 	%ShopButton.pressed.connect(_on_shop_pressed)
 	%DefisButton.pressed.connect(_on_defis_pressed)
 	%SettingsGearButton.pressed.connect(_on_reglages_pressed)
+	UIAnimations.wire_buttons(self)
 
 	_update_infinite_button()
 	update_stats()

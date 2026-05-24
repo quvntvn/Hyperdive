@@ -7,6 +7,7 @@ func _ready() -> void:
 	%ReprendreButton.pressed.connect(_on_reprendre_pressed)
 	%ReglagesButton.pressed.connect(_on_reglages_pressed)
 	%MenuButton.pressed.connect(_on_menu_pressed)
+	UIAnimations.wire_buttons(self)
 
 func open() -> void:
 	visible = true

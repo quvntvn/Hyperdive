@@ -27,6 +27,7 @@ func _ready() -> void:
 	_skins_btn.pressed.connect(_on_skins_pressed)
 	_trails_btn.pressed.connect(_on_trails_pressed)
 	_themes_btn.pressed.connect(_on_themes_pressed)
+	UIAnimations.wire_buttons(self)
 	refresh()
 
 func _on_skins_pressed() -> void:
@@ -58,6 +59,7 @@ func refresh() -> void:
 		_refresh_trails()
 	else:
 		_refresh_themes()
+	UIAnimations.wire_buttons(_item_list)
 
 func _refresh_skins() -> void:
 	for skin in Catalog.SKINS:
