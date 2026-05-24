@@ -94,26 +94,6 @@ max_value = 1.0
 step = 0.01
 value = 1.0
 
-[node name="ControlHeader" type="Label" parent="SettingsPanel/Layout"]
-text = "CONTRÔLE"
-theme_override_font_sizes/font_size = 24
-theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
-
-[node name="ControlButtons" type="HBoxContainer" parent="SettingsPanel/Layout"]
-theme_override_constants/separation = 16
-alignment = 1
-
-[node name="TouchButton" type="Button" parent="SettingsPanel/Layout/ControlButtons"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 56)
-text = "TACTILE"
-theme_override_font_sizes/font_size = 20
-
-[node name="TiltButton" type="Button" parent="SettingsPanel/Layout/ControlButtons"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 56)
-text = "INCLINAISON"
-theme_override_font_sizes/font_size = 20
 
 [node name="Spacer" type="Control" parent="SettingsPanel/Layout"]
 size_flags_vertical = 3
