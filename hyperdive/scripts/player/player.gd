@@ -318,11 +318,11 @@ func _process(delta: float) -> void:
 	# speed, phase, base_z, z_amp, x_amp, lat_z, jolt_z, jolt_x, base_x
 	# lat_z positif car Character est flippé X=180° (Z local = -Z monde)
 	# base_x positif = bras tirés légèrement vers l'arrière (vers la caméra)
-	_apply_limb_sway($Character/ArmLeft,  lateral, delta, 3.1, 0.0,  115.0, 15.0,  7.0, 1.2,  40.0,  10.0, 22.0)
-	_apply_limb_sway($Character/ArmRight, lateral, delta, 2.8, 1.7, -115.0, 13.0,  7.0, 1.2, -35.0, -18.0, 22.0)
-	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.3, 0.9,  -35.0,  9.0, 10.0, 0.5, -22.0,  28.0)
-	_apply_limb_sway($Character/LegRight, lateral, delta, 2.6, 2.4,   35.0,  8.0, 10.0, 0.5,  20.0, -24.0)
-	_apply_limb_sway($Character/Head,     lateral, delta, 1.8, 3.2,    0.0,  8.0,  5.0, 0.4,  20.0,   8.0)
+	_apply_limb_sway($Character/ArmLeft,  lateral, delta, 3.7, 0.0,  115.0, 22.0, 11.0, 1.2,  40.0,  10.0, 22.0)
+	_apply_limb_sway($Character/ArmRight, lateral, delta, 3.4, 1.7, -115.0, 20.0, 11.0, 1.2, -35.0, -18.0, 22.0)
+	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.8, 0.9,  -35.0, 12.0, 13.0, 0.5, -22.0,  28.0)
+	_apply_limb_sway($Character/LegRight, lateral, delta, 3.1, 2.4,   35.0, 11.0, 13.0, 0.5,  20.0, -24.0)
+	_apply_limb_sway($Character/Head,     lateral, delta, 2.2, 3.2,    0.0, 11.0,  7.0, 0.4,  20.0,   8.0)
 
 func _apply_limb_sway(node: Node3D, lateral: float, delta: float,
 		speed: float, phase: float,
