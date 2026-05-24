@@ -129,8 +129,10 @@ Button/styles/disabled = SubResource("BtnDisabled")
 Button/styles/focus = SubResource("BtnFocus")
 
 Label/colors/font_color = Color(0.957, 0.914, 0.804, 1.0)
+Label/colors/font_outline_color = Color(0.06, 0.04, 0.02, 0.88)
 Label/fonts/font = ExtResource("FontRegular")
 Label/font_sizes/font_size = 22
+Label/constants/outline_size = 4
 
 Panel/styles/panel = SubResource("PanelStyle")
 PanelContainer/styles/panel = SubResource("PanelStyle")
@@ -152,6 +154,8 @@ Title/variation_base_type = "Label"
 Title/fonts/font = ExtResource("FontBold")
 Title/font_sizes/font_size = 56
 Title/colors/font_color = Color(0.914, 0.310, 0.216, 1.0)
+Title/colors/font_outline_color = Color(0.06, 0.04, 0.02, 0.92)
+Title/constants/outline_size = 6
 
 Subtitle/variation_base_type = "Label"
 Subtitle/fonts/font = ExtResource("FontMedium")

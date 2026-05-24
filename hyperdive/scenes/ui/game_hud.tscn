@@ -17,6 +17,8 @@ text = "0 m"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 48
 theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.02, 0.01, 0.92)
+theme_override_constants/outline_size = 5
 
 [node name="CoinCounter" type="HBoxContainer" parent="."]
 anchor_left = 1.0
@@ -33,6 +35,8 @@ color = Color(0.949, 0.757, 0.306, 1)
 text = "0"
 theme_override_font_sizes/font_size = 32
 theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.02, 0.01, 0.92)
+theme_override_constants/outline_size = 4
 
 [node name="PauseButton" type="Button" parent="."]
 unique_name_in_owner = true
