@@ -62,16 +62,6 @@ func _build_daily_row(ch: Dictionary) -> void:
 		var btn := Button.new()
 		btn.text = "RÉCLAMER " + str(reward)
 		btn.custom_minimum_size = Vector2(148.0, 48.0)
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color(0.235, 0.682, 0.639)
-		style.set_corner_radius_all(6)
-		style.content_margin_left = 10.0
-		style.content_margin_right = 10.0
-		btn.add_theme_stylebox_override("normal", style)
-		var hover_style := style.duplicate() as StyleBoxFlat
-		hover_style.bg_color = Color(0.32, 0.78, 0.73)
-		btn.add_theme_stylebox_override("hover", hover_style)
-		btn.add_theme_color_override("font_color", Color(0.957, 0.914, 0.804))
 		btn.pressed.connect(func() -> void:
 			Audio.play_ui_click()
 			Settings.claim_daily(ch))
@@ -125,16 +115,6 @@ func _build_row(mission: Dictionary) -> void:
 		var btn := Button.new()
 		btn.text = "RÉCLAMER " + str(reward)
 		btn.custom_minimum_size = Vector2(148.0, 48.0)
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color(0.235, 0.682, 0.639)
-		style.set_corner_radius_all(6)
-		style.content_margin_left = 10.0
-		style.content_margin_right = 10.0
-		btn.add_theme_stylebox_override("normal", style)
-		var hover_style := style.duplicate() as StyleBoxFlat
-		hover_style.bg_color = Color(0.32, 0.78, 0.73)
-		btn.add_theme_stylebox_override("hover", hover_style)
-		btn.add_theme_color_override("font_color", Color(0.957, 0.914, 0.804))
 		btn.pressed.connect(func() -> void:
 			Audio.play_ui_click()
 			Settings.claim_mission(mission))
