@@ -122,6 +122,7 @@ func _on_level_survived() -> void:
 	para.scale = Vector3.ZERO
 	var t := create_tween()
 	t.tween_property(para, "scale", Vector3.ONE, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property($Character, "rotation_degrees", Vector3.ZERO, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	Audio.set_whoosh_intensity(0.0)
 	await get_tree().create_timer(0.6).timeout
 	Settings.complete_current_level()
