@@ -23,6 +23,7 @@ var _trail_gradient: Gradient
 var _trail_node: GPUParticles3D
 var _sway_time: float = 0.0
 var _jolt: float = 0.0
+var _accel_debug_label: Label = null
 
 signal game_over
 
@@ -40,6 +41,7 @@ func _ready() -> void:
 	_setup_fall_trail()
 	_apply_trail()
 	Settings.equipped_trail_changed.connect(func(_id: String) -> void: _apply_trail())
+	_setup_accel_debug()
 
 func _setup_fall_trail() -> void:
 	var trail := GPUParticles3D.new()
@@ -77,6 +79,16 @@ func _setup_fall_trail() -> void:
 
 	add_child(trail)
 	_trail_node = trail
+
+func _setup_accel_debug() -> void:
+	var cl := CanvasLayer.new()
+	cl.layer = 10
+	var lbl := Label.new()
+	lbl.position = Vector2(20.0, 120.0)
+	lbl.add_theme_font_size_override("font_size", 32)
+	cl.add_child(lbl)
+	add_child(cl)
+	_accel_debug_label = lbl
 
 func _apply_trail() -> void:
 	if _trail_gradient == null or _trail_node == null:
@@ -293,6 +305,10 @@ func _physics_process(delta: float) -> void:
 func _process(delta: float) -> void:
 	if _is_dead or _parachute_active:
 		return
+	if _accel_debug_label:
+		var ax: float = Input.get_accelerometer().x
+		var gx: float = Input.get_gravity().x
+		_accel_debug_label.text = "accel.x: %.2f\ngravity.x: %.2f" % [ax, gx]
 	_sway_time += delta
 	_jolt = move_toward(_jolt, 0.0, delta * 4.0)
 	var lateral: float = linear_velocity.x
