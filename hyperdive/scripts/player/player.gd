@@ -4,8 +4,6 @@ class_name PlayerController
 const LATERAL_FORCE: float = 25.0
 const MAX_LATERAL_SPEED: float = 12.0
 const MAX_FALL_SPEED: float = 18.0
-const TILT_DEADZONE: float = 0.1
-const TILT_SENSITIVITY: float = 0.25
 const TOUCH_FOLLOW_SPEED: float = 8.0
 const TRAIL_BASE_AMOUNT: int = 40
 const WALL_HIT_COOLDOWN: float = 0.3
@@ -23,7 +21,6 @@ var _trail_gradient: Gradient
 var _trail_node: GPUParticles3D
 var _sway_time: float = 0.0
 var _jolt: float = 0.0
-var _accel_debug_label: Label = null
 
 signal game_over
 
@@ -41,7 +38,6 @@ func _ready() -> void:
 	_setup_fall_trail()
 	_apply_trail()
 	Settings.equipped_trail_changed.connect(func(_id: String) -> void: _apply_trail())
-	_setup_accel_debug()
 
 func _setup_fall_trail() -> void:
 	var trail := GPUParticles3D.new()
@@ -80,15 +76,6 @@ func _setup_fall_trail() -> void:
 	add_child(trail)
 	_trail_node = trail
 
-func _setup_accel_debug() -> void:
-	var cl := CanvasLayer.new()
-	cl.layer = 10
-	var lbl := Label.new()
-	lbl.position = Vector2(20.0, 120.0)
-	lbl.add_theme_font_size_override("font_size", 32)
-	cl.add_child(lbl)
-	add_child(cl)
-	_accel_debug_label = lbl
 
 func _apply_trail() -> void:
 	if _trail_gradient == null or _trail_node == null:
@@ -221,30 +208,16 @@ func _unhandled_input(event: InputEvent) -> void:
 				Settings.control_mode = SettingsManager.ControlMode.TOUCH
 				Settings.save_settings()
 				Settings.control_mode_changed.emit(Settings.control_mode)
-			KEY_3:
-				Settings.control_mode = SettingsManager.ControlMode.TILT
-				Settings.save_settings()
-				Settings.control_mode_changed.emit(Settings.control_mode)
 			KEY_S:
 				var shop := get_tree().get_first_node_in_group("shop_screen")
 				if shop:
 					shop.open()
 
-func _get_tilt_lateral() -> float:
-	# get_gravity() = composante gravité filtrée, plus stable que get_accelerometer()
-	# En portrait Android, incliner à droite → gravity.x > 0 (gravity tire vers la droite du device)
-	# Si le sens est inversé sur le téléphone, inverser le signe ici (-gravity.x)
-	var ax: float = Input.get_gravity().x
-	if abs(ax) < TILT_DEADZONE:
-		return 0.0
-	return clampf(ax * TILT_SENSITIVITY, -1.0, 1.0)
 
 func _get_lateral_input() -> float:
 	match Settings.control_mode:
 		SettingsManager.ControlMode.KEYBOARD:
 			return Input.get_axis("move_left", "move_right")
-		SettingsManager.ControlMode.TILT:
-			return _get_tilt_lateral()
 	return 0.0
 
 func _update_touch_target(screen_pos: Vector2) -> void:
@@ -294,9 +267,6 @@ func _physics_process(delta: float) -> void:
 			linear_velocity.x = clampf(diff * TOUCH_FOLLOW_SPEED, -MAX_LATERAL_SPEED, MAX_LATERAL_SPEED)
 		else:
 			linear_velocity.x = move_toward(linear_velocity.x, 0.0, MAX_LATERAL_SPEED * delta * 4.0)
-	elif Settings.control_mode == SettingsManager.ControlMode.TILT:
-		var lateral: float = _get_tilt_lateral()
-		linear_velocity.x = lerpf(linear_velocity.x, lateral * MAX_LATERAL_SPEED, delta * 6.0)
 	else:
 		var lateral: float = _get_lateral_input()
 		if lateral != 0.0:
@@ -309,10 +279,6 @@ func _physics_process(delta: float) -> void:
 func _process(delta: float) -> void:
 	if _is_dead or _parachute_active:
 		return
-	if _accel_debug_label:
-		var ax: float = Input.get_accelerometer().x
-		var gx: float = Input.get_gravity().x
-		_accel_debug_label.text = "accel.x: %.2f\ngravity.x: %.2f" % [ax, gx]
 	_sway_time += delta
 	_jolt = move_toward(_jolt, 0.0, delta * 4.0)
 	var lateral: float = linear_velocity.x

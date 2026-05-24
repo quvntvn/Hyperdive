@@ -1,7 +1,7 @@
 extends Node
 class_name SettingsManager
 
-enum ControlMode { KEYBOARD, TOUCH, TILT }
+enum ControlMode { KEYBOARD, TOUCH }
 
 const INFINITE_UNLOCK_LEVEL: int = 5
 
@@ -344,6 +344,8 @@ func load_settings() -> void:
 	if cfg.load(SAVE_PATH) != OK:
 		return
 	control_mode = cfg.get_value("input", "control_mode", ControlMode.KEYBOARD)
+	if control_mode > ControlMode.TOUCH:
+		control_mode = ControlMode.TOUCH
 	master_volume = cfg.get_value("audio", "master_volume", 1.0)
 	music_volume = cfg.get_value("audio", "music_volume", 1.0)
 	sfx_volume = cfg.get_value("audio", "sfx_volume", 1.0)
