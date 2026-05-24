@@ -10,9 +10,6 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="GameHUDScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="GameOverScreenScene"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_box.tscn" id="ObstacleBoxScene"]
-[ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_pillar.tscn" id="ObstaclePillarScene"]
-[ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_saturn.tscn" id="ObstacleSaturnScene"]
-[ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_star.tscn" id="ObstacleStarScene"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="PlayerScene"]
 [ext_resource type="PackedScene" path="res://scenes/effects/post_process.tscn" id="PostProcessScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/shop_screen.tscn" id="ShopScreenScene"]
@@ -65,7 +62,7 @@ target_path = NodePath("../Player")
 [node name="ObstacleSpawner" type="Node3D" parent="." unique_id=1107436819]
 script = ExtResource("SpawnerScript")
 player_path = NodePath("../Player")
-obstacle_scenes = Array[PackedScene]([ExtResource("ObstacleBoxScene"), ExtResource("ObstaclePillarScene"), ExtResource("ObstacleStarScene"), ExtResource("ObstacleSaturnScene")])
+obstacle_scenes = Array[PackedScene]([ExtResource("ObstacleBoxScene")])
 
 [node name="PostProcess" parent="." unique_id=1022185359 instance=ExtResource("PostProcessScene")]
 
