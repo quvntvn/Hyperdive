@@ -73,7 +73,7 @@ shadow_color = Color(0.0, 0.0, 0.0, 0.35)
 shadow_size = 4
 
 [sub_resource type="StyleBoxFlat" id="PanelStyle"]
-bg_color = Color(0.10, 0.14, 0.25, 0.93)
+bg_color = Color(0.122, 0.188, 0.369, 1.0)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_left = 16
@@ -82,11 +82,13 @@ content_margin_left = 20.0
 content_margin_right = 20.0
 content_margin_top = 20.0
 content_margin_bottom = 20.0
-border_width_left = 1
-border_width_right = 1
-border_width_top = 1
-border_width_bottom = 1
-border_color = Color(0.235, 0.682, 0.639, 0.25)
+border_width_left = 2
+border_width_right = 2
+border_width_top = 2
+border_width_bottom = 2
+border_color = Color(0.235, 0.682, 0.639, 0.45)
+shadow_color = Color(0.0, 0.0, 0.0, 0.5)
+shadow_size = 8
 
 [sub_resource type="StyleBoxEmpty" id="EmptyStyle"]
 
