@@ -13,10 +13,10 @@ func _on_commencer_pressed() -> void:
 	Audio.play_ui_click()
 	Settings.active_mode = "campaign"
 	Settings.active_level = Settings.campaign_level
-	get_tree().change_scene_to_file("res://scenes/game/main_game.tscn")
+	Transition.change_scene("res://scenes/game/main_game.tscn")
 
 func _on_menu_pressed() -> void:
 	Audio.play_ui_click()
 	Settings.active_mode = "infinite"
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	Transition.change_scene("res://scenes/ui/main_menu.tscn")
 

@@ -113,7 +113,7 @@ func _on_level_survived() -> void:
 	Audio.set_whoosh_intensity(0.0)
 	await get_tree().create_timer(0.6).timeout
 	Settings.complete_current_level()
-	get_tree().change_scene_to_file("res://scenes/ui/level_screen.tscn")
+	Transition.change_scene("res://scenes/ui/level_screen.tscn")
 
 func _on_body_entered(body: Node3D) -> void:
 	if _is_dead or _level_completed:

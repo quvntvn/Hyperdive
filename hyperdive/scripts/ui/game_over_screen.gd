@@ -35,7 +35,7 @@ func _on_rejouer_pressed() -> void:
 	Audio.play_ui_click()
 	Audio.unduck_music()
 	get_tree().paused = false
-	get_tree().reload_current_scene()
+	Transition.reload_scene()
 
 func _on_shop_pressed() -> void:
 	Audio.play_ui_click()
@@ -52,4 +52,4 @@ func _on_menu_pressed() -> void:
 	Audio.stop_whoosh()
 	get_tree().paused = false
 	Settings.active_mode = "infinite"
-	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+	Transition.change_scene("res://scenes/ui/main_menu.tscn")

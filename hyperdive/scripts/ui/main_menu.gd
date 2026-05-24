@@ -34,12 +34,12 @@ func update_stats() -> void:
 
 func _on_campagne_pressed() -> void:
 	Audio.play_ui_click()
-	get_tree().change_scene_to_file("res://scenes/ui/level_screen.tscn")
+	Transition.change_scene("res://scenes/ui/level_screen.tscn")
 
 func _on_jouer_pressed() -> void:
 	Audio.play_ui_click()
 	Settings.active_mode = "infinite"
-	get_tree().change_scene_to_file("res://scenes/game/main_game.tscn")
+	Transition.change_scene("res://scenes/game/main_game.tscn")
 
 func _on_shop_pressed() -> void:
 	Audio.play_ui_click()
