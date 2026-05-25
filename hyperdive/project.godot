@@ -14,6 +14,10 @@ config/name="Hyperdive"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.6", "Mobile")
 config/icon="res://icon.svg"
+boot_splash/image="res://assets/textures/splash.png"
+boot_splash/bg_color=Color(0.122, 0.188, 0.369, 1)
+boot_splash/fullsize=false
+boot_splash/use_filter=true
 
 [autoload]
 
@@ -29,6 +33,10 @@ window/size/viewport_height=960
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1
+
+[gui]
+
+theme/custom="res://resources/ui/main_theme.tres"
 
 [input]
 
@@ -54,10 +62,6 @@ pointing/emulate_touch_from_mouse=true
 common/physics_ticks_per_second=120
 3d/physics_engine="Jolt Physics"
 common/physics_interpolation=true
-
-[gui]
-
-theme/custom="res://resources/ui/main_theme.tres"
 
 [rendering]
 
