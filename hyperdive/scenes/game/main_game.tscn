@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://cuukr561ckxcb"]
 
 [ext_resource type="Script" path="res://scripts/gameplay/main_game.gd" id="MainGameScript"]
+[ext_resource type="PackedScene" path="res://scenes/collectibles/powerup.tscn" id="PowerupScene"]
+[ext_resource type="Script" path="res://scripts/gameplay/powerup_spawner.gd" id="PowerupSpawnerScript"]
 [ext_resource type="PackedScene" path="res://scenes/collectibles/coin.tscn" id="CoinScene"]
 [ext_resource type="Script" uid="uid://h2dr04ghll1o" path="res://scripts/gameplay/coin_spawner.gd" id="CoinSpawnerScript"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/corridor_walls.tscn" id="CorridorWallsScene"]
@@ -58,6 +60,11 @@ transform = Transform3D(1, 0, 0, 0, 0.8192, 0.5736, 0, -0.5736, 0.8192, 0, 5, 12
 fov = 80.0
 script = ExtResource("FollowCameraScript")
 target_path = NodePath("../Player")
+
+[node name="PowerupSpawner" type="Node3D" parent="." unique_id=582394871]
+script = ExtResource("PowerupSpawnerScript")
+player_path = NodePath("../Player")
+powerup_scene = ExtResource("PowerupScene")
 
 [node name="ObstacleSpawner" type="Node3D" parent="." unique_id=1107436819]
 script = ExtResource("SpawnerScript")
