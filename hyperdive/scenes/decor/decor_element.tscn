@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/decor_element.gd" id="DecorElementScript"]
+
+[node name="DecorElement" type="Node3D"]
+script = ExtResource("DecorElementScript")
