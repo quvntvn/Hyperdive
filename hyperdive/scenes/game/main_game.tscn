@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://scripts/gameplay/main_game.gd" id="MainGameScript"]
 [ext_resource type="PackedScene" path="res://scenes/collectibles/powerup.tscn" id="PowerupScene"]
 [ext_resource type="Script" path="res://scripts/gameplay/powerup_spawner.gd" id="PowerupSpawnerScript"]
+[ext_resource type="PackedScene" path="res://scenes/decor/decor_element.tscn" id="DecorScene"]
+[ext_resource type="Script" path="res://scripts/gameplay/decor_spawner.gd" id="DecorSpawnerScript"]
 [ext_resource type="PackedScene" path="res://scenes/collectibles/coin.tscn" id="CoinScene"]
 [ext_resource type="Script" uid="uid://h2dr04ghll1o" path="res://scripts/gameplay/coin_spawner.gd" id="CoinSpawnerScript"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/corridor_walls.tscn" id="CorridorWallsScene"]
@@ -65,6 +67,11 @@ target_path = NodePath("../Player")
 script = ExtResource("PowerupSpawnerScript")
 player_path = NodePath("../Player")
 powerup_scene = ExtResource("PowerupScene")
+
+[node name="DecorSpawner" type="Node3D" parent="." unique_id=736452891]
+script = ExtResource("DecorSpawnerScript")
+player_path = NodePath("../Player")
+decor_scene = ExtResource("DecorScene")
 
 [node name="ObstacleSpawner" type="Node3D" parent="." unique_id=1107436819]
 script = ExtResource("SpawnerScript")
