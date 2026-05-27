@@ -7,9 +7,9 @@
 shader = ExtResource("Shader_1")
 shader_parameter/wall_color = Color(0.239, 0.173, 0.118, 1)
 shader_parameter/line_color = Color(0.949, 0.757, 0.306, 1)
-shader_parameter/line_spacing = 2.0
-shader_parameter/line_thickness = 0.06
-shader_parameter/line_alpha = 0.35
+shader_parameter/line_spacing = 1.35
+shader_parameter/line_thickness = 0.04
+shader_parameter/line_alpha = 0.18
 
 [sub_resource type="BoxMesh" id="WallMesh_1"]
 size = Vector3(20.0, 200.0, 8.0)
