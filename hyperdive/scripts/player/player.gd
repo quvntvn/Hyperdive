@@ -8,6 +8,11 @@ const TOUCH_FOLLOW_SPEED: float = 8.0
 const TRAIL_BASE_AMOUNT: int = 40
 const WALL_HIT_COOLDOWN: float = 0.3
 const CHARACTER_BASE_ROT := Vector3(205.0, 0.0, 0.0)
+const SLOWMO_DURATION: float = 3.0
+const SLOWMO_FACTOR: float = 0.5
+const MAGNET_DURATION: float = 5.0
+const MAGNET_RADIUS: float = 10.0
+const MAGNET_LERP_SPEED: float = 8.0
 
 var _is_touching: bool = false
 var _wall_hit_cooldown: float = 0.0
@@ -21,6 +26,13 @@ var _trail_gradient: Gradient
 var _trail_node: GPUParticles3D
 var _sway_time: float = 0.0
 var _jolt: float = 0.0
+var _shield_aura: MeshInstance3D
+var _slowmo_active: bool = false
+var _magnet_active: bool = false
+
+var has_shield: bool = false
+var slowmo_timer: float = 0.0
+var magnet_timer: float = 0.0
 
 signal game_over
 
@@ -132,6 +144,11 @@ func _on_body_entered(body: Node3D) -> void:
 	_body_recoil()
 	_jolt = 1.0
 	Audio.play_hit()
+	if has_shield:
+		has_shield = false
+		_remove_shield_aura()
+		_flash_shield_blocked()
+		return
 	_is_dead = true
 	_trigger_ragdoll()
 
@@ -239,6 +256,57 @@ func _flash_hit() -> void:
 	tween.tween_property(mat, "albedo_color", Color.WHITE, 0.05)
 	tween.tween_property(mat, "albedo_color", _base_skin_color, 0.10)
 
+func collect_powerup(powerup_type: String) -> void:
+	Audio.play_coin()
+	match powerup_type:
+		"shield":
+			has_shield = true
+			_show_shield_aura()
+		"slowmo":
+			_slowmo_active = true
+			slowmo_timer = SLOWMO_DURATION
+		"magnet":
+			_magnet_active = true
+			magnet_timer = MAGNET_DURATION
+
+func _show_shield_aura() -> void:
+	if _shield_aura != null:
+		return
+	_shield_aura = MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.9
+	sphere.height = 1.8
+	_shield_aura.mesh = sphere
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = Color(0.235, 0.682, 0.639, 0.22)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.emission_enabled = true
+	mat.emission = Color(0.235, 0.682, 0.639, 1.0)
+	mat.emission_energy_multiplier = 0.6
+	_shield_aura.material_override = mat
+	add_child(_shield_aura)
+
+func _remove_shield_aura() -> void:
+	if _shield_aura == null:
+		return
+	_shield_aura.queue_free()
+	_shield_aura = null
+
+func _flash_shield_blocked() -> void:
+	var mat := $Character/Torso.material_override as StandardMaterial3D
+	if mat == null:
+		return
+	var tween := create_tween()
+	tween.tween_property(mat, "albedo_color", Color(0.235, 0.682, 0.639, 1.0), 0.05)
+	tween.tween_property(mat, "albedo_color", _base_skin_color, 0.25)
+
+func _attract_coins(delta: float) -> void:
+	for coin: Node3D in get_tree().get_nodes_in_group("coins"):
+		var dist: float = global_position.distance_to(coin.global_position)
+		if dist < MAGNET_RADIUS:
+			coin.global_position = coin.global_position.lerp(global_position, delta * MAGNET_LERP_SPEED)
+
 func _shake_camera(amount: float) -> void:
 	var cam := get_tree().get_first_node_in_group("follow_camera")
 	if cam and cam.has_method("shake"):
@@ -274,11 +342,23 @@ func _physics_process(delta: float) -> void:
 		linear_velocity.x = clampf(linear_velocity.x, -MAX_LATERAL_SPEED, MAX_LATERAL_SPEED)
 	if linear_velocity.y < -MAX_FALL_SPEED:
 		linear_velocity.y = -MAX_FALL_SPEED
+	if _slowmo_active and linear_velocity.y < -MAX_FALL_SPEED * SLOWMO_FACTOR:
+		linear_velocity.y = -MAX_FALL_SPEED * SLOWMO_FACTOR
 	Audio.set_whoosh_intensity(linear_velocity.y)
 
 func _process(delta: float) -> void:
 	if _is_dead or _parachute_active:
 		return
+	if slowmo_timer > 0.0:
+		slowmo_timer = maxf(slowmo_timer - delta, 0.0)
+		if slowmo_timer == 0.0:
+			_slowmo_active = false
+	if magnet_timer > 0.0:
+		magnet_timer = maxf(magnet_timer - delta, 0.0)
+		if magnet_timer == 0.0:
+			_magnet_active = false
+		else:
+			_attract_coins(delta)
 	_sway_time += delta
 	_jolt = move_toward(_jolt, 0.0, delta * 4.0)
 	var lateral: float = linear_velocity.x
