@@ -13,10 +13,11 @@ uniform float line_alpha : hint_range(0.0, 1.0) = 0.18;
 uniform vec2 win_cell = vec2(0.88, 1.35);       // taille d'une cellule en unités monde (hz, Y)
 uniform vec2 win_size_rel = vec2(0.60, 0.66);   // fraction de la cellule occupée par la fenêtre
 uniform float win_corner : hint_range(0.0, 0.45) = 0.14;  // rayon d'arrondi normalisé [0,1]
-uniform vec3 win_lit_a : source_color = vec3(0.957, 0.914, 0.804); // crème (allumée)
-uniform vec3 win_lit_b : source_color = vec3(0.949, 0.757, 0.306); // moutarde (allumée chaude)
-uniform vec3 win_dark : source_color = vec3(0.075, 0.063, 0.047);  // éteinte
-uniform float win_lit_ratio : hint_range(0.0, 1.0) = 0.62;         // proportion fenêtres allumées
+uniform vec3 win_lit_a : source_color = vec3(0.68, 0.65, 0.56);   // crème atténuée (allumée)
+uniform vec3 win_lit_b : source_color = vec3(0.62, 0.50, 0.20);   // moutarde atténuée (allumée chaude)
+uniform vec3 win_dark : source_color = vec3(0.14, 0.12, 0.09);    // éteinte (moins contrasté)
+uniform float win_lit_ratio : hint_range(0.0, 1.0) = 0.55;        // proportion fenêtres allumées
+uniform float win_mix : hint_range(0.0, 1.0) = 0.68;              // intensité du fondu fenêtre/mur
 
 varying vec3 world_position;
 varying vec3 world_normal;
@@ -69,7 +70,7 @@ void fragment() {
 		// Mélange crème / moutarde pour varier la teinte des fenêtres allumées
 		vec3 lit_color = mix(win_lit_a, win_lit_b, hash21(cell_id + vec2(7.3, 19.1)));
 		vec3 win_color = mix(win_dark, lit_color, lit);
-		color = mix(color, win_color, win_mask);
+		color = mix(color, win_color, win_mask * win_mix);
 	}
 
 	ALBEDO = color;
