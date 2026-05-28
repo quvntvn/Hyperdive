@@ -39,7 +39,11 @@ func _process(_delta: float) -> void:
 
 func _update_powerup_indicator() -> void:
 	_shield_label.visible = _player.has_shield
-	if _player.slowmo_timer > 0.0:
+	if _player.boost_timer > 0.0:
+		_timed_label.visible = true
+		_timed_label.text = "BOOST " + str(ceili(_player.boost_timer)) + "s"
+		_timed_label.add_theme_color_override("font_color", Color(0.914, 0.310, 0.216, 1.0))
+	elif _player.slowmo_timer > 0.0:
 		_timed_label.visible = true
 		_timed_label.text = "RALENTI " + str(ceili(_player.slowmo_timer)) + "s"
 		_timed_label.add_theme_color_override("font_color", Color(0.612, 0.796, 0.906, 1.0))
