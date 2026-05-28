@@ -13,6 +13,8 @@ const SLOWMO_FACTOR: float = 0.5
 const MAGNET_DURATION: float = 5.0
 const MAGNET_RADIUS: float = 10.0
 const MAGNET_LERP_SPEED: float = 8.0
+const BOOST_DURATION: float = 2.0
+const BOOST_SPEED_FACTOR: float = 2.5
 
 var _is_touching: bool = false
 var _wall_hit_cooldown: float = 0.0
@@ -33,6 +35,9 @@ var _magnet_active: bool = false
 var has_shield: bool = false
 var slowmo_timer: float = 0.0
 var magnet_timer: float = 0.0
+var _boost_active: bool = false
+var boost_timer: float = 0.0
+var _boost_trail: GPUParticles3D
 
 signal game_over
 
@@ -139,6 +144,8 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	if not body.is_in_group("obstacles"):
 		return
+	if _boost_active:
+		return
 	_flash_hit()
 	_shake_camera(0.3)
 	_body_recoil()
@@ -153,6 +160,8 @@ func _on_body_entered(body: Node3D) -> void:
 	_trigger_ragdoll()
 
 func _trigger_ragdoll() -> void:
+	if _boost_active:
+		return
 	var death_vel := linear_velocity
 	$Character.visible = false
 	$CollisionShape3D.disabled = true
@@ -268,6 +277,10 @@ func collect_powerup(powerup_type: String) -> void:
 		"magnet":
 			_magnet_active = true
 			magnet_timer = MAGNET_DURATION
+		"boost":
+			_boost_active = true
+			boost_timer = BOOST_DURATION
+			_start_boost_trail()
 
 func _show_shield_aura() -> void:
 	if _shield_aura != null:
@@ -340,15 +353,23 @@ func _physics_process(delta: float) -> void:
 		if lateral != 0.0:
 			apply_central_force(Vector3(lateral * LATERAL_FORCE, 0.0, 0.0))
 		linear_velocity.x = clampf(linear_velocity.x, -MAX_LATERAL_SPEED, MAX_LATERAL_SPEED)
-	if linear_velocity.y < -MAX_FALL_SPEED:
-		linear_velocity.y = -MAX_FALL_SPEED
-	if _slowmo_active and linear_velocity.y < -MAX_FALL_SPEED * SLOWMO_FACTOR:
-		linear_velocity.y = -MAX_FALL_SPEED * SLOWMO_FACTOR
+	if _boost_active:
+		linear_velocity.y = -MAX_FALL_SPEED * BOOST_SPEED_FACTOR
+	else:
+		if linear_velocity.y < -MAX_FALL_SPEED:
+			linear_velocity.y = -MAX_FALL_SPEED
+		if _slowmo_active and linear_velocity.y < -MAX_FALL_SPEED * SLOWMO_FACTOR:
+			linear_velocity.y = -MAX_FALL_SPEED * SLOWMO_FACTOR
 	Audio.set_whoosh_intensity(linear_velocity.y)
 
 func _process(delta: float) -> void:
 	if _is_dead or _parachute_active:
 		return
+	if boost_timer > 0.0:
+		boost_timer = maxf(boost_timer - delta, 0.0)
+		if boost_timer == 0.0:
+			_boost_active = false
+			_stop_boost_trail()
 	if slowmo_timer > 0.0:
 		slowmo_timer = maxf(slowmo_timer - delta, 0.0)
 		if slowmo_timer == 0.0:
@@ -370,6 +391,40 @@ func _process(delta: float) -> void:
 	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.8, 0.9,  -35.0, 12.0, 13.0, 0.5, -22.0,  28.0)
 	_apply_limb_sway($Character/LegRight, lateral, delta, 3.1, 2.4,   35.0, 11.0, 13.0, 0.5,  20.0, -24.0)
 	_apply_limb_sway($Character/Head,     lateral, delta, 2.2, 3.2,    0.0, 11.0,  7.0, 0.4,  20.0,   8.0)
+
+func _start_boost_trail() -> void:
+	if _boost_trail != null:
+		return
+	var trail := GPUParticles3D.new()
+	trail.one_shot = false
+	trail.amount = 60
+	trail.lifetime = 0.25
+	trail.local_coords = false
+	trail.emitting = true
+	var mat := ParticleProcessMaterial.new()
+	mat.direction = Vector3(0.0, 1.0, 0.0)
+	mat.spread = 12.0
+	mat.initial_velocity_min = 10.0
+	mat.initial_velocity_max = 18.0
+	mat.gravity = Vector3.ZERO
+	mat.scale_min = 0.08
+	mat.scale_max = 0.18
+	mat.color = Color(0.914, 0.310, 0.216, 1.0)
+	trail.process_material = mat
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.05
+	sphere.height = 0.10
+	trail.draw_pass_1 = sphere
+	add_child(trail)
+	_boost_trail = trail
+
+func _stop_boost_trail() -> void:
+	if _boost_trail == null:
+		return
+	var old_trail: GPUParticles3D = _boost_trail
+	_boost_trail = null
+	old_trail.emitting = false
+	get_tree().create_timer(0.4).timeout.connect(old_trail.queue_free)
 
 func _apply_limb_sway(node: Node3D, lateral: float, delta: float,
 		speed: float, phase: float,
