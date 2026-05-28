@@ -25,7 +25,7 @@ func refresh() -> void:
 		_build_daily_row(ch)
 	var sep := HSeparator.new()
 	_mission_list.add_child(sep)
-	_add_section_label("DÉFIS PERMANENTS", Color(0.957, 0.914, 0.804))
+	_add_section_label("DÉFIS", Color(0.957, 0.914, 0.804))
 	for mission in Catalog.MISSIONS:
 		_build_row(mission)
 	UIAnimations.wire_buttons(_mission_list)
