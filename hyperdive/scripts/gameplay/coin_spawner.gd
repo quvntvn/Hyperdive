@@ -5,7 +5,7 @@ class_name CoinSpawner
 @export var player_path: NodePath
 @export var coin_scene: PackedScene
 
-const SPAWN_INTERVAL_Y: float = 3.6
+const SPAWN_INTERVAL_Y: float = 14.4
 const SPAWN_AHEAD: float = 60.0
 const CORRIDOR_HALF_WIDTH: float = 4.0
 const DESPAWN_BEHIND: float = 15.0
