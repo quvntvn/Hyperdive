@@ -26,6 +26,7 @@ func _process(_delta: float) -> void:
 func _create_ambient_fx() -> void:
 	_create_dust_motes()
 	_create_soft_clouds()
+	_create_city_skyline()
 
 func _create_dust_motes() -> void:
 	var p := GPUParticles3D.new()
@@ -98,6 +99,38 @@ func _create_soft_clouds() -> void:
 	sphere.surface_set_material(0, cmat)
 	p.draw_pass_1 = sphere
 	add_child(p)
+
+func _create_city_skyline() -> void:
+	const Y_BASE: float = -48.0
+	var buildings: Array = [
+		[-11.5, 3.0, 18.0],
+		[ -9.0, 3.5, 28.0],
+		[ -6.5, 2.5, 14.0],
+		[ -4.2, 4.0, 24.0],
+		[ -1.5, 2.8, 32.0],
+		[  1.0, 2.5, 20.0],
+		[  3.5, 4.2, 26.0],
+		[  6.0, 2.5, 16.0],
+		[  8.5, 3.5, 22.0],
+		[ 11.0, 3.0, 20.0],
+	]
+	var bmat := StandardMaterial3D.new()
+	bmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	bmat.albedo_color = Color(0.08, 0.07, 0.06)
+	bmat.emission_enabled = true
+	bmat.emission = Color(0.08, 0.07, 0.06)
+	bmat.emission_energy_multiplier = 0.4
+	for b in buildings:
+		var bx: float = b[0]
+		var bw: float = b[1]
+		var bh: float = b[2]
+		var mesh := BoxMesh.new()
+		mesh.size = Vector3(bw, bh, 2.0)
+		var mi := MeshInstance3D.new()
+		mi.mesh = mesh
+		mi.material_override = bmat
+		mi.position = Vector3(bx, Y_BASE - bh * 0.5, 0.0)
+		add_child(mi)
 
 func _apply_theme() -> void:
 	var theme: Dictionary = Catalog.get_theme(Settings.equipped_theme)
