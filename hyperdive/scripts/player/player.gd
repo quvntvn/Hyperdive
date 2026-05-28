@@ -15,6 +15,9 @@ const MAGNET_RADIUS: float = 10.0
 const MAGNET_LERP_SPEED: float = 8.0
 const BOOST_DURATION: float = 2.0
 const BOOST_SPEED_FACTOR: float = 2.5
+const SPEED_RAMP_STEP: float = 1000.0   # tous les 1000 m en infini
+const SPEED_RAMP_FACTOR: float = 1.1    # +10 % cumulatif par palier
+const SPEED_RAMP_RATE: float = MAX_FALL_SPEED * 0.10 / 10.0  # ≈ 0.18 m/s² → +10 % en ~10 s
 
 var _is_touching: bool = false
 var _wall_hit_cooldown: float = 0.0
@@ -38,6 +41,7 @@ var magnet_timer: float = 0.0
 var _boost_active: bool = false
 var boost_timer: float = 0.0
 var _boost_trail: GPUParticles3D
+var _current_max_fall_speed: float = MAX_FALL_SPEED
 
 signal game_over
 
@@ -353,13 +357,17 @@ func _physics_process(delta: float) -> void:
 		if lateral != 0.0:
 			apply_central_force(Vector3(lateral * LATERAL_FORCE, 0.0, 0.0))
 		linear_velocity.x = clampf(linear_velocity.x, -MAX_LATERAL_SPEED, MAX_LATERAL_SPEED)
+	if Settings.active_mode == "infinite" and not _level_completed:
+		var steps: int = int(abs(global_position.y) / SPEED_RAMP_STEP)
+		var target_speed: float = MAX_FALL_SPEED * pow(SPEED_RAMP_FACTOR, steps)
+		_current_max_fall_speed = move_toward(_current_max_fall_speed, target_speed, SPEED_RAMP_RATE * delta)
 	if _boost_active:
 		linear_velocity.y = -MAX_FALL_SPEED * BOOST_SPEED_FACTOR
 	else:
-		if linear_velocity.y < -MAX_FALL_SPEED:
-			linear_velocity.y = -MAX_FALL_SPEED
-		if _slowmo_active and linear_velocity.y < -MAX_FALL_SPEED * SLOWMO_FACTOR:
-			linear_velocity.y = -MAX_FALL_SPEED * SLOWMO_FACTOR
+		if linear_velocity.y < -_current_max_fall_speed:
+			linear_velocity.y = -_current_max_fall_speed
+		if _slowmo_active and linear_velocity.y < -_current_max_fall_speed * SLOWMO_FACTOR:
+			linear_velocity.y = -_current_max_fall_speed * SLOWMO_FACTOR
 	Audio.set_whoosh_intensity(linear_velocity.y)
 
 func _process(delta: float) -> void:
