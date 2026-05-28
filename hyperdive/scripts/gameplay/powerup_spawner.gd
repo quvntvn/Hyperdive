@@ -10,9 +10,14 @@ const SPAWN_INTERVAL_MAX: float = 600.0
 const SPAWN_AHEAD: float = 60.0
 const CORRIDOR_HALF_WIDTH: float = 4.0
 const DESPAWN_BEHIND: float = 15.0
-const TYPES: Array[String] = ["shield", "slowmo", "magnet"]
+const TYPES: Array[String] = ["shield", "slowmo", "magnet", "boost"]
+const TYPES_CAMPAIGN: Array[String] = ["shield", "slowmo", "boost"]
 
 var _next_spawn_y: float = 0.0
+var _campaign_mode: bool = false
+
+func set_campaign_mode(enabled: bool) -> void:
+	_campaign_mode = enabled
 
 func _ready() -> void:
 	if player == null and not player_path.is_empty():
@@ -34,8 +39,9 @@ func _process(_delta: float) -> void:
 			pu.queue_free()
 
 func _spawn_at(y: float) -> void:
+	var pool: Array[String] = TYPES_CAMPAIGN if _campaign_mode else TYPES
 	var pu: Powerup = powerup_scene.instantiate()
-	pu.type = TYPES[randi() % TYPES.size()]
+	pu.type = pool[randi() % pool.size()]
 	get_parent().add_child(pu)
 	pu.global_position = Vector3(
 		randf_range(-CORRIDOR_HALF_WIDTH, CORRIDOR_HALF_WIDTH),

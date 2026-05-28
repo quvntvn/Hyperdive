@@ -10,6 +10,7 @@ func _ready() -> void:
 	if Settings.active_mode != "campaign":
 		return
 	$CoinSpawner.set_process(false)
+	($PowerupSpawner as PowerupSpawner).set_campaign_mode(true)
 	_campaign_timer = Settings.get_level_duration(Settings.active_level)
 	_campaign_active = true
 	($GameHUD as GameHUD).set_campaign_mode(true)
