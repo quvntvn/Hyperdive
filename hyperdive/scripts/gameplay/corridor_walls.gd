@@ -29,73 +29,73 @@ func _create_ambient_fx() -> void:
 
 func _create_dust_motes() -> void:
 	var p := GPUParticles3D.new()
-	p.amount = 90
-	p.lifetime = 9.0
+	p.amount = 150
+	p.lifetime = 10.0
 	p.one_shot = false
 	p.explosiveness = 0.0
 	p.randomness = 1.0
-	# local_coords = true : les motes suivent les murs (qui suivent le joueur).
-	# Leur vélocité locale lente vers le haut compense la descente du parent →
+	# local_coords = true : motes simulent en espace local des murs (qui suivent le joueur).
+	# Leur dérive locale lente vers le haut compense la descente du parent →
 	# en espace monde les motes semblent flotter sur place pendant la chute.
 	p.local_coords = true
 	p.emitting = true
 
 	var mat := ParticleProcessMaterial.new()
 	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	mat.emission_box_extents = Vector3(4.0, 12.0, 3.0)
+	mat.emission_box_extents = Vector3(3.5, 10.0, 2.5)
 	mat.direction = Vector3(0.0, 1.0, 0.0)
 	mat.spread = 180.0
 	mat.initial_velocity_min = 0.04
-	mat.initial_velocity_max = 0.14
+	mat.initial_velocity_max = 0.16
 	mat.gravity = Vector3.ZERO
-	mat.scale_min = 0.03
-	mat.scale_max = 0.08
-	mat.color = Color(0.957, 0.914, 0.804, 0.12)
+	mat.scale_min = 0.15
+	mat.scale_max = 0.40
+	mat.color = Color(0.957, 0.914, 0.804, 0.28)
 	p.process_material = mat
 
 	var sphere := SphereMesh.new()
-	sphere.radius = 0.04
-	sphere.height = 0.08
-	var smат := StandardMaterial3D.new()
-	smат.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	smат.vertex_color_use_as_albedo = true
-	smат.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	sphere.surface_set_material(0, smат)
+	sphere.radius = 0.10
+	sphere.height = 0.20
+	var smat := StandardMaterial3D.new()  # ASCII uniquement — pas de caractères cyrilliques
+	smat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	smat.vertex_color_use_as_albedo = true
+	smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	sphere.surface_set_material(0, smat)
 	p.draw_pass_1 = sphere
 	add_child(p)
 
 func _create_soft_clouds() -> void:
 	var p := GPUParticles3D.new()
-	p.amount = 6
-	p.lifetime = 18.0
+	p.amount = 10
+	p.lifetime = 14.0
 	p.one_shot = false
 	p.explosiveness = 0.0
 	p.randomness = 1.0
 	p.local_coords = true
 	p.emitting = true
-	p.position = Vector3(0.0, 8.0, -1.0)  # au-dessus de la zone de jeu
+	p.position = Vector3(0.0, 4.0, 0.0)  # légèrement au-dessus du joueur, dans le champ
 
 	var mat := ParticleProcessMaterial.new()
 	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	mat.emission_box_extents = Vector3(3.5, 1.5, 1.5)
+	mat.emission_box_extents = Vector3(3.5, 2.0, 2.0)
 	mat.direction = Vector3(1.0, 0.0, 0.0)
-	mat.spread = 15.0
+	mat.spread = 20.0
 	mat.initial_velocity_min = 0.20
 	mat.initial_velocity_max = 0.50
 	mat.gravity = Vector3.ZERO
-	mat.scale_min = 0.45
-	mat.scale_max = 0.95
-	mat.color = Color(0.890, 0.855, 0.785, 0.06)
+	mat.scale_min = 0.60
+	mat.scale_max = 1.20
+	mat.color = Color(0.910, 0.875, 0.805, 0.15)
 	p.process_material = mat
 
 	var sphere := SphereMesh.new()
-	sphere.radius = 0.6
-	sphere.height = 1.2
-	var smat := StandardMaterial3D.new()
-	smat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	smat.vertex_color_use_as_albedo = true
-	smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	sphere.surface_set_material(0, smat)
+	sphere.radius = 0.60
+	sphere.height = 1.20
+	var cmat := StandardMaterial3D.new()
+	cmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	cmat.vertex_color_use_as_albedo = true
+	cmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	sphere.surface_set_material(0, cmat)
 	p.draw_pass_1 = sphere
 	add_child(p)
 
