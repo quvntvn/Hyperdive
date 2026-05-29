@@ -27,14 +27,13 @@ func _create_city_skyline() -> void:
 	skyline.name = "CitySkyline"
 	cam.add_child(skyline)
 	# Plus bas et plus loin pour remplir tout le bas de l'écran.
-	skyline.position = Vector3(0, -34, -90)
+	skyline.position = Vector3(0, -40, -90)
 	# Légère plongée pour voir les toits par-dessus (vue d'avion douce).
 	skyline.rotation_degrees = Vector3(-45, 0, 0)
 
 	# Matériau immeuble : bleu nuit sombre, avec fenêtres émissives via un shader.
 	var mat := ShaderMaterial.new()
 	mat.shader = _make_skyline_shader()
-	mat.render_priority = -1
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1962
@@ -70,44 +69,27 @@ func _make_skyline_shader() -> Shader:
 	var sh := Shader.new()
 	sh.code = """
 shader_type spatial;
-render_mode unshaded, cull_disabled, blend_mix, depth_draw_opaque;
+render_mode unshaded, cull_disabled;
 
 uniform vec3 facade_color : source_color = vec3(0.094, 0.141, 0.247);
 uniform vec3 window_color : source_color = vec3(0.949, 0.757, 0.306);
-uniform vec3 fog_color : source_color = vec3(0.5, 0.5, 0.55);
-uniform float fog_start = 15.0;   // distance caméra où la brume commence
-uniform float fog_end = 70.0;     // distance où tout est noyé dans la brume
-
-varying float v_view_dist;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
 
-void vertex() {
-	// Distance du vertex à la caméra (en espace vue).
-	v_view_dist = length((MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz);
-}
-
 void fragment() {
+	// Grille de fenêtres en UV. Densité réglable.
 	vec2 grid = UV * vec2(6.0, 14.0);
 	vec2 cell = floor(grid);
 	vec2 f = fract(grid);
+	// Marge autour de chaque fenêtre (cadre sombre entre fenêtres)
 	float win = step(0.2, f.x) * step(f.x, 0.8) * step(0.2, f.y) * step(f.y, 0.8);
+	// Certaines fenêtres allumées, d'autres éteintes (pseudo-aléatoire)
 	float lit = step(0.45, hash(cell));
 	float w = win * lit;
 	vec3 col = mix(facade_color, window_color, w * 0.9);
-
-	// Brume : fondu vers fog_color selon la distance à la caméra.
-	float fog = clamp((v_view_dist - fog_start) / (fog_end - fog_start), 0.0, 1.0);
-	col = mix(col, fog_color, fog);
-
-	// Transparence : les plus lointains deviennent aussi semi-transparents
-	// → fondu vers le fond, rendu brumeux.
-	float alpha = 1.0 - fog * 0.6;
-
 	ALBEDO = col;
-	ALPHA = alpha;
 }
 """
 	return sh
