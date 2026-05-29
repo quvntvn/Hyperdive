@@ -93,7 +93,9 @@ void fragment() {
 	float win = step(0.2, f.x) * step(f.x, 0.8) * step(0.2, f.y) * step(f.y, 0.8);
 	float lit = step(0.45, hash(cell));
 	float w = win * lit;
-	vec3 col = mix(facade_color, window_color, w * 0.9);
+	// Fenêtres de la ville lointaine aussi discrètes que celles des murs proches :
+	// intensité du mix 0.9 → 0.55 (≈ win_mix des murs) + window_color assombrie ×0.7.
+	vec3 col = mix(facade_color, window_color * 0.7, w * 0.55);
 
 	// Brume LÉGÈRE, seulement au fond, plafonnée à 0.5 (garde la ville lisible)
 	float fog = clamp((v_view_dist - 55.0) / (110.0 - 55.0), 0.0, 1.0) * 0.5;
