@@ -161,11 +161,24 @@ func _apply_theme() -> void:
 	var theme: Dictionary = Catalog.get_theme(Settings.equipped_theme)
 	_wall_material.set_shader_parameter("wall_color", theme["wall_color"])
 	_wall_material.set_shader_parameter("line_color", theme["line_color"])
+	print("[Thème] Équipé='", Settings.equipped_theme,
+		  "'  wall_color=", theme["wall_color"],
+		  "  → shader lu=", _wall_material.get_shader_parameter("wall_color"))
 	var world_env: WorldEnvironment = get_parent().get_node_or_null("WorldEnvironment") as WorldEnvironment
 	if world_env == null:
+		push_warning("[Thème] WorldEnvironment introuvable depuis parent '", get_parent().name, "'")
 		return
 	var sky_mat: ProceduralSkyMaterial = world_env.environment.sky.sky_material as ProceduralSkyMaterial
 	if sky_mat == null:
+		push_warning("[Thème] ProceduralSkyMaterial introuvable")
 		return
 	sky_mat.sky_top_color = theme["sky_top"]
 	sky_mat.sky_horizon_color = theme["sky_horizon"]
+	# FIX : ground_bottom_color était hardcodé en marron (Color(0.239, 0.173, 0.118)) dans la
+	# scène et jamais touché par le thème. C'est cette couleur qui est visible dans l'ouverture
+	# du couloir quand on regarde vers le bas — pas le wall_color du shader.
+	sky_mat.ground_bottom_color = theme["wall_color"]
+	sky_mat.ground_horizon_color = theme["sky_horizon"]
+	print("[Thème] Ciel : top=", theme["sky_top"],
+		  "  horizon=", theme["sky_horizon"],
+		  "  ground_bottom=", theme["wall_color"])
