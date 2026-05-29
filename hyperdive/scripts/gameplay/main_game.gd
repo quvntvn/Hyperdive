@@ -40,6 +40,9 @@ func _create_city_skyline() -> void:
 	var theme: Dictionary = Catalog.get_theme(Settings.equipped_theme)
 	var theme_color: Color = theme["wall_color"]
 	mat.set_shader_parameter("facade_color", theme_color * 0.5)
+	# Brume = teinte du thème éclaircie vers le clair (effet atmosphérique cohérent)
+	var fog_tint: Color = theme_color.lerp(Color(0.7, 0.7, 0.72), 0.6)
+	mat.set_shader_parameter("fog_color", fog_tint)
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1962
