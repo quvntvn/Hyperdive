@@ -80,11 +80,14 @@ func _create_soft_clouds() -> void:
 	p.randomness = 1.0
 	p.local_coords = true
 	p.emitting = true
-	p.position = Vector3(0.0, 4.0, 0.0)  # légèrement au-dessus du joueur, dans le champ
+	# Envol : caméra vers le haut → on remonte les nuages et on étend leur zone
+	# verticale pour qu'ils couvrent le haut de l'écran. DEBUG, à doser. Hors menu.
+	var envol: bool = Settings.active_mode == "envol" and target != null
+	p.position = Vector3(0.0, 18.0 if envol else 4.0, 0.0)
 
 	var mat := ParticleProcessMaterial.new()
 	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	mat.emission_box_extents = Vector3(3.5, 2.0, 2.0)
+	mat.emission_box_extents = Vector3(3.5, 6.0 if envol else 2.0, 2.0)
 	mat.direction = Vector3(1.0, 0.0, 0.0)
 	mat.spread = 20.0
 	mat.initial_velocity_min = 0.20
@@ -133,6 +136,11 @@ func _apply_theme() -> void:
 	# du couloir quand on regarde vers le bas — pas le wall_color du shader.
 	sky_mat.ground_bottom_color = theme["wall_color"]
 	sky_mat.ground_horizon_color = theme["sky_horizon"]
+	# Envol : caméra inclinée vers le HAUT → on éclaircit le sommet du dôme vers la
+	# teinte d'horizon (claire) pour que le ciel couvre tout le haut de l'écran.
+	# DEBUG Étape 1, à doser. Gardé hors menu via target != null.
+	if Settings.active_mode == "envol" and target != null:
+		sky_mat.sky_top_color = (theme["sky_top"] as Color).lerp(theme["sky_horizon"], 0.6)
 	print("[Thème] Ciel : top=", theme["sky_top"],
 		  "  horizon=", theme["sky_horizon"],
 		  "  ground_bottom=", theme["wall_color"])
