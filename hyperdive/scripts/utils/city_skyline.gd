@@ -6,7 +6,9 @@ class_name CitySkyline
 # façade pilotée par la couleur du thème équipé + fenêtres jaunes + brume teintée.
 
 # Construit la skyline et l'ajoute comme enfant de la caméra (donc fixe à l'écran).
-static func attach_to(cam: Camera3D) -> void:
+# ascending = true (mode envol) : la caméra est inclinée vers le HAUT, on compense
+# le tangage de la ville pour la garder en bas de l'écran comme en chute.
+static func attach_to(cam: Camera3D, ascending: bool = false) -> void:
 	if cam == null:
 		push_warning("[Skyline] Caméra introuvable — skyline non créée")
 		return
@@ -14,10 +16,13 @@ static func attach_to(cam: Camera3D) -> void:
 	var skyline := Node3D.new()
 	skyline.name = "CitySkyline"
 	cam.add_child(skyline)
-	# Plus bas et plus loin pour remplir tout le bas de l'écran.
+	# Plus bas et plus loin pour remplir tout le bas de l'écran (position fixe à l'écran,
+	# car enfant de la caméra → identique quel que soit l'angle monde de la caméra).
 	skyline.position = Vector3(0, -72, -90)
-	# Légère plongée pour voir les toits par-dessus (vue d'avion douce).
-	skyline.rotation_degrees = Vector3(-45, 0, 0)
+	# Plongée pour voir les toits. En envol la caméra est inclinée vers le haut : on
+	# MIROITE le tangage (-45 → +45) sinon les immeubles "montent" dans le cadre.
+	# Réglage SÉPARÉ par mode pour ne pas casser le placement parfait des autres modes.
+	skyline.rotation_degrees = Vector3(45 if ascending else -45, 0, 0)
 
 	# Matériau immeuble : façade pilotée par la couleur du thème équipé (même source
 	# que corridor_walls), fenêtres émissives jaunes via un shader.
