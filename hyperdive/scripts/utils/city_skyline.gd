@@ -27,7 +27,10 @@ static func attach_to(cam: Camera3D) -> void:
 	# Assombrie pour garder l'effet "lointain/nuit".
 	var theme: Dictionary = Catalog.get_theme(Settings.equipped_theme)
 	var theme_color: Color = theme["wall_color"]
-	mat.set_shader_parameter("facade_color", theme_color * 0.5)
+	var facade: Color = theme_color * 0.5
+	# Désaturer vers le gris sombre pour mettre le décor en retrait derrière le gameplay.
+	facade = facade.lerp(Color(0.1, 0.1, 0.12), 0.3)
+	mat.set_shader_parameter("facade_color", facade)
 	# Brume = teinte du thème assombrie vers le noir (les lointains s'enfoncent dans l'ombre)
 	var fog_tint: Color = theme_color.lerp(Color(0.0, 0.0, 0.0), 0.7)
 	mat.set_shader_parameter("fog_color", fog_tint)

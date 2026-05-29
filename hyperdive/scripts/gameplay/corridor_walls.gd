@@ -18,6 +18,9 @@ func _ready() -> void:
 	left_mesh.material_override = _wall_material
 	right_mesh.material_override = _wall_material
 	_wall_material.set_shader_parameter("loop_cells", loop_cells)
+	# Décor en retrait : fenêtres moins prononcées pour ne pas attirer l'œil
+	# (win_mix défaut 0.68 → 0.50, ≈26% de moins). Le gameplay doit primer.
+	_wall_material.set_shader_parameter("win_mix", 0.50)
 	_apply_theme()
 	Settings.equipped_theme_changed.connect(func(_id: String) -> void: _apply_theme())
 	_create_ambient_fx()
@@ -106,11 +109,15 @@ func _create_soft_clouds() -> void:
 
 func _apply_theme() -> void:
 	var theme: Dictionary = Catalog.get_theme(Settings.equipped_theme)
-	_wall_material.set_shader_parameter("wall_color", theme["wall_color"])
+	# Décor en retrait : on assombrit la couleur des murs (×0.8) pour creuser le
+	# contraste avec les éléments de gameplay, sans la rendre laide.
+	var base_wall: Color = theme["wall_color"]
+	var dimmed_wall: Color = base_wall * 0.8
+	_wall_material.set_shader_parameter("wall_color", dimmed_wall)
 	_wall_material.set_shader_parameter("line_color", theme["line_color"])
 	print("[Thème] Équipé='", Settings.equipped_theme,
-		  "'  wall_color=", theme["wall_color"],
-		  "  → shader lu=", _wall_material.get_shader_parameter("wall_color"))
+		  "'  wall_color base=", base_wall, " → assombrie ×0.8=", dimmed_wall,
+		  "  shader lu=", _wall_material.get_shader_parameter("wall_color"))
 	var world_env: WorldEnvironment = get_parent().get_node_or_null("WorldEnvironment") as WorldEnvironment
 	if world_env == null:
 		push_warning("[Thème] WorldEnvironment introuvable depuis parent '", get_parent().name, "'")
