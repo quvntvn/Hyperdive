@@ -5,7 +5,6 @@ class_name CorridorWalls
 @export var target_path: NodePath
 
 var _wall_material: ShaderMaterial
-var _debug_skyline_logged: bool = false
 
 func _ready() -> void:
 	if target == null and not target_path.is_empty():
@@ -23,30 +22,10 @@ func _process(_delta: float) -> void:
 	if target == null:
 		return
 	global_position.y = target.global_position.y
-	if not _debug_skyline_logged:
-		_debug_skyline_logged = true
-		_log_skyline_debug()
-
-func _log_skyline_debug() -> void:
-	print("[Skyline DEBUG] CorridorWalls global_position=", global_position)
-	var cam := get_viewport().get_camera_3d()
-	if cam:
-		print("[Skyline DEBUG] Camera global_position=", cam.global_position, "  far=", cam.far, "  fov=", cam.fov)
-	else:
-		print("[Skyline DEBUG] Aucune Camera3D active trouvée dans le viewport")
-	var count := 0
-	for child in get_children():
-		if child is MeshInstance3D:
-			print("[Skyline DEBUG] Bâtiment[", count, "] global=", child.global_position,
-				  "  size=", (child as MeshInstance3D).mesh.size if (child as MeshInstance3D).mesh is BoxMesh else "?")
-			count += 1
-			if count >= 3:
-				break
 
 func _create_ambient_fx() -> void:
 	_create_dust_motes()
 	_create_soft_clouds()
-	_create_city_skyline()
 
 func _create_dust_motes() -> void:
 	var p := GPUParticles3D.new()
@@ -120,42 +99,6 @@ func _create_soft_clouds() -> void:
 	p.draw_pass_1 = sphere
 	add_child(p)
 
-func _create_city_skyline() -> void:
-	# DEBUG : Y_BASE réduit de -48 → -20, taille ×3, couleur magenta émissive.
-	# Objectif : confirmer que les bâtiments se rendent bien avant de les rendre discrets.
-	# La caméra (Z=12, inclinée -35°) atteint Z=0 vers player.y-42 → à -48 les bâtiments
-	# étaient juste hors frustum. À -20 ils sont dans le bas du champ visible.
-	const Y_BASE: float = -20.0
-	var buildings: Array = [
-		[-11.5, 9.0,  54.0],
-		[ -9.0, 10.5, 84.0],
-		[ -6.5, 7.5,  42.0],
-		[ -4.2, 12.0, 72.0],
-		[ -1.5, 8.4,  96.0],
-		[  1.0, 7.5,  60.0],
-		[  3.5, 12.6, 78.0],
-		[  6.0, 7.5,  48.0],
-		[  8.5, 10.5, 66.0],
-		[ 11.0, 9.0,  60.0],
-	]
-	var bmat := StandardMaterial3D.new()
-	bmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	bmat.albedo_color = Color(1.0, 0.0, 1.0)  # DEBUG: magenta vif
-	bmat.emission_enabled = true
-	bmat.emission = Color(1.0, 0.0, 1.0)
-	bmat.emission_energy_multiplier = 5.0
-	for b in buildings:
-		var bx: float = b[0]
-		var bw: float = b[1]
-		var bh: float = b[2]
-		var mesh := BoxMesh.new()
-		mesh.size = Vector3(bw, bh, 2.0)
-		var mi := MeshInstance3D.new()
-		mi.mesh = mesh
-		mi.material_override = bmat
-		mi.position = Vector3(bx, Y_BASE - bh * 0.5, 0.0)
-		add_child(mi)
-	print("[Skyline DEBUG] Y_BASE=", Y_BASE, " (local). Bâtiments magenta créés.")
 
 func _apply_theme() -> void:
 	var theme: Dictionary = Catalog.get_theme(Settings.equipped_theme)
