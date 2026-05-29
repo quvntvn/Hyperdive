@@ -26,48 +26,51 @@ func _create_city_skyline() -> void:
 	var skyline := Node3D.new()
 	skyline.name = "CitySkyline"
 	cam.add_child(skyline)
-	# Loin devant + bas de l'écran.
-	skyline.position = Vector3(0, -30, -55)
-	# CLÉ : incliner pour voir la ville EN PLONGÉE (comme vue d'avion),
-	# pas de face. On bascule vers l'avant ~70°.
-	skyline.rotation_degrees = Vector3(-70, 0, 0)
-
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color("1F305E")
-	mat.emission_enabled = true
-	mat.emission = Color("1F305E")
-	mat.emission_energy_multiplier = 0.35
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	# Face caméra, en bas de l'écran, loin en profondeur. PAS d'inclinaison.
+	skyline.position = Vector3(0, -24, -50)
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1962
 
-	# Grille d'immeubles sur X (largeur) ET Z (profondeur) → vraie ville,
-	# pas une rangée plate. Chaque immeuble est un bloc 3D de hauteur variée.
-	var cols := 9
-	var rows := 6
-	var cell := 5.0
-	var grid_w := cols * cell
-	var grid_d := rows * cell
+	# On construit un ruban de tours collées : chaque tour = un quad (2 triangles).
+	# Bases toutes alignées sur y=0, sommets de hauteurs variées → profil en dents.
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 
-	for ix in cols:
-		for iz in rows:
-			if rng.randf() < 0.15:
-				continue
-			var b := MeshInstance3D.new()
-			var box := BoxMesh.new()
-			var w: float = cell * rng.randf_range(0.55, 0.8)
-			var d: float = cell * rng.randf_range(0.55, 0.8)
-			var h: float = rng.randf_range(3.0, 14.0)
-			box.size = Vector3(w, h, d)
-			b.mesh = box
-			b.material_override = mat
-			var px: float = -grid_w / 2.0 + ix * cell + cell / 2.0
-			var pz: float = -grid_d / 2.0 + iz * cell + cell / 2.0
-			b.position = Vector3(px, h / 2.0, pz)
-			skyline.add_child(b)
+	var total_width := 60.0
+	var tower_count := 22
+	var tw := total_width / float(tower_count)   # largeur d'une tour
+	var x := -total_width / 2.0
 
-	print("[Skyline] grille ville ", cols, "x", rows, " inclinée -70°, ancrée caméra")
+	for i in tower_count:
+		var h: float = rng.randf_range(6.0, 22.0)   # hauteur variée
+		var x0 := x
+		var x1 := x + tw
+		# 4 coins de la tour (quad vertical, face +Z vers la caméra)
+		var bl := Vector3(x0, 0, 0)
+		var br := Vector3(x1, 0, 0)
+		var tl := Vector3(x0, h, 0)
+		var tr := Vector3(x1, h, 0)
+		# triangle 1
+		st.add_vertex(bl); st.add_vertex(tl); st.add_vertex(tr)
+		# triangle 2
+		st.add_vertex(bl); st.add_vertex(tr); st.add_vertex(br)
+		x = x1
+
+	st.generate_normals()
+	var mesh := st.commit()
+
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	var mat := StandardMaterial3D.new()
+	# Silhouette sombre : bleu nuit, à peine plus clair que le fond → lointain.
+	mat.albedo_color = Color("18243F")    # bleu nuit assombri
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED   # visible des deux côtés
+	mi.material_override = mat
+	skyline.add_child(mi)
+
+	print("[Skyline] silhouette plate ", tower_count, " tours, face caméra")
 
 func _process(delta: float) -> void:
 	if not _campaign_active or _success_handled or not _player_alive:
