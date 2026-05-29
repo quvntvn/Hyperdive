@@ -27,13 +27,19 @@ func _create_city_skyline() -> void:
 	skyline.name = "CitySkyline"
 	cam.add_child(skyline)
 	# Plus bas et plus loin pour remplir tout le bas de l'écran.
-	skyline.position = Vector3(0, -40, -90)
+	skyline.position = Vector3(0, -72, -90)
 	# Légère plongée pour voir les toits par-dessus (vue d'avion douce).
 	skyline.rotation_degrees = Vector3(-45, 0, 0)
 
-	# Matériau immeuble : bleu nuit sombre, avec fenêtres émissives via un shader.
+	# Matériau immeuble : façade pilotée par la couleur du thème équipé (même source
+	# que corridor_walls), fenêtres émissives jaunes via un shader.
 	var mat := ShaderMaterial.new()
 	mat.shader = _make_skyline_shader()
+	# Couleur du thème équipé (même source que corridor_walls._apply_theme).
+	# Assombrie pour garder l'effet "lointain/nuit".
+	var theme: Dictionary = Catalog.get_theme(Settings.equipped_theme)
+	var theme_color: Color = theme["wall_color"]
+	mat.set_shader_parameter("facade_color", theme_color * 0.5)
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1962
