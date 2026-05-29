@@ -4,6 +4,7 @@ class_name MainMenu
 func _ready() -> void:
 	%CampagneButton.pressed.connect(_on_campagne_pressed)
 	%JouerButton.pressed.connect(_on_jouer_pressed)
+	%EnvolButton.pressed.connect(_on_envol_pressed)
 	%ShopButton.pressed.connect(_on_shop_pressed)
 	%DefisButton.pressed.connect(_on_defis_pressed)
 	%SettingsGearButton.pressed.connect(_on_reglages_pressed)
@@ -31,6 +32,8 @@ func _update_infinite_button() -> void:
 		%JouerButton.disabled = true
 		%JouerButton.text = "INFINI — Niv. 5"
 		%InfiniLockedLabel.visible = true
+	# Mode envol : visible/activé seulement après le niveau 10.
+	%EnvolButton.visible = Settings.is_envol_unlocked()
 
 func update_stats() -> void:
 	%BestLabel.text = "Record : " + str(Settings.best_distance) + " m"
@@ -43,6 +46,11 @@ func _on_campagne_pressed() -> void:
 func _on_jouer_pressed() -> void:
 	Audio.play_ui_click()
 	Settings.active_mode = "infinite"
+	Transition.change_scene("res://scenes/game/main_game.tscn")
+
+func _on_envol_pressed() -> void:
+	Audio.play_ui_click()
+	Settings.active_mode = "envol"
 	Transition.change_scene("res://scenes/game/main_game.tscn")
 
 func _on_shop_pressed() -> void:

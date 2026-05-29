@@ -7,6 +7,9 @@ var _success_handled: bool = false
 var _player_alive: bool = true
 
 func _ready() -> void:
+	# TODO Étape 2 (envol) : la skyline est ancrée à la caméra ; avec la caméra inclinée
+	# vers le haut en envol, elle se retrouve mal placée. À ré-ancrer (rester en bas, sol
+	# sous le joueur) pour le mode envol. OK en debug Étape 1.
 	CitySkyline.attach_to(get_viewport().get_camera_3d())
 	if Settings.active_mode != "campaign":
 		return

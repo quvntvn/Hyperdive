@@ -4,6 +4,7 @@ class_name SettingsManager
 enum ControlMode { KEYBOARD, TOUCH }
 
 const INFINITE_UNLOCK_LEVEL: int = 5
+const ENVOL_UNLOCK_LEVEL: int = 10
 
 signal control_mode_changed(new_mode: ControlMode)
 signal coin_collected(new_total: int)
@@ -293,6 +294,14 @@ func get_level_reward(level: int) -> int:
 
 func is_infinite_unlocked() -> bool:
 	return campaign_level > INFINITE_UNLOCK_LEVEL
+
+func is_envol_unlocked() -> bool:
+	return campaign_level > ENVOL_UNLOCK_LEVEL
+
+# Signe vertical centralisé (source de vérité unique pour l'inversion du mode envol).
+# +1.0 en envol (le joueur MONTE), -1.0 sinon (chute). Tous les scripts lisent ça.
+func get_fall_dir() -> float:
+	return 1.0 if active_mode == "envol" else -1.0
 
 func complete_current_level() -> void:
 	coins_total += get_level_reward(active_level)

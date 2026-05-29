@@ -15,6 +15,8 @@ const TYPES_CAMPAIGN: Array[String] = ["shield", "slowmo", "boost"]
 
 var _next_spawn_y: float = 0.0
 var _campaign_mode: bool = false
+# Signe vertical : -1 chute (spawn en bas), +1 envol (spawn en haut). Lu une fois au départ.
+var _dir: float = -1.0
 
 func set_campaign_mode(enabled: bool) -> void:
 	_campaign_mode = enabled
@@ -22,8 +24,9 @@ func set_campaign_mode(enabled: bool) -> void:
 func _ready() -> void:
 	if player == null and not player_path.is_empty():
 		player = get_node_or_null(player_path)
+	_dir = Settings.get_fall_dir()
 	var start_y: float = player.global_position.y if player != null else 0.0
-	_next_spawn_y = start_y - SPAWN_AHEAD - randf_range(SPAWN_INTERVAL_MIN, SPAWN_INTERVAL_MAX)
+	_next_spawn_y = start_y + _dir * (SPAWN_AHEAD + randf_range(SPAWN_INTERVAL_MIN, SPAWN_INTERVAL_MAX))
 	if powerup_scene == null:
 		push_warning("PowerupSpawner: powerup_scene is not assigned")
 
@@ -31,11 +34,11 @@ func _process(_delta: float) -> void:
 	if player == null or powerup_scene == null:
 		return
 	var player_y: float = player.global_position.y
-	while player_y - SPAWN_AHEAD < _next_spawn_y:
+	while _dir * _next_spawn_y < _dir * player_y + SPAWN_AHEAD:
 		_spawn_at(_next_spawn_y)
-		_next_spawn_y -= randf_range(SPAWN_INTERVAL_MIN, SPAWN_INTERVAL_MAX)
+		_next_spawn_y += _dir * randf_range(SPAWN_INTERVAL_MIN, SPAWN_INTERVAL_MAX)
 	for pu: Node3D in get_tree().get_nodes_in_group("powerups"):
-		if pu.global_position.y > player_y + DESPAWN_BEHIND:
+		if _dir * pu.global_position.y < _dir * player_y - DESPAWN_BEHIND:
 			pu.queue_free()
 
 func _spawn_at(y: float) -> void:

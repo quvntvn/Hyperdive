@@ -51,7 +51,14 @@ func _ready() -> void:
 	Settings.daily_games += 1
 	Settings.update_daily_progress()
 	Settings.save_settings()
-	$Character.rotation_degrees = CHARACTER_BASE_ROT
+	# Mode envol : on MONTE (jetpack). Pas de gravité (poussée constante pilotée dans
+	# _physics_process), perso debout tête en haut. Sinon : chute classique, pose plongeon.
+	# TODO Étape 2 : sway des membres adapté à la pose droite + anim jetpack.
+	if Settings.active_mode == "envol":
+		gravity_scale = 0.0
+		$Character.rotation_degrees = Vector3.ZERO
+	else:
+		$Character.rotation_degrees = CHARACTER_BASE_ROT
 	body_entered.connect(_on_body_entered)
 	_apply_skin(Settings.equipped_skin)
 	Settings.equipped_skin_changed.connect(_apply_skin)
@@ -167,6 +174,10 @@ func _trigger_ragdoll() -> void:
 	if _boost_active:
 		return
 	var death_vel := linear_velocity
+	# En envol, on montait (gravity_scale=0). À la mort : "on RETOMBE" → on rétablit la
+	# gravité et on lance le ragdoll vers le BAS (sinon il s'envolerait, vitesse positive).
+	var ascending: bool = Settings.get_fall_dir() > 0.0
+	gravity_scale = 1.0
 	$Character.visible = false
 	$CollisionShape3D.disabled = true
 	freeze = true
@@ -189,9 +200,11 @@ func _trigger_ragdoll() -> void:
 			if mi and mi.material_override:
 				(mi.material_override as StandardMaterial3D).albedo_color = skin_col
 			var rb := part as RigidBody3D
+			# Envol : vitesse vers le bas (on retombe). Chute : on garde l'élan vers le bas.
+			var vy: float = -6.0 if ascending else maxf(death_vel.y, -6.0)
 			rb.linear_velocity = Vector3(
 				randf_range(-2.0, 2.0),
-				maxf(death_vel.y, -6.0),
+				vy,
 				randf_range(-2.0, 2.0)
 			)
 			rb.apply_torque_impulse(Vector3(
@@ -357,18 +370,27 @@ func _physics_process(delta: float) -> void:
 		if lateral != 0.0:
 			apply_central_force(Vector3(lateral * LATERAL_FORCE, 0.0, 0.0))
 		linear_velocity.x = clampf(linear_velocity.x, -MAX_LATERAL_SPEED, MAX_LATERAL_SPEED)
-	if Settings.active_mode == "infinite" and not _level_completed:
+	# Signe vertical centralisé : +1 en envol (on monte), -1 en chute.
+	var dir: float = Settings.get_fall_dir()
+	if Settings.active_mode != "campaign" and not _level_completed:
 		var steps: int = int(abs(global_position.y) / SPEED_RAMP_STEP)
 		var target_speed: float = MAX_FALL_SPEED * pow(SPEED_RAMP_FACTOR, steps)
 		_current_max_fall_speed = move_toward(_current_max_fall_speed, target_speed, SPEED_RAMP_RATE * delta)
 	if _boost_active:
-		linear_velocity.y = -MAX_FALL_SPEED * BOOST_SPEED_FACTOR
+		# Boost dans le sens du déplacement (vers le haut en envol, pas vers la mort).
+		linear_velocity.y = dir * MAX_FALL_SPEED * BOOST_SPEED_FACTOR
+	elif dir > 0.0:
+		# Envol : poussée constante vers le haut (gravity_scale = 0).
+		linear_velocity.y = _current_max_fall_speed
+		if _slowmo_active:
+			linear_velocity.y = _current_max_fall_speed * SLOWMO_FACTOR
 	else:
+		# Chute : la gravité accélère, on plafonne la vitesse terminale.
 		if linear_velocity.y < -_current_max_fall_speed:
 			linear_velocity.y = -_current_max_fall_speed
 		if _slowmo_active and linear_velocity.y < -_current_max_fall_speed * SLOWMO_FACTOR:
 			linear_velocity.y = -_current_max_fall_speed * SLOWMO_FACTOR
-	Audio.set_whoosh_intensity(linear_velocity.y)
+	Audio.set_whoosh_intensity(absf(linear_velocity.y))
 
 func _process(delta: float) -> void:
 	if _is_dead or _parachute_active:
