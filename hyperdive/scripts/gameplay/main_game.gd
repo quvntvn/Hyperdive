@@ -73,22 +73,32 @@ render_mode unshaded, cull_disabled;
 
 uniform vec3 facade_color : source_color = vec3(0.094, 0.141, 0.247);
 uniform vec3 window_color : source_color = vec3(0.949, 0.757, 0.306);
+uniform vec3 fog_color : source_color = vec3(0.5, 0.5, 0.55);
+
+varying float v_view_dist;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
 }
 
+void vertex() {
+	// Distance du vertex à la caméra (en espace vue).
+	v_view_dist = length((MODELVIEW_MATRIX * vec4(VERTEX, 1.0)).xyz);
+}
+
 void fragment() {
-	// Grille de fenêtres en UV. Densité réglable.
 	vec2 grid = UV * vec2(6.0, 14.0);
 	vec2 cell = floor(grid);
 	vec2 f = fract(grid);
-	// Marge autour de chaque fenêtre (cadre sombre entre fenêtres)
 	float win = step(0.2, f.x) * step(f.x, 0.8) * step(0.2, f.y) * step(f.y, 0.8);
-	// Certaines fenêtres allumées, d'autres éteintes (pseudo-aléatoire)
 	float lit = step(0.45, hash(cell));
 	float w = win * lit;
 	vec3 col = mix(facade_color, window_color, w * 0.9);
+
+	// Brume LÉGÈRE, seulement au fond, plafonnée à 0.5 (garde la ville lisible)
+	float fog = clamp((v_view_dist - 55.0) / (110.0 - 55.0), 0.0, 1.0) * 0.5;
+	col = mix(col, fog_color, fog);
+
 	ALBEDO = col;
 }
 """
