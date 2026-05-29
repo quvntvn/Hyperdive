@@ -26,51 +26,73 @@ func _create_city_skyline() -> void:
 	var skyline := Node3D.new()
 	skyline.name = "CitySkyline"
 	cam.add_child(skyline)
-	# Face caméra, en bas de l'écran, loin en profondeur. PAS d'inclinaison.
-	skyline.position = Vector3(0, -24, -50)
+	# Plus bas et plus loin pour remplir tout le bas de l'écran.
+	skyline.position = Vector3(0, -32, -45)
+	# Légère plongée pour voir les toits par-dessus (vue d'avion douce).
+	skyline.rotation_degrees = Vector3(-25, 0, 0)
+
+	# Matériau immeuble : bleu nuit sombre, avec fenêtres émissives via un shader.
+	var mat := ShaderMaterial.new()
+	mat.shader = _make_skyline_shader()
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1962
 
-	# On construit un ruban de tours collées : chaque tour = un quad (2 triangles).
-	# Bases toutes alignées sur y=0, sommets de hauteurs variées → profil en dents.
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	# Grille d'immeubles HAUTS (la hauteur est sur Z car on regarde de haut).
+	var cols := 11
+	var rows := 7
+	var cell := 6.0
+	var grid_w := cols * cell
+	var grid_d := rows * cell
 
-	var total_width := 60.0
-	var tower_count := 22
-	var tw := total_width / float(tower_count)   # largeur d'une tour
-	var x := -total_width / 2.0
+	for ix in cols:
+		for iz in rows:
+			if rng.randf() < 0.12:
+				continue
+			var b := MeshInstance3D.new()
+			var box := BoxMesh.new()
+			var w: float = cell * rng.randf_range(0.6, 0.85)
+			var d: float = cell * rng.randf_range(0.6, 0.85)
+			var h: float = rng.randf_range(8.0, 26.0)   # immeubles HAUTS
+			box.size = Vector3(w, h, d)
+			b.mesh = box
+			b.material_override = mat
+			var px: float = -grid_w / 2.0 + ix * cell + cell / 2.0
+			var pz: float = -grid_d / 2.0 + iz * cell + cell / 2.0
+			b.position = Vector3(px, h / 2.0, pz)
+			skyline.add_child(b)
 
-	for i in tower_count:
-		var h: float = rng.randf_range(6.0, 22.0)   # hauteur variée
-		var x0 := x
-		var x1 := x + tw
-		# 4 coins de la tour (quad vertical, face +Z vers la caméra)
-		var bl := Vector3(x0, 0, 0)
-		var br := Vector3(x1, 0, 0)
-		var tl := Vector3(x0, h, 0)
-		var tr := Vector3(x1, h, 0)
-		# triangle 1
-		st.add_vertex(bl); st.add_vertex(tl); st.add_vertex(tr)
-		# triangle 2
-		st.add_vertex(bl); st.add_vertex(tr); st.add_vertex(br)
-		x = x1
+	print("[Skyline] ville 3D plongée ", cols, "x", rows, " fenêtres émissives")
 
-	st.generate_normals()
-	var mesh := st.commit()
+# Shader simple : façade bleu nuit + fenêtres lumineuses en grille (jaune chaud).
+func _make_skyline_shader() -> Shader:
+	var sh := Shader.new()
+	sh.code = """
+shader_type spatial;
+render_mode unshaded, cull_disabled;
 
-	var mi := MeshInstance3D.new()
-	mi.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	# Silhouette sombre : bleu nuit, à peine plus clair que le fond → lointain.
-	mat.albedo_color = Color("18243F")    # bleu nuit assombri
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED   # visible des deux côtés
-	mi.material_override = mat
-	skyline.add_child(mi)
+uniform vec3 facade_color : source_color = vec3(0.094, 0.141, 0.247);
+uniform vec3 window_color : source_color = vec3(0.949, 0.757, 0.306);
 
-	print("[Skyline] silhouette plate ", tower_count, " tours, face caméra")
+float hash(vec2 p) {
+	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+void fragment() {
+	// Grille de fenêtres en UV. Densité réglable.
+	vec2 grid = UV * vec2(6.0, 14.0);
+	vec2 cell = floor(grid);
+	vec2 f = fract(grid);
+	// Marge autour de chaque fenêtre (cadre sombre entre fenêtres)
+	float win = step(0.2, f.x) * step(f.x, 0.8) * step(0.2, f.y) * step(f.y, 0.8);
+	// Certaines fenêtres allumées, d'autres éteintes (pseudo-aléatoire)
+	float lit = step(0.45, hash(cell));
+	float w = win * lit;
+	vec3 col = mix(facade_color, window_color, w * 0.9);
+	ALBEDO = col;
+}
+"""
+	return sh
 
 func _process(delta: float) -> void:
 	if not _campaign_active or _success_handled or not _player_alive:
