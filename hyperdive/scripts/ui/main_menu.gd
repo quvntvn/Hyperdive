@@ -9,6 +9,9 @@ func _ready() -> void:
 	%SettingsGearButton.pressed.connect(_on_reglages_pressed)
 	UIAnimations.wire_buttons(self)
 
+	# Ville lointaine ancrée à la caméra du menu (même logique qu'en jeu, thème appliqué).
+	CitySkyline.attach_to($PreviewCamera)
+
 	_update_infinite_button()
 	update_stats()
 	Settings.coin_collected.connect(func(_n: int) -> void: update_stats())
