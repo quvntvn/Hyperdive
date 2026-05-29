@@ -3,6 +3,9 @@ class_name CorridorWalls
 
 @export var target: Node3D
 @export var target_path: NodePath
+## Bouclage vertical du motif (menu). 0 = désactivé (jeu, défilement infini).
+## > 0 = nombre de cellules avant répétition ; doit correspondre à MenuCamera.LOOP_CELLS.
+@export var loop_cells: float = 0.0
 
 var _wall_material: ShaderMaterial
 
@@ -14,6 +17,7 @@ func _ready() -> void:
 	_wall_material = (left_mesh.material_override as ShaderMaterial).duplicate() as ShaderMaterial
 	left_mesh.material_override = _wall_material
 	right_mesh.material_override = _wall_material
+	_wall_material.set_shader_parameter("loop_cells", loop_cells)
 	_apply_theme()
 	Settings.equipped_theme_changed.connect(func(_id: String) -> void: _apply_theme())
 	_create_ambient_fx()

@@ -38,6 +38,7 @@ light_energy = 1.5
 shadow_enabled = true
 
 [node name="CorridorWalls" parent="." instance=ExtResource("CorridorWallsScene")]
+loop_cells = 15.0
 
 [node name="PreviewCamera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.8192, 0.5736, 0, -0.5736, 0.8192, 0, 5, 12)

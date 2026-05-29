@@ -2,12 +2,21 @@ extends Camera3D
 class_name MenuCamera
 
 const DESCENT_SPEED: float = 3.0
-const LOOP_DISTANCE: float = 20.25  # 15 × win_cell.y (1.35) → boucle alignée sur la période de la grille
+# Période verticale du motif des murs : line_spacing == win_cell.y dans wall_pattern.gdshader.
+const PATTERN_PERIOD: float = 1.35
+# Nombre de cellules par boucle. DOIT correspondre au loop_cells du CorridorWalls du menu,
+# sinon l'identité des fenêtres ne retombe pas sur elle-même au recyclage.
+const LOOP_CELLS: int = 15
+# Multiple EXACT de la période → géométrie + identité des fenêtres alignées à la boucle.
+const LOOP_DISTANCE: float = PATTERN_PERIOD * float(LOOP_CELLS)  # 20.25
 
 var _start_y: float
 
 func _ready() -> void:
 	_start_y = global_position.y
+	print("[MenuCam] LOOP_DISTANCE=", LOOP_DISTANCE,
+		  " = période motif (", PATTERN_PERIOD, ") × ", LOOP_CELLS, " cellules",
+		  " → multiple exact par construction")
 
 func _process(delta: float) -> void:
 	global_position.y -= DESCENT_SPEED * delta

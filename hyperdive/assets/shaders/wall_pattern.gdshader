@@ -19,6 +19,12 @@ uniform vec3 win_dark : source_color = vec3(0.14, 0.12, 0.09);    // éteinte (m
 uniform float win_lit_ratio : hint_range(0.0, 1.0) = 0.55;        // proportion fenêtres allumées
 uniform float win_mix : hint_range(0.0, 1.0) = 0.68;              // intensité du fondu fenêtre/mur
 
+// Bouclage vertical (menu) : 0 = désactivé (jeu, défilement infini sans répétition).
+// > 0 = nombre de cellules verticales avant répétition du motif de fenêtres. La caméra
+// du menu boucle tous les loop_cells * win_cell.y unités → l'identité du motif (fenêtres
+// allumées/teintes) se répète exactement à la boucle, donc AUCUN saut au recyclage.
+uniform float loop_cells = 0.0;
+
 varying vec3 world_position;
 varying vec3 world_normal;
 
@@ -54,6 +60,13 @@ void fragment() {
 	vec2 grid = vec2(hz / win_cell.x, y / win_cell.y);
 	vec2 cell_id = floor(grid);
 	vec2 cell_uv = fract(grid); // [0,1] dans la cellule
+
+	// Bouclage : on replie l'index vertical de cellule modulo loop_cells AVANT le hash,
+	// pour que l'identité des fenêtres (allumées/teinte) soit périodique sur la boucle.
+	// La géométrie (cell_uv) reste continue car indépendante de cell_id.
+	if (loop_cells > 0.5) {
+		cell_id.y = mod(cell_id.y, loop_cells);
+	}
 
 	// Fenêtre centrée dans la cellule → espace normalisé [-0.5, 0.5]
 	vec2 margin = (vec2(1.0) - win_size_rel) * 0.5;
