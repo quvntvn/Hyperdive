@@ -30,14 +30,18 @@ func _create_debug_skyline() -> void:
 	mat.emission_energy_multiplier = 2.0
 	city.material_override = mat
 
-	city.position = Vector3(0, -300, 0)
+	# Joueur tombe sur -Y (player.gd : linear_velocity.y = -MAX_FALL_SPEED).
+	# La ville est placée sur l'axe de PROFONDEUR (-Z, loin devant la caméra),
+	# pas sur -Y → le joueur en chute ne peut jamais l'atteindre physiquement.
+	# MeshInstance3D sans CollisionShape = aucune interaction physique.
+	city.position = Vector3(0, -50, -200)
 	add_child(city)
 
+	print("[Axes] Joueur tombe sur -Y (linear_velocity.y = -MAX_FALL_SPEED)")
+	print("[Skyline] city world pos =", city.global_position)
 	var cam := get_viewport().get_camera_3d()
-	print("[Skyline] city.position.y =", city.position.y)
 	if cam:
-		print("[Skyline] camera far =", cam.far)
-		print("[Skyline] camera.position.y =", cam.global_position.y)
+		print("[Camera] pos=", cam.global_position, "  rotation=", cam.rotation_degrees)
 
 func _process(delta: float) -> void:
 	if not _campaign_active or _success_handled or not _player_alive:
