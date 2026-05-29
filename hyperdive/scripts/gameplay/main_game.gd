@@ -20,7 +20,7 @@ func _ready() -> void:
 func _create_debug_skyline() -> void:
 	var city := MeshInstance3D.new()
 	var box := BoxMesh.new()
-	box.size = Vector3(80, 20, 5)
+	box.size = Vector3(30, 6, 2)
 	city.mesh = box
 
 	var mat := StandardMaterial3D.new()
@@ -30,18 +30,20 @@ func _create_debug_skyline() -> void:
 	mat.emission_energy_multiplier = 2.0
 	city.material_override = mat
 
-	# Joueur tombe sur -Y (player.gd : linear_velocity.y = -MAX_FALL_SPEED).
-	# La ville est placée sur l'axe de PROFONDEUR (-Z, loin devant la caméra),
-	# pas sur -Y → le joueur en chute ne peut jamais l'atteindre physiquement.
-	# MeshInstance3D sans CollisionShape = aucune interaction physique.
-	city.position = Vector3(0, -50, -200)
-	add_child(city)
+	# Ancrée à la caméra : la ville bouge avec elle → position fixe à l'écran.
+	# MeshInstance3D sans CollisionShape = aucune interaction physique possible.
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		push_warning("[Skyline] Caméra introuvable en _ready() — skyline non créée")
+		city.queue_free()
+		return
+	cam.add_child(city)
+	# Position RELATIVE à la caméra : Y<0 = bas de l'écran, Z<0 = devant la caméra.
+	city.position = Vector3(0, -8, -40)
 
 	print("[Axes] Joueur tombe sur -Y (linear_velocity.y = -MAX_FALL_SPEED)")
 	print("[Skyline] city world pos =", city.global_position)
-	var cam := get_viewport().get_camera_3d()
-	if cam:
-		print("[Camera] pos=", cam.global_position, "  rotation=", cam.rotation_degrees)
+	print("[Camera] pos=", cam.global_position, "  rotation=", cam.rotation_degrees)
 
 func _process(delta: float) -> void:
 	if not _campaign_active or _success_handled or not _player_alive:
