@@ -23,42 +23,51 @@ func _create_city_skyline() -> void:
 		push_warning("[Skyline] Caméra introuvable — skyline non créée")
 		return
 
-	# Conteneur ancré à la caméra → position fixe à l'écran.
 	var skyline := Node3D.new()
 	skyline.name = "CitySkyline"
 	cam.add_child(skyline)
-	skyline.position = Vector3(0, -28, -40)
+	# Loin devant + bas de l'écran.
+	skyline.position = Vector3(0, -30, -55)
+	# CLÉ : incliner pour voir la ville EN PLONGÉE (comme vue d'avion),
+	# pas de face. On bascule vers l'avant ~70°.
+	skyline.rotation_degrees = Vector3(-70, 0, 0)
 
-	# Couleur silhouette : bleu nuit doux de la palette, légèrement émissif.
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color("1F305E")
 	mat.emission_enabled = true
 	mat.emission = Color("1F305E")
-	mat.emission_energy_multiplier = 0.4
+	mat.emission_energy_multiplier = 0.35
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 
-	var building_count := 14
-	var total_width := 34.0
-	var spacing := total_width / float(building_count)
-	var start_x := -total_width / 2.0 + spacing / 2.0
-
-	# seed = 1962 → skyline identique à chaque partie (cohérente avec le thème).
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1962
 
-	for i in building_count:
-		var b := MeshInstance3D.new()
-		var box := BoxMesh.new()
-		var w: float = spacing * rng.randf_range(0.6, 0.9)
-		var h: float = rng.randf_range(4.0, 12.0)
-		box.size = Vector3(w, h, 2.0)
-		b.mesh = box
-		b.material_override = mat
-		# Base alignée en bas, immeubles qui montent vers le haut.
-		b.position = Vector3(start_x + float(i) * spacing, h / 2.0, 0.0)
-		skyline.add_child(b)
+	# Grille d'immeubles sur X (largeur) ET Z (profondeur) → vraie ville,
+	# pas une rangée plate. Chaque immeuble est un bloc 3D de hauteur variée.
+	var cols := 9
+	var rows := 6
+	var cell := 5.0
+	var grid_w := cols * cell
+	var grid_d := rows * cell
 
-	print("[Skyline] ", building_count, " immeubles créés, ancrés à la caméra")
+	for ix in cols:
+		for iz in rows:
+			if rng.randf() < 0.15:
+				continue
+			var b := MeshInstance3D.new()
+			var box := BoxMesh.new()
+			var w: float = cell * rng.randf_range(0.55, 0.8)
+			var d: float = cell * rng.randf_range(0.55, 0.8)
+			var h: float = rng.randf_range(3.0, 14.0)
+			box.size = Vector3(w, h, d)
+			b.mesh = box
+			b.material_override = mat
+			var px: float = -grid_w / 2.0 + ix * cell + cell / 2.0
+			var pz: float = -grid_d / 2.0 + iz * cell + cell / 2.0
+			b.position = Vector3(px, h / 2.0, pz)
+			skyline.add_child(b)
+
+	print("[Skyline] grille ville ", cols, "x", rows, " inclinée -70°, ancrée caméra")
 
 func _process(delta: float) -> void:
 	if not _campaign_active or _success_handled or not _player_alive:
