@@ -36,7 +36,7 @@ func _create_ambient_fx() -> void:
 
 func _create_dust_motes() -> void:
 	var p := GPUParticles3D.new()
-	p.amount = 150
+	p.amount = 75
 	p.lifetime = 10.0
 	p.one_shot = false
 	p.explosiveness = 0.0
@@ -92,7 +92,7 @@ func _create_soft_clouds() -> void:
 	mat.gravity = Vector3.ZERO
 	mat.scale_min = 0.60
 	mat.scale_max = 1.20
-	mat.color = Color(0.910, 0.875, 0.805, 0.15)
+	mat.color = Color(0.910, 0.875, 0.805, 0.075)
 	p.process_material = mat
 
 	var sphere := SphereMesh.new()
