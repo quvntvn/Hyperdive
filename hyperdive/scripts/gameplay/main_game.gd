@@ -39,7 +39,7 @@ func _create_debug_skyline() -> void:
 		return
 	cam.add_child(city)
 	# Position RELATIVE à la caméra : Y<0 = bas de l'écran, Z<0 = devant la caméra.
-	city.position = Vector3(0, -8, -40)
+	city.position = Vector3(0, -18, -40)
 
 	print("[Axes] Joueur tombe sur -Y (linear_velocity.y = -MAX_FALL_SPEED)")
 	print("[Skyline] city world pos =", city.global_position)
