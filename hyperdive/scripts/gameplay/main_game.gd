@@ -27,9 +27,9 @@ func _create_city_skyline() -> void:
 	skyline.name = "CitySkyline"
 	cam.add_child(skyline)
 	# Plus bas et plus loin pour remplir tout le bas de l'écran.
-	skyline.position = Vector3(0, -32, -45)
+	skyline.position = Vector3(0, -40, -90)
 	# Légère plongée pour voir les toits par-dessus (vue d'avion douce).
-	skyline.rotation_degrees = Vector3(-25, 0, 0)
+	skyline.rotation_degrees = Vector3(-45, 0, 0)
 
 	# Matériau immeuble : bleu nuit sombre, avec fenêtres émissives via un shader.
 	var mat := ShaderMaterial.new()
@@ -39,8 +39,8 @@ func _create_city_skyline() -> void:
 	rng.seed = 1962
 
 	# Grille d'immeubles HAUTS (la hauteur est sur Z car on regarde de haut).
-	var cols := 11
-	var rows := 7
+	var cols := 15
+	var rows := 12
 	var cell := 6.0
 	var grid_w := cols * cell
 	var grid_d := rows * cell
@@ -53,7 +53,7 @@ func _create_city_skyline() -> void:
 			var box := BoxMesh.new()
 			var w: float = cell * rng.randf_range(0.6, 0.85)
 			var d: float = cell * rng.randf_range(0.6, 0.85)
-			var h: float = rng.randf_range(8.0, 26.0)   # immeubles HAUTS
+			var h: float = rng.randf_range(5.0, 16.0)
 			box.size = Vector3(w, h, d)
 			b.mesh = box
 			b.material_override = mat
