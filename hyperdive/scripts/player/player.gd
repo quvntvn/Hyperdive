@@ -547,14 +547,24 @@ func _process(delta: float) -> void:
 	_apply_limb_sway($Character/LegRight, lateral, delta, 3.1, 2.4,   35.0, 11.0, 13.0, 0.5,  20.0, -24.0)
 	_apply_limb_sway($Character/Head,     lateral, delta, 2.2, 3.2,    0.0, 11.0,  7.0, 0.4,  20.0,   8.0)
 
-# Pose fusée : membres serrés le long du corps, lerp doux vers les cibles fixes.
+# Pose fusée VIVANTE : oscillation légère et subtile autour des bases ENVOL (≈25 %
+# de l'amplitude du sway chute), pilotée par sin + un peu de vélocité latérale.
 func _apply_rocket_pose(delta: float) -> void:
-	var k: float = delta * 8.0
-	$Character/ArmLeft.rotation_degrees  = $Character/ArmLeft.rotation_degrees.lerp(ENVOL_ARM_L, k)
-	$Character/ArmRight.rotation_degrees = $Character/ArmRight.rotation_degrees.lerp(ENVOL_ARM_R, k)
-	$Character/LegLeft.rotation_degrees  = $Character/LegLeft.rotation_degrees.lerp(ENVOL_LEG_L, k)
-	$Character/LegRight.rotation_degrees = $Character/LegRight.rotation_degrees.lerp(ENVOL_LEG_R, k)
-	$Character/Head.rotation_degrees     = $Character/Head.rotation_degrees.lerp(ENVOL_HEAD, k)
+	var t: float = _sway_time
+	var lateral: float = linear_velocity.x
+	# node, base, phase, x_amp, z_amp, lat_z
+	_apply_envol_sway($Character/ArmLeft,  delta, ENVOL_ARM_L, t, lateral, 0.0, 3.0, 5.0,  0.3)
+	_apply_envol_sway($Character/ArmRight, delta, ENVOL_ARM_R, t, lateral, 1.7, 3.0, 5.0, -0.3)
+	_apply_envol_sway($Character/LegLeft,  delta, ENVOL_LEG_L, t, lateral, 0.9, 2.5, 3.0,  0.2)
+	_apply_envol_sway($Character/LegRight, delta, ENVOL_LEG_R, t, lateral, 2.4, 2.5, 3.0, -0.2)
+	_apply_envol_sway($Character/Head,     delta, ENVOL_HEAD,  t, lateral, 3.2, 2.0, 2.0,  0.0)
+
+# Flottement subtil autour d'une base fixe (pose fusée). Lent (speed 2.5), faible amp.
+func _apply_envol_sway(node: Node3D, delta: float, base: Vector3, t: float, lateral: float,
+		phase: float, x_amp: float, z_amp: float, lat_z: float) -> void:
+	var s: float = sin(t * 2.5 + phase)
+	var target: Vector3 = base + Vector3(s * x_amp, 0.0, s * z_amp + lateral * lat_z)
+	node.rotation_degrees = node.rotation_degrees.lerp(target, delta * 8.0)
 
 func _start_boost_trail() -> void:
 	if _boost_trail != null:
