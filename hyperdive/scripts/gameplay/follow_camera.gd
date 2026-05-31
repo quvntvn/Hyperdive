@@ -21,6 +21,8 @@ func _ready() -> void:
 	if Settings.active_mode == "envol":
 		rotation_degrees.x = -rotation_degrees.x
 		offset.y = -offset.y
+		# Log angle caméra envol (pour comparer à l'angle skyline).
+		print("[Camera] ENVOL rotation_degrees=", rotation_degrees, " offset=", offset)
 
 func shake(amount: float) -> void:
 	_shake_intensity = amount
