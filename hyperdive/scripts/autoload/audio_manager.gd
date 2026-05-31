@@ -7,6 +7,7 @@ class_name AudioManagerClass
 @export var ui_click_sfx: AudioStream
 @export var gameplay_music: AudioStream
 @export var fall_whoosh: AudioStream
+@export var jetpack_sfx: AudioStream
 
 const SFX_POOL_SIZE: int = 6
 const DUCKED_VOLUME_DB: float = -12.0
@@ -15,11 +16,17 @@ const WHOOSH_MIN_DB: float = -10.0
 const WHOOSH_MAX_DB: float = 0.0
 const WHOOSH_MAX_FALL_SPEED: float = 18.0
 const WHOOSH_DUCKED_DB: float = -40.0
+# Jetpack (mode envol) : MÊME logique que le whoosh — volume piloté par la vitesse
+# verticale, lerp min↔max. Pas de RNG (le whoosh n'en a pas non plus).
+const JETPACK_MIN_DB: float = -10.0
+const JETPACK_MAX_DB: float = 0.0
+const JETPACK_DUCKED_DB: float = -40.0
 
 var _sfx_pool: Array[AudioStreamPlayer] = []
 var _next_sfx_index: int = 0
 var _music_player: AudioStreamPlayer
 var _whoosh_player: AudioStreamPlayer
+var _jetpack_player: AudioStreamPlayer
 var _is_ducked: bool = false
 
 func _ready() -> void:
@@ -52,6 +59,16 @@ func _ready() -> void:
 	_whoosh_player.volume_db = WHOOSH_MIN_DB
 	add_child(_whoosh_player)
 	_whoosh_player.play()
+	# Jetpack : player dédié, même bus SFX, en boucle. Pas d'autoplay (lancé via
+	# play_jetpack() seulement en mode envol).
+	_jetpack_player = AudioStreamPlayer.new()
+	_jetpack_player.bus = "SFX"
+	_jetpack_player.process_mode = Node.PROCESS_MODE_ALWAYS
+	if jetpack_sfx is AudioStreamMP3:
+		(jetpack_sfx as AudioStreamMP3).loop = true
+	_jetpack_player.stream = jetpack_sfx
+	_jetpack_player.volume_db = JETPACK_MIN_DB
+	add_child(_jetpack_player)
 
 func _setup_buses() -> void:
 	if AudioServer.get_bus_index("Music") == -1:
@@ -99,6 +116,8 @@ func duck_music() -> void:
 		_music_player.volume_db = DUCKED_VOLUME_DB
 	if _whoosh_player:
 		_whoosh_player.volume_db = WHOOSH_DUCKED_DB
+	if _jetpack_player:
+		_jetpack_player.volume_db = JETPACK_DUCKED_DB
 	_is_ducked = true
 
 func unduck_music() -> void:
@@ -120,3 +139,19 @@ func set_whoosh_intensity(fall_speed: float) -> void:
 		return
 	var t: float = clamp(absf(fall_speed) / WHOOSH_MAX_FALL_SPEED, 0.0, 1.0)
 	_whoosh_player.volume_db = lerpf(WHOOSH_MIN_DB, WHOOSH_MAX_DB, t)
+
+func play_jetpack() -> void:
+	if _jetpack_player:
+		_jetpack_player.volume_db = JETPACK_MIN_DB
+		_jetpack_player.play()
+
+func stop_jetpack() -> void:
+	if _jetpack_player:
+		_jetpack_player.stop()
+
+# Même mécanique que set_whoosh_intensity : volume piloté par la vitesse, pas de RNG.
+func set_jetpack_intensity(speed: float) -> void:
+	if _is_ducked or _jetpack_player == null:
+		return
+	var t: float = clamp(absf(speed) / WHOOSH_MAX_FALL_SPEED, 0.0, 1.0)
+	_jetpack_player.volume_db = lerpf(JETPACK_MIN_DB, JETPACK_MAX_DB, t)

@@ -34,6 +34,7 @@ func _on_menu_pressed() -> void:
 	Audio.play_ui_click()
 	Audio.unduck_music()
 	Audio.stop_whoosh()
+	Audio.stop_jetpack()
 	get_tree().paused = false
 	Transition.change_scene("res://scenes/ui/main_menu.tscn")
 

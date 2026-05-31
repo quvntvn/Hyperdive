@@ -7,6 +7,7 @@
 [ext_resource type="AudioStream" uid="uid://y2q28f0cqtwu" path="res://assets/audio/sfx/game_over.mp3" id="GameOverSFX"]
 [ext_resource type="AudioStream" uid="uid://bryp327lrs56n" path="res://assets/audio/music/gameplay_loop.mp3" id="GameplayMusic"]
 [ext_resource type="AudioStream" uid="uid://bn3ww2oygwx8b" path="res://assets/audio/sfx/obstacle_hit.mp3" id="HitSFX"]
+[ext_resource type="AudioStream" uid="uid://bjiiuchh62c4o" path="res://assets/audio/music/jetpack.mp3" id="Jetpack"]
 
 [node name="AudioManager" type="Node" unique_id=173985583]
 script = ExtResource("AudioManagerScript")
@@ -16,3 +17,4 @@ game_over_sfx = ExtResource("GameOverSFX")
 ui_click_sfx = ExtResource("5_s06pa")
 gameplay_music = ExtResource("GameplayMusic")
 fall_whoosh = ExtResource("FallWhoosh")
+jetpack_sfx = ExtResource("Jetpack")

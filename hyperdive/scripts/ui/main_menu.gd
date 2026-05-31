@@ -18,6 +18,7 @@ func _ready() -> void:
 	Settings.coin_collected.connect(func(_n: int) -> void: update_stats())
 
 	Audio.stop_whoosh()
+	Audio.stop_jetpack()
 	Audio.unduck_music()
 	Audio.play_music()
 
