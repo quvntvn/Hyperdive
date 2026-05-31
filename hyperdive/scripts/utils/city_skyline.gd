@@ -16,13 +16,24 @@ static func attach_to(cam: Camera3D, ascending: bool = false) -> void:
 	var skyline := Node3D.new()
 	skyline.name = "CitySkyline"
 	cam.add_child(skyline)
-	# Plus bas et plus loin pour remplir tout le bas de l'écran (position fixe à l'écran,
-	# car enfant de la caméra → identique quel que soit l'angle monde de la caméra).
-	skyline.position = Vector3(0, -72, -90)
-	# Plongée pour voir les toits. En envol la caméra est inclinée vers le haut : on
-	# MIROITE le tangage (-45 → +45) sinon les immeubles "montent" dans le cadre.
-	# Réglage SÉPARÉ par mode pour ne pas casser le placement parfait des autres modes.
-	skyline.rotation_degrees = Vector3(45 if ascending else -45, 0, 0)
+	# Position fixe à l'écran (enfant de la caméra → identique quel que soit l'angle
+	# monde de la caméra). Réglage SÉPARÉ par mode pour ne pas casser le placement
+	# parfait des autres modes (chute).
+	if ascending:
+		# MODE ENVOL : on MONTE dans le ciel → la ville est vue en CONTRE-PLONGÉE,
+		# comme quelqu'un au sol qui lève la tête. Tangage X POSITIF : les sommets
+		# pointent vers le ciel/centre, les bases sortent du cadre par le bas.
+		# Position abaissée + rapprochée pour pousser les bases hors champ et faire
+		# "monter" les immeubles depuis le bas de l'écran (plus d'effet lévitation).
+		skyline.position = Vector3(0, -85, -75)
+		skyline.rotation_degrees = Vector3(55, 0, 0)
+	else:
+		# Modes chute : plongée douce (-45°), on voit les toits d'en haut. Parfait.
+		skyline.position = Vector3(0, -72, -90)
+		skyline.rotation_degrees = Vector3(-45, 0, 0)
+	# Log pour réglage fin de l'angle/position en envol.
+	print("[Skyline] mode=", "ENVOL(contre-plongée)" if ascending else "chute(plongée)",
+		" pos=", skyline.position, " rot=", skyline.rotation_degrees)
 
 	# Matériau immeuble : façade pilotée par la couleur du thème équipé (même source
 	# que corridor_walls), fenêtres émissives jaunes via un shader.
