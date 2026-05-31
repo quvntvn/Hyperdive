@@ -8,6 +8,14 @@ const TOUCH_FOLLOW_SPEED: float = 8.0
 const TRAIL_BASE_AMOUNT: int = 40
 const WALL_HIT_COOLDOWN: float = 0.3
 const CHARACTER_BASE_ROT := Vector3(205.0, 0.0, 0.0)
+# Pose FUSÉE (mode envol) : perso droit légèrement penché en avant, membres serrés
+# le long du corps. Séparé de la pose plongeon pour ne pas la casser.
+const ENVOL_CHARACTER_ROT := Vector3(-12.0, 0.0, 0.0)
+const ENVOL_ARM_L := Vector3(0.0, 0.0, 6.0)
+const ENVOL_ARM_R := Vector3(0.0, 0.0, -6.0)
+const ENVOL_LEG_L := Vector3(0.0, 0.0, 4.0)
+const ENVOL_LEG_R := Vector3(0.0, 0.0, -4.0)
+const ENVOL_HEAD := Vector3.ZERO
 const SLOWMO_DURATION: float = 3.0
 const SLOWMO_FACTOR: float = 0.5
 const MAGNET_DURATION: float = 5.0
@@ -42,6 +50,7 @@ var _boost_active: bool = false
 var boost_timer: float = 0.0
 var _boost_trail: GPUParticles3D
 var _current_max_fall_speed: float = MAX_FALL_SPEED
+var _jetpack_flames: GPUParticles3D
 
 signal game_over
 
@@ -52,11 +61,12 @@ func _ready() -> void:
 	Settings.update_daily_progress()
 	Settings.save_settings()
 	# Mode envol : on MONTE (jetpack). Pas de gravité (poussée constante pilotée dans
-	# _physics_process), perso debout tête en haut. Sinon : chute classique, pose plongeon.
-	# TODO Étape 2 : sway des membres adapté à la pose droite + anim jetpack.
+	# _physics_process), perso en pose FUSÉE penchée + flammes sous les pieds.
+	# Sinon : chute classique, pose plongeon.
 	if Settings.active_mode == "envol":
 		gravity_scale = 0.0
-		$Character.rotation_degrees = Vector3.ZERO
+		$Character.rotation_degrees = ENVOL_CHARACTER_ROT
+		_setup_jetpack_flames()
 	else:
 		$Character.rotation_degrees = CHARACTER_BASE_ROT
 	body_entered.connect(_on_body_entered)
@@ -103,6 +113,62 @@ func _setup_fall_trail() -> void:
 
 	add_child(trail)
 	_trail_node = trail
+
+# Flammes de propulsion sous les pieds (mode envol uniquement). Jet court et nerveux
+# vers le BAS (opposé du sens de montée), dégradé jaune moutarde → orange brûlé.
+# ParticleProcessMaterial propre (rien à voir avec le trail ni le corps).
+func _setup_jetpack_flames() -> void:
+	var flames := GPUParticles3D.new()
+	flames.name = "JetpackFlames"
+	flames.amount = 44
+	flames.lifetime = 0.3
+	flames.local_coords = false
+	flames.emitting = true
+	# Sous les pieds : Character (scale 1.5) → pieds ≈ -0.7 en espace Player. Suit
+	# les déplacements latéraux car enfant du Player.
+	flames.position = Vector3(0.0, -0.7, 0.0)
+
+	var mat := ParticleProcessMaterial.new()
+	mat.direction = Vector3(0.0, -1.0, 0.0)   # vers le bas, opposé de la montée
+	mat.spread = 14.0
+	mat.initial_velocity_min = 5.0
+	mat.initial_velocity_max = 9.0
+	mat.gravity = Vector3.ZERO
+	mat.scale_min = 0.25
+	mat.scale_max = 0.5
+	# Scale qui diminue sur la durée de vie (jet qui s'éteint en s'éloignant).
+	var scurve := Curve.new()
+	scurve.add_point(Vector2(0.0, 1.0))
+	scurve.add_point(Vector2(1.0, 0.0))
+	var scurve_tex := CurveTexture.new()
+	scurve_tex.curve = scurve
+	mat.scale_curve = scurve_tex
+	# Dégradé flamme : cœur jaune moutarde (#F2C14E) → orange brûlé (#E94F37) → fade.
+	var grad := Gradient.new()
+	grad.set_color(0, Color(0.949, 0.757, 0.306, 1.0))
+	grad.add_point(0.6, Color(0.914, 0.310, 0.216, 1.0))
+	grad.set_color(grad.get_point_count() - 1, Color(0.914, 0.310, 0.216, 0.0))
+	var grad_tex := GradientTexture1D.new()
+	grad_tex.gradient = grad
+	mat.color_ramp = grad_tex
+	flames.process_material = mat
+
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.06
+	sphere.height = 0.12
+	var sphere_mat := StandardMaterial3D.new()
+	sphere_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED   # plein-bright = brille
+	sphere_mat.vertex_color_use_as_albedo = true
+	sphere_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	sphere_mat.emission_enabled = true
+	sphere_mat.emission = Color(0.949, 0.757, 0.306, 1.0)
+	sphere_mat.emission_energy_multiplier = 1.5
+	sphere.surface_set_material(0, sphere_mat)
+	flames.draw_pass_1 = sphere
+
+	add_child(flames)
+	_jetpack_flames = flames
+	print("[Jetpack] flammes créées sous les pieds pos=", flames.position, " amount=", flames.amount)
 
 
 func _apply_trail() -> void:
@@ -184,6 +250,8 @@ func _trigger_ragdoll() -> void:
 	Audio.set_whoosh_intensity(0.0)
 	if _trail_node:
 		_trail_node.emitting = false
+	if _jetpack_flames:
+		_jetpack_flames.emitting = false
 
 	var rag: Node3D = preload("res://scenes/player/ragdoll.tscn").instantiate()
 	# Position et rotation AVANT add_child : les RigidBody3D enfants calculent leur
@@ -343,10 +411,13 @@ func _shake_camera(amount: float) -> void:
 		cam.shake(amount)
 
 func _body_recoil() -> void:
+	# Repos selon le mode : pose fusée en envol, plongeon sinon (sinon le recul
+	# remettrait le perso tête en bas en plein vol).
+	var base: Vector3 = ENVOL_CHARACTER_ROT if Settings.active_mode == "envol" else CHARACTER_BASE_ROT
 	var tween := create_tween()
 	tween.tween_property($Character, "rotation_degrees",
-		CHARACTER_BASE_ROT + Vector3(randf_range(-12.0, 12.0), 0.0, randf_range(-8.0, 8.0)), 0.05)
-	tween.tween_property($Character, "rotation_degrees", CHARACTER_BASE_ROT, 0.15)
+		base + Vector3(randf_range(-12.0, 12.0), 0.0, randf_range(-8.0, 8.0)), 0.05)
+	tween.tween_property($Character, "rotation_degrees", base, 0.15)
 
 func _physics_process(delta: float) -> void:
 	if _is_dead:
@@ -412,6 +483,10 @@ func _process(delta: float) -> void:
 			_attract_coins(delta)
 	_sway_time += delta
 	_jolt = move_toward(_jolt, 0.0, delta * 4.0)
+	# Envol : pose fusée fixe (sway désactivé, calibré pour le perso flippé 180°).
+	if Settings.active_mode == "envol":
+		_apply_rocket_pose(delta)
+		return
 	var lateral: float = linear_velocity.x
 	# speed, phase, base_z, z_amp, x_amp, lat_z, jolt_z, jolt_x, base_x
 	# lat_z positif car Character est flippé X=180° (Z local = -Z monde)
@@ -421,6 +496,15 @@ func _process(delta: float) -> void:
 	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.8, 0.9,  -35.0, 12.0, 13.0, 0.5, -22.0,  28.0)
 	_apply_limb_sway($Character/LegRight, lateral, delta, 3.1, 2.4,   35.0, 11.0, 13.0, 0.5,  20.0, -24.0)
 	_apply_limb_sway($Character/Head,     lateral, delta, 2.2, 3.2,    0.0, 11.0,  7.0, 0.4,  20.0,   8.0)
+
+# Pose fusée : membres serrés le long du corps, lerp doux vers les cibles fixes.
+func _apply_rocket_pose(delta: float) -> void:
+	var k: float = delta * 8.0
+	$Character/ArmLeft.rotation_degrees  = $Character/ArmLeft.rotation_degrees.lerp(ENVOL_ARM_L, k)
+	$Character/ArmRight.rotation_degrees = $Character/ArmRight.rotation_degrees.lerp(ENVOL_ARM_R, k)
+	$Character/LegLeft.rotation_degrees  = $Character/LegLeft.rotation_degrees.lerp(ENVOL_LEG_L, k)
+	$Character/LegRight.rotation_degrees = $Character/LegRight.rotation_degrees.lerp(ENVOL_LEG_R, k)
+	$Character/Head.rotation_degrees     = $Character/Head.rotation_degrees.lerp(ENVOL_HEAD, k)
 
 func _start_boost_trail() -> void:
 	if _boost_trail != null:
