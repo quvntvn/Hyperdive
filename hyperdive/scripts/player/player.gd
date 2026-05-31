@@ -63,16 +63,16 @@ func _ready() -> void:
 	Settings.save_settings()
 	# Mode envol : on MONTE (jetpack). Pas de gravité (poussée constante pilotée dans
 	# _physics_process), perso en pose FUSÉE penchée + réacteur dorsal + flammes.
-	# Le son de jetpack REMPLACE le whoosh du vent en envol. Sinon : chute, plongeon, whoosh.
+	# En envol le jetpack s'AJOUTE au whoosh du vent (les deux jouent ensemble).
+	# Sinon : chute, plongeon, whoosh seul.
+	Audio.play_whoosh()
 	if Settings.active_mode == "envol":
 		gravity_scale = 0.0
 		$Character.rotation_degrees = ENVOL_CHARACTER_ROT
 		_setup_jetpack()
-		Audio.stop_whoosh()
 		Audio.play_jetpack()
 	else:
 		$Character.rotation_degrees = CHARACTER_BASE_ROT
-		Audio.play_whoosh()
 	body_entered.connect(_on_body_entered)
 	_apply_skin(Settings.equipped_skin)
 	Settings.equipped_skin_changed.connect(_apply_skin)
@@ -566,11 +566,10 @@ func _physics_process(delta: float) -> void:
 			linear_velocity.y = -_current_max_fall_speed
 		if _slowmo_active and linear_velocity.y < -_current_max_fall_speed * SLOWMO_FACTOR:
 			linear_velocity.y = -_current_max_fall_speed * SLOWMO_FACTOR
-	# Envol : le jetpack remplace le whoosh, même pilotage par la vitesse.
+	# Vent toujours actif ; en envol le jetpack s'ajoute (même pilotage par la vitesse).
+	Audio.set_whoosh_intensity(absf(linear_velocity.y))
 	if Settings.active_mode == "envol":
 		Audio.set_jetpack_intensity(absf(linear_velocity.y))
-	else:
-		Audio.set_whoosh_intensity(absf(linear_velocity.y))
 
 func _process(delta: float) -> void:
 	if _is_dead or _parachute_active:
