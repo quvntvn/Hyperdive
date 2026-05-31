@@ -5,7 +5,7 @@ class_name ObstacleSpawner
 @export var player_path: NodePath
 @export var obstacle_scenes: Array[PackedScene]
 
-const SPAWN_INTERVAL_Y: float = 7.2
+const SPAWN_INTERVAL_Y: float = 14.4
 const SPAWN_AHEAD: float = 60.0
 const CORRIDOR_HALF_WIDTH: float = 4.5
 const DESPAWN_BEHIND: float = 15.0
