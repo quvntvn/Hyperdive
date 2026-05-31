@@ -4,8 +4,8 @@ extends ObstacleBase
 # Construit en deux blocs (gauche/droite) encadrant l'ouverture. Le trou fait toujours
 # 2*GAP_HALF de large (franchissable), et chaque bloc garde au moins ~1.0 de large.
 const HALF_W: float = 4.5     # demi-largeur du couloir
-const GAP_HALF: float = 1.5   # demi-largeur du trou → ouverture = 3.0 (franchissable)
-const HOLE_RANGE: float = 2.0 # le centre du trou varie dans [-2, 2] → blocs >= 1.0
+const GAP_HALF: float = 1.5   # demi-largeur du trou → ouverture = 3.0 mini (franchissable)
+const HOLE_RANGE: float = 3.0 # centre du trou dans [-3, 3] → reste atteignable, jamais collé au bord
 const HEIGHT: float = 1.6
 const DEPTH: float = 0.65
 
