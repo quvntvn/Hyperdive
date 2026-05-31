@@ -6,37 +6,23 @@ class_name CitySkyline
 # façade pilotée par la couleur du thème équipé + fenêtres jaunes + brume teintée.
 
 # Construit la skyline et l'ajoute comme enfant de la caméra (donc fixe à l'écran).
-# ascending = true (mode envol) : la caméra est inclinée vers le HAUT, on compense
-# le tangage de la ville pour la garder en bas de l'écran comme en chute.
+# ascending = true (mode envol) : PAS de skyline du tout (ciel + murs suffisent).
 static func attach_to(cam: Camera3D, ascending: bool = false) -> void:
 	if cam == null:
 		push_warning("[Skyline] Caméra introuvable — skyline non créée")
+		return
+	# Mode envol : aucune ville (le rendu en contre-plongée ne marchait pas).
+	if ascending:
 		return
 
 	var skyline := Node3D.new()
 	skyline.name = "CitySkyline"
 	cam.add_child(skyline)
 	# Position fixe à l'écran (enfant de la caméra → identique quel que soit l'angle
-	# monde de la caméra). Réglage SÉPARÉ par mode pour ne pas casser le placement
-	# parfait des autres modes (chute).
-	if ascending:
-		# MODE ENVOL : on MONTE dans le ciel → la ville est vue en CONTRE-PLONGÉE,
-		# comme quelqu'un au sol qui lève la tête. Tangage X POSITIF : les sommets
-		# pointent vers le ciel/centre, les bases sortent du cadre par le bas.
-		# Position abaissée + rapprochée pour pousser les bases hors champ et faire
-		# "monter" les immeubles depuis le bas de l'écran (plus d'effet lévitation).
-		skyline.position = Vector3(0, -85, -75)
-		# Angle relatif skyline/caméra = +25° (caméra +35° − 10°), pour reproduire le
-		# MÊME rendu qu'en chute (qui a un relatif de −10°). +55° donnait deux fois
-		# trop d'inclinaison → toits vus du dessus.
-		skyline.rotation_degrees = Vector3(25, 0, 0)
-	else:
-		# Modes chute : plongée douce (-45°), on voit les toits d'en haut. Parfait.
-		skyline.position = Vector3(0, -72, -90)
-		skyline.rotation_degrees = Vector3(-45, 0, 0)
-	# Log pour réglage fin de l'angle/position en envol.
-	print("[Skyline] mode=", "ENVOL(contre-plongée)" if ascending else "chute(plongée)",
-		" pos=", skyline.position, " rot=", skyline.rotation_degrees)
+	# monde de la caméra). Plongée douce (-45°) : on voit les toits d'en haut.
+	skyline.position = Vector3(0, -72, -90)
+	skyline.rotation_degrees = Vector3(-45, 0, 0)
+	print("[Skyline] mode=chute(plongée) pos=", skyline.position, " rot=", skyline.rotation_degrees)
 
 	# Matériau immeuble : façade pilotée par la couleur du thème équipé (même source
 	# que corridor_walls), fenêtres émissives jaunes via un shader.
@@ -57,30 +43,27 @@ static func attach_to(cam: Camera3D, ascending: bool = false) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1962
 
-	# Centre-ville dense : gratte-ciels élancés (hauts + fins) et serrés qui se
-	# chevauchent. cell réduit + cols/rows augmentés = même largeur de ville mais
-	# masse dense. Jitter sur px/pz pour casser la grille parfaite (chevauchement
-	# organique). Même skyline pour les deux modes (chute + envol).
-	var cols := 22
-	var rows := 16
-	var cell := 3.5
+	# Grille d'immeubles HAUTS (la hauteur est sur Z car on regarde de haut).
+	var cols := 15
+	var rows := 12
+	var cell := 6.0
 	var grid_w := cols * cell
 	var grid_d := rows * cell
 
 	for ix in cols:
 		for iz in rows:
-			if rng.randf() < 0.05:
+			if rng.randf() < 0.12:
 				continue
 			var b := MeshInstance3D.new()
 			var box := BoxMesh.new()
-			var w: float = cell * rng.randf_range(0.35, 0.55)
-			var d: float = cell * rng.randf_range(0.35, 0.55)
-			var h: float = rng.randf_range(14.0, 40.0)
+			var w: float = cell * rng.randf_range(0.6, 0.85)
+			var d: float = cell * rng.randf_range(0.6, 0.85)
+			var h: float = rng.randf_range(5.0, 16.0)
 			box.size = Vector3(w, h, d)
 			b.mesh = box
 			b.material_override = mat
-			var px: float = -grid_w / 2.0 + ix * cell + cell / 2.0 + rng.randf_range(-cell * 0.3, cell * 0.3)
-			var pz: float = -grid_d / 2.0 + iz * cell + cell / 2.0 + rng.randf_range(-cell * 0.3, cell * 0.3)
+			var px: float = -grid_w / 2.0 + ix * cell + cell / 2.0
+			var pz: float = -grid_d / 2.0 + iz * cell + cell / 2.0
 			b.position = Vector3(px, h / 2.0, pz)
 			skyline.add_child(b)
 
