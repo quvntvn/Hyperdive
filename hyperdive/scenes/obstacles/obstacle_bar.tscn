@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/obstacle_bar.gd" id="Script_1"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_1"]
+shading_mode = 1
+albedo_color = Color(0.914, 0.310, 0.216, 1)
+emission_enabled = true
+emission = Color(0.914, 0.310, 0.216, 1)
+emission_energy_multiplier = 0.3
+
+[sub_resource type="BoxMesh" id="BarMesh_1"]
+material = SubResource("Mat_1")
+size = Vector3(6.0, 0.7, 0.65)
+
+[sub_resource type="BoxShape3D" id="BarShape_1"]
+size = Vector3(6.0, 0.7, 0.65)
+
+[node name="ObstacleBar" type="StaticBody3D" groups=["obstacles"]]
+script = ExtResource("Script_1")
+spawn_centered = true
+
+[node name="Beam" type="MeshInstance3D" parent="."]
+mesh = SubResource("BarMesh_1")
+
+[node name="BeamShape" type="CollisionShape3D" parent="."]
+shape = SubResource("BarShape_1")
