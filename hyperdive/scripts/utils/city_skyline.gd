@@ -26,7 +26,10 @@ static func attach_to(cam: Camera3D, ascending: bool = false) -> void:
 		# Position abaissée + rapprochée pour pousser les bases hors champ et faire
 		# "monter" les immeubles depuis le bas de l'écran (plus d'effet lévitation).
 		skyline.position = Vector3(0, -85, -75)
-		skyline.rotation_degrees = Vector3(55, 0, 0)
+		# Angle relatif skyline/caméra = +25° (caméra +35° − 10°), pour reproduire le
+		# MÊME rendu qu'en chute (qui a un relatif de −10°). +55° donnait deux fois
+		# trop d'inclinaison → toits vus du dessus.
+		skyline.rotation_degrees = Vector3(25, 0, 0)
 	else:
 		# Modes chute : plongée douce (-45°), on voit les toits d'en haut. Parfait.
 		skyline.position = Vector3(0, -72, -90)
