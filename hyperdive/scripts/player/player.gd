@@ -123,62 +123,62 @@ func _setup_jetpack() -> void:
 	var reactor := MeshInstance3D.new()
 	reactor.name = "JetpackReactor"
 	var body := BoxMesh.new()
-	# Taille intermédiaire (visible sans masquer le perso).
-	body.size = Vector3(0.40, 0.50, 0.25)
+	# Petit sac à dos : plus étroit que les épaules, ne monte pas au-dessus de la tête.
+	body.size = Vector3(0.30, 0.40, 0.20)
 	reactor.mesh = body
 	var body_mat := StandardMaterial3D.new()
 	body_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	# DEBUG : magenta vif pour trancher la visibilité/le côté. Repasser turquoise
-	# (Color(0.235, 0.682, 0.639) #3CAEA3) une fois confirmé.
+	# DEBUG : magenta vif pour confirmer taille/position. Repasser turquoise
+	# (Color(0.235, 0.682, 0.639) #3CAEA3) une fois validé.
 	body_mat.albedo_color = Color(1.0, 0.0, 1.0)
 	reactor.material_override = body_mat
-	# Plaqué sur le dos CÔTÉ CAMÉRA (+Z), centré entre les épaules, légèrement remonté.
-	reactor.position = Vector3(0.0, 0.08, 0.15)
+	# Plaqué sur le dos CÔTÉ CAMÉRA (+Z), DESCENDU (milieu du dos) → tête visible au-dessus.
+	reactor.position = Vector3(0.0, -0.02, 0.15)
 	torso.add_child(reactor)
 
 	# Cap crème en haut (détail Mid-Century).
 	var cap := MeshInstance3D.new()
 	var cap_box := BoxMesh.new()
-	cap_box.size = Vector3(0.42, 0.05, 0.27)
+	cap_box.size = Vector3(0.32, 0.04, 0.22)
 	cap.mesh = cap_box
 	var cap_mat := StandardMaterial3D.new()
 	cap_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	cap_mat.albedo_color = Color(0.957, 0.914, 0.804)    # crème #F4E9CD
 	cap.material_override = cap_mat
-	cap.position = Vector3(0.0, 0.27, 0.0)
+	cap.position = Vector3(0.0, 0.22, 0.0)
 	reactor.add_child(cap)
 
 	# Tuyère sombre en bas (d'où sortent les flammes).
 	var nozzle := MeshInstance3D.new()
 	var noz_box := BoxMesh.new()
-	noz_box.size = Vector3(0.20, 0.06, 0.16)
+	noz_box.size = Vector3(0.16, 0.05, 0.13)
 	nozzle.mesh = noz_box
 	var noz_mat := StandardMaterial3D.new()
 	noz_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	noz_mat.albedo_color = Color(0.239, 0.173, 0.118)    # marron noyer #3D2C1E
 	nozzle.material_override = noz_mat
-	nozzle.position = Vector3(0.0, -0.28, 0.0)
+	nozzle.position = Vector3(0.0, -0.22, 0.0)
 	reactor.add_child(nozzle)
 
-	# --- Flammes en BOUFFÉES courtes et denses, collées sous le réacteur ---
+	# --- Flammes en BOUFFÉES TRÈS courtes et denses, juste sous le réacteur ---
 	var flames := GPUParticles3D.new()
 	flames.name = "JetpackFlames"
-	flames.amount = 40                 # plus dense
-	flames.lifetime = 0.32             # court = bouffées qui restent proches
+	flames.amount = 56                 # dense
+	flames.lifetime = 0.2              # très court = ne descend pas loin
 	flames.local_coords = false        # se détachent dans le monde en descendant
 	flames.emitting = true
-	flames.position = Vector3(0.0, -0.33, 0.0)   # juste sous la tuyère
+	flames.position = Vector3(0.0, -0.26, 0.0)   # juste sous la tuyère (milieu du dos)
 
 	var mat := ParticleProcessMaterial.new()
 	mat.direction = Vector3(0.0, -1.0, 0.0)      # vers le bas, opposé de la montée
 	mat.spread = 24.0
-	mat.initial_velocity_min = 1.5               # lent = bouffées collées au réacteur
-	mat.initial_velocity_max = 3.0
+	mat.initial_velocity_min = 0.8               # très lent = bouffées collées
+	mat.initial_velocity_max = 1.8
 	mat.gravity = Vector3.ZERO
 	mat.damping_min = 1.5                         # ralentit → billow de fumée
 	mat.damping_max = 2.5
-	mat.scale_min = 0.6                           # particules plus grosses
-	mat.scale_max = 1.0
+	mat.scale_min = 0.8                           # grosses particules → bouffées pleines
+	mat.scale_max = 1.3
 	# Scale qui GROSSIT puis se dissipe (bouffée qui gonfle avant de s'éteindre).
 	var scurve := Curve.new()
 	scurve.add_point(Vector2(0.0, 0.3))
@@ -198,8 +198,8 @@ func _setup_jetpack() -> void:
 	flames.process_material = mat
 
 	var sphere := SphereMesh.new()
-	sphere.radius = 0.10
-	sphere.height = 0.20
+	sphere.radius = 0.13
+	sphere.height = 0.26
 	var sphere_mat := StandardMaterial3D.new()
 	sphere_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED   # plein-bright = brille
 	sphere_mat.vertex_color_use_as_albedo = true
