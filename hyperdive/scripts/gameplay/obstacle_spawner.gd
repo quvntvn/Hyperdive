@@ -39,8 +39,9 @@ func _spawn_at(y: float) -> void:
 	var picked: PackedScene = obstacle_scenes.pick_random()
 	var obstacle: Node3D = picked.instantiate()
 	get_parent().add_child(obstacle)
-	obstacle.global_position = Vector3(
-		randf_range(-CORRIDOR_HALF_WIDTH, CORRIDOR_HALF_WIDTH),
-		y,
-		0.0
-	)
+	# Obstacles pleine largeur (barre, mur, oscillant) : centrés, ils gèrent leur
+	# propre disposition latérale. Sinon : X aléatoire sur la largeur du couloir.
+	var x: float = 0.0
+	if not (obstacle is ObstacleBase and (obstacle as ObstacleBase).spawn_centered):
+		x = randf_range(-CORRIDOR_HALF_WIDTH, CORRIDOR_HALF_WIDTH)
+	obstacle.global_position = Vector3(x, y, 0.0)
