@@ -128,9 +128,7 @@ func _setup_jetpack() -> void:
 	reactor.mesh = body
 	var body_mat := StandardMaterial3D.new()
 	body_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	# DEBUG : magenta vif pour confirmer taille/position. Repasser turquoise
-	# (Color(0.235, 0.682, 0.639) #3CAEA3) une fois validé.
-	body_mat.albedo_color = Color(1.0, 0.0, 1.0)
+	body_mat.albedo_color = Color(0.235, 0.682, 0.639)   # turquoise rétro #3CAEA3
 	reactor.material_override = body_mat
 	# Plaqué sur le dos CÔTÉ CAMÉRA (+Z), DESCENDU (milieu du dos) → tête visible au-dessus.
 	reactor.position = Vector3(0.0, -0.02, 0.15)
@@ -164,7 +162,7 @@ func _setup_jetpack() -> void:
 	var flames := GPUParticles3D.new()
 	flames.name = "JetpackFlames"
 	flames.amount = 56                 # dense
-	flames.lifetime = 0.2              # très court = ne descend pas loin
+	flames.lifetime = 0.14             # encore plus court → disparaissent près du réacteur
 	flames.local_coords = false        # se détachent dans le monde en descendant
 	flames.emitting = true
 	flames.position = Vector3(0.0, -0.26, 0.0)   # juste sous la tuyère (milieu du dos)
@@ -172,8 +170,8 @@ func _setup_jetpack() -> void:
 	var mat := ParticleProcessMaterial.new()
 	mat.direction = Vector3(0.0, -1.0, 0.0)      # vers le bas, opposé de la montée
 	mat.spread = 24.0
-	mat.initial_velocity_min = 0.8               # très lent = bouffées collées
-	mat.initial_velocity_max = 1.8
+	mat.initial_velocity_min = 0.6               # très lent = bouffées collées
+	mat.initial_velocity_max = 1.3
 	mat.gravity = Vector3.ZERO
 	mat.damping_min = 1.5                         # ralentit → billow de fumée
 	mat.damping_max = 2.5
