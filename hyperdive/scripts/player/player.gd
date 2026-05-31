@@ -114,66 +114,67 @@ func _setup_fall_trail() -> void:
 	add_child(trail)
 	_trail_node = trail
 
-# Réacteur dorsal (sac à dos de propulsion) + flammes en bouffées, mode envol uniquement.
-# Le réacteur est attaché au Torse (suit la pose/lean). Le côté tourné vers la caméra
-# (+Z) est le "dos" visible. Les flammes partent du BAS du réacteur vers le bas.
+# Réacteur dorsal (PETIT sac à dos de propulsion) + flammes en bouffées, mode envol
+# uniquement. Attaché au Torse (suit la pose/lean), PLAQUÉ dans le dos (-Z, derrière
+# le torse) pour ne pas masquer le perso. Flammes depuis le bas, collées au perso.
 func _setup_jetpack() -> void:
 	var torso := $Character/Torso
-	# --- Corps du réacteur : bloc turquoise rétro avec cap crème (Mid-Century, flat) ---
+	# --- Corps du réacteur : petit bloc turquoise rétro avec cap crème (flat) ---
 	var reactor := MeshInstance3D.new()
 	reactor.name = "JetpackReactor"
 	var body := BoxMesh.new()
-	body.size = Vector3(0.20, 0.42, 0.14)
+	# Petit : nettement plus étroit/court que le torse (0.26×0.40 local → ×1.5).
+	body.size = Vector3(0.14, 0.26, 0.10)
 	reactor.mesh = body
 	var body_mat := StandardMaterial3D.new()
 	body_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	body_mat.albedo_color = Color(0.235, 0.682, 0.639)   # turquoise rétro #3CAEA3
 	reactor.material_override = body_mat
-	# Collé dans le dos (côté caméra +Z), centré sur le torse.
-	reactor.position = Vector3(0.0, 0.0, 0.15)
+	# Plaqué dans le dos : derrière le torse (-Z), haut du dos (y léger +).
+	reactor.position = Vector3(0.0, 0.05, -0.14)
 	torso.add_child(reactor)
 
 	# Cap crème en haut (détail Mid-Century).
 	var cap := MeshInstance3D.new()
 	var cap_box := BoxMesh.new()
-	cap_box.size = Vector3(0.22, 0.06, 0.16)
+	cap_box.size = Vector3(0.16, 0.04, 0.12)
 	cap.mesh = cap_box
 	var cap_mat := StandardMaterial3D.new()
 	cap_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	cap_mat.albedo_color = Color(0.957, 0.914, 0.804)    # crème #F4E9CD
 	cap.material_override = cap_mat
-	cap.position = Vector3(0.0, 0.24, 0.0)
+	cap.position = Vector3(0.0, 0.15, 0.0)
 	reactor.add_child(cap)
 
 	# Tuyère sombre en bas (d'où sortent les flammes).
 	var nozzle := MeshInstance3D.new()
 	var noz_box := BoxMesh.new()
-	noz_box.size = Vector3(0.12, 0.06, 0.10)
+	noz_box.size = Vector3(0.08, 0.04, 0.07)
 	nozzle.mesh = noz_box
 	var noz_mat := StandardMaterial3D.new()
 	noz_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	noz_mat.albedo_color = Color(0.239, 0.173, 0.118)    # marron noyer #3D2C1E
 	nozzle.material_override = noz_mat
-	nozzle.position = Vector3(0.0, -0.23, 0.0)
+	nozzle.position = Vector3(0.0, -0.15, 0.0)
 	reactor.add_child(nozzle)
 
-	# --- Flammes en BOUFFÉES depuis le bas du réacteur, vers le bas ---
+	# --- Flammes en BOUFFÉES depuis le bas du réacteur, COLLÉES au perso ---
 	var flames := GPUParticles3D.new()
 	flames.name = "JetpackFlames"
 	flames.amount = 24                 # peu = on distingue les bouffées
-	flames.lifetime = 0.6              # vie plus longue = bouffées qui se détachent
+	flames.lifetime = 0.45             # plus court = restent proches du perso
 	flames.local_coords = false        # se détachent dans le monde en descendant
 	flames.emitting = true
-	flames.position = Vector3(0.0, -0.28, 0.0)   # bas du réacteur
+	flames.position = Vector3(0.0, -0.17, 0.0)   # juste sous la tuyère
 
 	var mat := ParticleProcessMaterial.new()
 	mat.direction = Vector3(0.0, -1.0, 0.0)      # vers le bas, opposé de la montée
 	mat.spread = 22.0
-	mat.initial_velocity_min = 3.0
-	mat.initial_velocity_max = 5.0
+	mat.initial_velocity_min = 2.0               # plus lent = collé au réacteur
+	mat.initial_velocity_max = 3.5
 	mat.gravity = Vector3.ZERO
-	mat.damping_min = 1.0                         # ralentit → billow de fumée
-	mat.damping_max = 2.0
+	mat.damping_min = 1.5                         # ralentit → billow de fumée
+	mat.damping_max = 2.5
 	mat.scale_min = 0.4
 	mat.scale_max = 0.8
 	# Scale qui GROSSIT puis se dissipe (bouffée qui gonfle avant de s'éteindre).
@@ -209,7 +210,8 @@ func _setup_jetpack() -> void:
 
 	reactor.add_child(flames)
 	_jetpack_flames = flames
-	print("[Jetpack] réacteur dorsal + flammes en bouffées — flames pos=", flames.position, " amount=", flames.amount)
+	print("[Jetpack] réacteur box.size=", body.size, " reactor.pos(local Torse)=", reactor.position,
+		" flames.pos=", flames.position)
 
 
 func _apply_trail() -> void:
