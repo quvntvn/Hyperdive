@@ -30,9 +30,9 @@ func _update_infinite_button() -> void:
 		%InfiniLockedLabel.visible = false
 	else:
 		%JouerButton.disabled = true
-		%JouerButton.text = "INFINI — Niv. 5"
+		%JouerButton.text = "INFINI — Niv. 2"
 		%InfiniLockedLabel.visible = true
-	# Mode envol : visible/activé seulement après le niveau 10.
+	# Mode envol : visible/activé seulement après le niveau 5.
 	%EnvolButton.visible = Settings.is_envol_unlocked()
 
 func update_stats() -> void:

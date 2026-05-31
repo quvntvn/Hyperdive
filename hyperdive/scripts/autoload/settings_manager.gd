@@ -3,8 +3,8 @@ class_name SettingsManager
 
 enum ControlMode { KEYBOARD, TOUCH }
 
-const INFINITE_UNLOCK_LEVEL: int = 5
-const ENVOL_UNLOCK_LEVEL: int = 10
+const INFINITE_UNLOCK_LEVEL: int = 2
+const ENVOL_UNLOCK_LEVEL: int = 5
 
 signal control_mode_changed(new_mode: ControlMode)
 signal coin_collected(new_total: int)

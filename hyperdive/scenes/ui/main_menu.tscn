@@ -110,13 +110,13 @@ theme_override_constants/separation = 16
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 80)
 size_flags_horizontal = 4
-text = "INFINI — Niv. 5"
+text = "INFINI — Niv. 2"
 disabled = true
 theme_override_font_sizes/font_size = 36
 
 [node name="InfiniLockedLabel" type="Label" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
-text = "Débloqué au niveau 5"
+text = "Débloqué au niveau 2"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 0.6)
