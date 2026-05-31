@@ -57,27 +57,30 @@ static func attach_to(cam: Camera3D, ascending: bool = false) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1962
 
-	# Grille d'immeubles HAUTS (la hauteur est sur Z car on regarde de haut).
-	var cols := 15
-	var rows := 12
-	var cell := 6.0
+	# Centre-ville dense : gratte-ciels élancés (hauts + fins) et serrés qui se
+	# chevauchent. cell réduit + cols/rows augmentés = même largeur de ville mais
+	# masse dense. Jitter sur px/pz pour casser la grille parfaite (chevauchement
+	# organique). Même skyline pour les deux modes (chute + envol).
+	var cols := 22
+	var rows := 16
+	var cell := 3.5
 	var grid_w := cols * cell
 	var grid_d := rows * cell
 
 	for ix in cols:
 		for iz in rows:
-			if rng.randf() < 0.12:
+			if rng.randf() < 0.05:
 				continue
 			var b := MeshInstance3D.new()
 			var box := BoxMesh.new()
-			var w: float = cell * rng.randf_range(0.6, 0.85)
-			var d: float = cell * rng.randf_range(0.6, 0.85)
-			var h: float = rng.randf_range(5.0, 16.0)
+			var w: float = cell * rng.randf_range(0.35, 0.55)
+			var d: float = cell * rng.randf_range(0.35, 0.55)
+			var h: float = rng.randf_range(14.0, 40.0)
 			box.size = Vector3(w, h, d)
 			b.mesh = box
 			b.material_override = mat
-			var px: float = -grid_w / 2.0 + ix * cell + cell / 2.0
-			var pz: float = -grid_d / 2.0 + iz * cell + cell / 2.0
+			var px: float = -grid_w / 2.0 + ix * cell + cell / 2.0 + rng.randf_range(-cell * 0.3, cell * 0.3)
+			var pz: float = -grid_d / 2.0 + iz * cell + cell / 2.0 + rng.randf_range(-cell * 0.3, cell * 0.3)
 			b.position = Vector3(px, h / 2.0, pz)
 			skyline.add_child(b)
 
