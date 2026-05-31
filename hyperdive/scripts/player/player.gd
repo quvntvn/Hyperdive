@@ -52,6 +52,7 @@ var boost_timer: float = 0.0
 var _boost_trail: GPUParticles3D
 var _current_max_fall_speed: float = MAX_FALL_SPEED
 var _jetpack_flames: GPUParticles3D
+var _jetpack_smoke: GPUParticles3D
 
 signal game_over
 
@@ -211,6 +212,55 @@ func _setup_jetpack() -> void:
 
 	reactor.add_child(flames)
 	_jetpack_flames = flames
+
+	# --- Traînée de FUMÉE : sillage gris discret derrière les flammes ---
+	var smoke := GPUParticles3D.new()
+	smoke.name = "JetpackSmoke"
+	smoke.amount = 28                  # modéré
+	smoke.lifetime = 0.9               # plus longue que les flammes → s'étire derrière
+	smoke.local_coords = false         # reste dans le monde = sillage
+	smoke.emitting = true
+	smoke.position = Vector3(0.0, -0.30, 0.0)   # sous les flammes
+
+	var smat := ParticleProcessMaterial.new()
+	smat.direction = Vector3(0.0, -1.0, 0.0)
+	smat.spread = 14.0
+	smat.initial_velocity_min = 1.0
+	smat.initial_velocity_max = 2.2
+	smat.gravity = Vector3.ZERO
+	smat.damping_min = 0.5
+	smat.damping_max = 1.0
+	smat.scale_min = 0.5
+	smat.scale_max = 1.0
+	# La fumée grossit en s'éloignant (se dilue).
+	var sm_curve := Curve.new()
+	sm_curve.add_point(Vector2(0.0, 0.4))
+	sm_curve.add_point(Vector2(1.0, 1.3))
+	var sm_curve_tex := CurveTexture.new()
+	sm_curve_tex.curve = sm_curve
+	smat.scale_curve = sm_curve_tex
+	# Gris sombre semi-transparent → se dissipe en transparence. Opacité faible = discret.
+	var sm_grad := Gradient.new()
+	sm_grad.set_color(0, Color(0.35, 0.34, 0.36, 0.35))
+	sm_grad.set_color(1, Color(0.20, 0.19, 0.20, 0.0))
+	var sm_grad_tex := GradientTexture1D.new()
+	sm_grad_tex.gradient = sm_grad
+	smat.color_ramp = sm_grad_tex
+	smoke.process_material = smat
+
+	var sm_sphere := SphereMesh.new()
+	sm_sphere.radius = 0.11
+	sm_sphere.height = 0.22
+	var sm_sphere_mat := StandardMaterial3D.new()
+	sm_sphere_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	sm_sphere_mat.vertex_color_use_as_albedo = true
+	sm_sphere_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	sm_sphere.surface_set_material(0, sm_sphere_mat)
+	smoke.draw_pass_1 = sm_sphere
+
+	reactor.add_child(smoke)
+	_jetpack_smoke = smoke
+
 	# Log pour trancher le côté caméra : compare Z du torse et de la caméra.
 	var cam := get_tree().get_first_node_in_group("follow_camera") as Node3D
 	var cam_pos: Vector3 = cam.global_position if cam else Vector3.INF
@@ -299,6 +349,8 @@ func _trigger_ragdoll() -> void:
 		_trail_node.emitting = false
 	if _jetpack_flames:
 		_jetpack_flames.emitting = false
+	if _jetpack_smoke:
+		_jetpack_smoke.emitting = false
 
 	var rag: Node3D = preload("res://scenes/player/ragdoll.tscn").instantiate()
 	# Position et rotation AVANT add_child : les RigidBody3D enfants calculent leur
