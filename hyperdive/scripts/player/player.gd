@@ -23,7 +23,8 @@ const MAGNET_RADIUS: float = 10.0
 const MAGNET_LERP_SPEED: float = 8.0
 const BOOST_DURATION: float = 2.0
 const BOOST_SPEED_FACTOR: float = 2.5
-const SPEED_RAMP_STEP: float = 1000.0   # tous les 1000 m en infini
+const SPEED_RAMP_STEP: float = 1000.0        # tous les 1000 m en infini
+const SPEED_RAMP_STEP_ENVOL: float = 500.0   # tous les 500 m en envol
 const SPEED_RAMP_FACTOR: float = 1.1    # +10 % cumulatif par palier
 const SPEED_RAMP_RATE: float = MAX_FALL_SPEED * 0.10 / 10.0  # ≈ 0.18 m/s² → +10 % en ~10 s
 
@@ -490,7 +491,10 @@ func _physics_process(delta: float) -> void:
 	# Signe vertical centralisé : +1 en envol (on monte), -1 en chute.
 	var dir: float = Settings.get_fall_dir()
 	if Settings.active_mode != "campaign" and not _level_completed:
-		var steps: int = int(abs(global_position.y) / SPEED_RAMP_STEP)
+		# Même rampe fluide qu'en infini, mais palier 500 m en envol (1000 m sinon).
+		# Lissage move_toward → montée progressive sans à-coup. Palier 0 = base inchangée.
+		var step_dist: float = SPEED_RAMP_STEP_ENVOL if Settings.active_mode == "envol" else SPEED_RAMP_STEP
+		var steps: int = int(abs(global_position.y) / step_dist)
 		var target_speed: float = MAX_FALL_SPEED * pow(SPEED_RAMP_FACTOR, steps)
 		_current_max_fall_speed = move_toward(_current_max_fall_speed, target_speed, SPEED_RAMP_RATE * delta)
 	if _boost_active:
