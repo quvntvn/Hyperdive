@@ -6,9 +6,9 @@ var _mission_list: VBoxContainer
 
 func _ready() -> void:
 	add_to_group("missions_screen")
-	_coins_label = $Panel/Layout/CoinsLabel
-	_mission_list = $Panel/Layout/ScrollContainer/MissionList
-	$Panel/Layout/MenuButton.pressed.connect(_on_menu_pressed)
+	_coins_label = $Content/CoinsLabel
+	_mission_list = $Content/ScrollContainer/MissionList
+	$Content/MenuButton.pressed.connect(_on_menu_pressed)
 	Settings.mission_claimed.connect(func() -> void: refresh())
 	UIAnimations.wire_buttons(self)
 	Settings.daily_claimed_signal.connect(func() -> void: refresh())
@@ -29,6 +29,14 @@ func refresh() -> void:
 	for mission in Catalog.MISSIONS:
 		_build_row(mission)
 	UIAnimations.wire_buttons(_mission_list)
+
+# Enveloppe une ligne de défi dans une "carte verre" (translucide + arête + ombre) posée
+# sur le fond décor flouté. Pas de blur par carte (le backdrop plein écran suffit).
+func _add_card(row: Control) -> void:
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", UIAnimations.glass_card_style())
+	card.add_child(row)
+	_mission_list.add_child(card)
 
 func _add_section_label(title: String, color: Color) -> void:
 	var lbl := Label.new()
@@ -74,7 +82,7 @@ func _build_daily_row(ch: Dictionary) -> void:
 		prog_label.add_theme_font_size_override("font_size", 18)
 		prog_label.add_theme_color_override("font_color", Color(0.949, 0.757, 0.306))
 		row.add_child(prog_label)
-	_mission_list.add_child(row)
+	_add_card(row)
 
 func _format_daily_progress(ch: Dictionary, progress: int, target: int) -> String:
 	match ch["type"]:
@@ -128,7 +136,7 @@ func _build_row(mission: Dictionary) -> void:
 		prog_label.add_theme_color_override("font_color", Color(0.949, 0.757, 0.306))
 		row.add_child(prog_label)
 
-	_mission_list.add_child(row)
+	_add_card(row)
 
 func _format_progress(mission: Dictionary, progress: int, target: int) -> String:
 	match mission["type"]:
@@ -148,7 +156,7 @@ func open() -> void:
 	Settings.ensure_daily_challenges()
 	visible = true
 	refresh()
-	UIAnimations.pop_in($Panel, $Background)
+	UIAnimations.pop_in($Content, $Tint)
 
 func _on_menu_pressed() -> void:
 	Audio.play_ui_click()

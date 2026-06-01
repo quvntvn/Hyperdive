@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/missions_screen.gd" id="MissionsScript"]
+[ext_resource type="Script" path="res://scripts/ui/glass_blur.gd" id="GlassBlurScript"]
 
 [node name="MissionsScreen" type="CanvasLayer"]
 layer = 7
@@ -8,49 +9,44 @@ visible = false
 process_mode = 3
 script = ExtResource("MissionsScript")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Backdrop" type="ColorRect" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0, 0, 0, 0.78)
+script = ExtResource("GlassBlurScript")
 
-[node name="Panel" type="Panel" parent="."]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -240.0
-offset_top = -370.0
-offset_right = 240.0
-offset_bottom = 370.0
+[node name="Tint" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.06, 0.05, 0.1, 0.45)
 
-[node name="Layout" type="VBoxContainer" parent="Panel"]
+[node name="Content" type="VBoxContainer" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = 24.0
+offset_top = 60.0
 offset_right = -24.0
-offset_bottom = -24.0
+offset_bottom = -40.0
 theme_override_constants/separation = 16
 
-[node name="TitleLabel" type="Label" parent="Panel/Layout"]
+[node name="TitleLabel" type="Label" parent="Content"]
 text = "DÉFIS"
 horizontal_alignment = 1
 theme_type_variation = &"Title"
 
-[node name="CoinsLabel" type="Label" parent="Panel/Layout"]
+[node name="CoinsLabel" type="Label" parent="Content"]
 text = "Pièces : 0"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Panel/Layout"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Content"]
 size_flags_vertical = 3
 
-[node name="MissionList" type="VBoxContainer" parent="Panel/Layout/ScrollContainer"]
+[node name="MissionList" type="VBoxContainer" parent="Content/ScrollContainer"]
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
-[node name="MenuButton" type="Button" parent="Panel/Layout"]
+[node name="MenuButton" type="Button" parent="Content"]
 custom_minimum_size = Vector2(200.0, 60.0)
 size_flags_horizontal = 4
-text = "MENU"
+text = "RETOUR"
