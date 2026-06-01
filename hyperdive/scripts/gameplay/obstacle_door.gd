@@ -1,6 +1,6 @@
 extends ObstacleBase
 
-# Porte automatique : deux panneaux bordeaux qui s'écartent à l'APPROCHE du joueur,
+# Porte automatique : deux panneaux marron noyer qui s'écartent à l'APPROCHE du joueur,
 # comme des portes coulissantes réactives. FERMÉS par défaut (openness 0) ils bouchent
 # tout le couloir ; OUVERTS (openness 1) ils laissent un passage central de GAP (>=3,
 # franchissable). Les panneaux sont TOUJOURS mortels (collision fixe) ; c'est l'espace
