@@ -28,7 +28,7 @@ func set_campaign_mode(enabled: bool) -> void:
 	$CoinCounter.visible = not enabled
 
 func update_campaign_time(seconds: float) -> void:
-	_distance_label.text = "Temps : " + str(ceili(seconds)) + "s"
+	_distance_label.text = str(ceili(seconds)) + "s"
 
 func _process(_delta: float) -> void:
 	if _player == null:
