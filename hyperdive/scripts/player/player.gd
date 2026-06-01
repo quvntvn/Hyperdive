@@ -2,9 +2,9 @@ extends RigidBody3D
 class_name PlayerController
 
 const LATERAL_FORCE: float = 25.0
-const MAX_LATERAL_SPEED: float = 12.0
+const MAX_LATERAL_SPEED: float = 24.0   # doublé avec TOUCH_FOLLOW_SPEED (cap de vitesse latérale)
 const MAX_FALL_SPEED: float = 18.0
-const TOUCH_FOLLOW_SPEED: float = 8.0
+const TOUCH_FOLLOW_SPEED: float = 16.0   # finger-follow ×2 (plus réactif)
 const TRAIL_BASE_AMOUNT: int = 40
 const WALL_HIT_COOLDOWN: float = 0.3
 const CHARACTER_BASE_ROT := Vector3(205.0, 0.0, 0.0)
