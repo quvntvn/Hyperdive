@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/obstacle_laser.gd" id="Script_1"]
+
+[sub_resource type="BoxMesh" id="BeamMesh_1"]
+size = Vector3(9.0, 0.22, 0.5)
+
+[sub_resource type="BoxShape3D" id="BeamShape_1"]
+size = Vector3(9.0, 0.22, 0.5)
+
+[node name="ObstacleLaser" type="StaticBody3D" groups=["obstacles"]]
+script = ExtResource("Script_1")
+spawn_centered = true
+
+[node name="Beam" type="MeshInstance3D" parent="."]
+mesh = SubResource("BeamMesh_1")
+
+[node name="BeamShape" type="CollisionShape3D" parent="."]
+shape = SubResource("BeamShape_1")
+disabled = true
