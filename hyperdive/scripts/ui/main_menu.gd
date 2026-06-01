@@ -3,8 +3,8 @@ class_name MainMenu
 
 func _ready() -> void:
 	%CampagneButton.pressed.connect(_on_campagne_pressed)
-	%JouerButton.pressed.connect(_on_jouer_pressed)
-	%EnvolButton.pressed.connect(_on_envol_pressed)
+	%RecordButton.pressed.connect(_on_record_pressed)
+	%JetpackButton.pressed.connect(_on_jetpack_pressed)
 	%ShopButton.pressed.connect(_on_shop_pressed)
 	%DefisButton.pressed.connect(_on_defis_pressed)
 	%SettingsGearButton.pressed.connect(_on_reglages_pressed)
@@ -13,7 +13,7 @@ func _ready() -> void:
 	# Ville lointaine ancrée à la caméra du menu (même logique qu'en jeu, thème appliqué).
 	CitySkyline.attach_to($PreviewCamera)
 
-	_update_infinite_button()
+	_update_mode_buttons()
 	update_stats()
 	Settings.coin_collected.connect(func(_n: int) -> void: update_stats())
 
@@ -24,17 +24,16 @@ func _ready() -> void:
 
 	_animate_title()
 
-func _update_infinite_button() -> void:
-	if Settings.is_infinite_unlocked():
-		%JouerButton.disabled = false
-		%JouerButton.text = "JOUER"
-		%InfiniLockedLabel.visible = false
-	else:
-		%JouerButton.disabled = true
-		%JouerButton.text = "INFINI — Niv. 2"
-		%InfiniLockedLabel.visible = true
-	# Mode envol : visible/activé seulement après le niveau 5.
-	%EnvolButton.visible = Settings.is_envol_unlocked()
+# Campagne toujours jouable. Record (infini) et Jetpack restent affichés mais GRISÉS
+# (disabled) tant que verrouillés, avec leur condition de déblocage en sous-texte.
+func _update_mode_buttons() -> void:
+	var record_unlocked: bool = Settings.is_infinite_unlocked()
+	%RecordButton.disabled = not record_unlocked
+	%RecordLockedLabel.visible = not record_unlocked
+
+	var jetpack_unlocked: bool = Settings.is_jetpack_unlocked()
+	%JetpackButton.disabled = not jetpack_unlocked
+	%JetpackLockedLabel.visible = not jetpack_unlocked
 
 func update_stats() -> void:
 	%BestLabel.text = "Record : " + str(Settings.best_distance) + " m"
@@ -44,14 +43,14 @@ func _on_campagne_pressed() -> void:
 	Audio.play_ui_click()
 	Transition.change_scene("res://scenes/ui/level_screen.tscn")
 
-func _on_jouer_pressed() -> void:
+func _on_record_pressed() -> void:
 	Audio.play_ui_click()
 	Settings.active_mode = "infinite"
 	Transition.change_scene("res://scenes/game/main_game.tscn")
 
-func _on_envol_pressed() -> void:
+func _on_jetpack_pressed() -> void:
 	Audio.play_ui_click()
-	Settings.active_mode = "envol"
+	Settings.active_mode = "jetpack"
 	Transition.change_scene("res://scenes/game/main_game.tscn")
 
 func _on_shop_pressed() -> void:
