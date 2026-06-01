@@ -3,8 +3,8 @@ class_name SettingsManager
 
 enum ControlMode { KEYBOARD, TOUCH }
 
-const INFINITE_UNLOCK_LEVEL: int = 2
-const ENVOL_UNLOCK_LEVEL: int = 5
+# Seuil de distance (mode infini) qui débloque le jetpack.
+const JETPACK_UNLOCK_DISTANCE: int = 1000
 
 signal control_mode_changed(new_mode: ControlMode)
 signal coin_collected(new_total: int)
@@ -25,6 +25,8 @@ var sfx_volume: float = 1.0
 var coins_total: int = 0
 var coins_this_run: int = 0
 var best_distance: int = 0
+var best_infinite_distance: int = 0   # record en mode infini ("Record") — débloque le jetpack à 1000 m
+var infinite_unlocked: bool = false   # passé true à la 1re fin de niveau campagne
 var owned_skins: Array[String] = ["default"]
 var equipped_skin: String = "default"
 var owned_trails: Array[String] = ["none"]
@@ -105,8 +107,15 @@ func reset_run_stats() -> void:
 	coins_this_run = 0
 
 func update_best_distance(distance: int) -> void:
+	var changed: bool = false
 	if distance > best_distance:
 		best_distance = distance
+		changed = true
+	# Le mode infini ("Record") alimente best_infinite_distance, qui débloque le jetpack.
+	if active_mode == "infinite" and distance > best_infinite_distance:
+		best_infinite_distance = distance
+		changed = true
+	if changed:
 		save_settings()
 
 func buy_skin(skin_id: String) -> bool:
@@ -293,10 +302,12 @@ func get_level_reward(level: int) -> int:
 	return 20 + level * 10
 
 func is_infinite_unlocked() -> bool:
-	return campaign_level > INFINITE_UNLOCK_LEVEL
+	# Débloqué dès la 1re fin de niveau campagne (flag) ; campaign_level > 1 = garde-fou.
+	return infinite_unlocked or campaign_level > 1
 
-func is_envol_unlocked() -> bool:
-	return campaign_level > ENVOL_UNLOCK_LEVEL
+func is_jetpack_unlocked() -> bool:
+	# Débloqué après avoir atteint 1000 m en mode infini ("Record").
+	return best_infinite_distance >= JETPACK_UNLOCK_DISTANCE
 
 # Signe vertical centralisé (source de vérité unique pour l'inversion du mode envol).
 # +1.0 en envol (le joueur MONTE), -1.0 sinon (chute). Tous les scripts lisent ça.
@@ -306,6 +317,8 @@ func get_fall_dir() -> float:
 func complete_current_level() -> void:
 	coins_total += get_level_reward(active_level)
 	coin_collected.emit(coins_total)
+	# Terminer un niveau (le 1er suffit) débloque définitivement le mode infini ("Record").
+	infinite_unlocked = true
 	if active_level == campaign_level:
 		campaign_level += 1
 	save_settings()
@@ -330,6 +343,7 @@ func save_settings() -> void:
 	cfg.set_value("audio", "sfx_volume", sfx_volume)
 	cfg.set_value("stats", "coins_total", coins_total)
 	cfg.set_value("stats", "best_distance", best_distance)
+	cfg.set_value("stats", "best_infinite_distance", best_infinite_distance)
 	cfg.set_value("cosmetics", "owned_skins", owned_skins)
 	cfg.set_value("cosmetics", "equipped_skin", equipped_skin)
 	cfg.set_value("cosmetics", "owned_trails", owned_trails)
@@ -338,6 +352,7 @@ func save_settings() -> void:
 	cfg.set_value("cosmetics", "equipped_theme", equipped_theme)
 	cfg.set_value("missions", "claimed_missions", claimed_missions)
 	cfg.set_value("campaign", "campaign_level", campaign_level)
+	cfg.set_value("campaign", "infinite_unlocked", infinite_unlocked)
 	cfg.set_value("daily", "date", daily_date)
 	cfg.set_value("daily", "challenges", daily_challenges)
 	cfg.set_value("daily", "progress", daily_progress)
@@ -360,6 +375,7 @@ func load_settings() -> void:
 	sfx_volume = cfg.get_value("audio", "sfx_volume", 1.0)
 	coins_total = cfg.get_value("stats", "coins_total", 0)
 	best_distance = cfg.get_value("stats", "best_distance", 0)
+	best_infinite_distance = cfg.get_value("stats", "best_infinite_distance", 0)
 	owned_skins.assign(cfg.get_value("cosmetics", "owned_skins", ["default"]))
 	equipped_skin = cfg.get_value("cosmetics", "equipped_skin", "default")
 	owned_trails.assign(cfg.get_value("cosmetics", "owned_trails", ["none"]))
@@ -369,6 +385,7 @@ func load_settings() -> void:
 	equipped_theme = cfg.get_value("cosmetics", "equipped_theme", "default")
 	claimed_missions.assign(cfg.get_value("missions", "claimed_missions", []))
 	campaign_level = cfg.get_value("campaign", "campaign_level", 1)
+	infinite_unlocked = cfg.get_value("campaign", "infinite_unlocked", false)
 	daily_date = cfg.get_value("daily", "date", "")
 	daily_challenges = cfg.get_value("daily", "challenges", [])
 	daily_progress = cfg.get_value("daily", "progress", {})
