@@ -31,7 +31,11 @@ func _process(_delta: float) -> void:
 	global_position.y = target.global_position.y
 
 func _create_ambient_fx() -> void:
-	_create_dust_motes()
+	# loop_cells > 0 = instance du MENU (piste qui boucle). En jeu loop_cells == 0.
+	var is_menu: bool = loop_cells > 0.0
+	# Motes flottantes : seulement EN JEU. Au menu la piste reste propre.
+	if not is_menu:
+		_create_dust_motes()
 	_create_soft_clouds()
 
 func _create_dust_motes() -> void:
