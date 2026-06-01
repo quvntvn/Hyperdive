@@ -9,10 +9,14 @@ const SPAWN_INTERVAL_Y: float = 14.4
 const SPAWN_AHEAD: float = 60.0
 const CORRIDOR_HALF_WIDTH: float = 4.5
 const DESPAWN_BEHIND: float = 15.0
+const CUBE_WEIGHT: int = 3   # le petit cube fixe sort 3× plus souvent que chaque autre type
 
 var _next_spawn_y: float = 0.0
 # Signe vertical : -1 chute (spawn en bas), +1 envol (spawn en haut). Lu une fois au départ.
 var _dir: float = -1.0
+# Pool de tirage pondéré : le cube y figure CUBE_WEIGHT fois, les autres 1 fois.
+# pick_random() dessus donne donc une pioche pondérée tout en gardant le ratio des autres.
+var _draw_pool: Array[PackedScene] = []
 
 func _ready() -> void:
 	if player == null and not player_path.is_empty():
@@ -21,6 +25,19 @@ func _ready() -> void:
 	_next_spawn_y = (player.global_position.y if player != null else 0.0) + _dir * SPAWN_AHEAD
 	if obstacle_scenes.is_empty():
 		push_warning("ObstacleSpawner: obstacle_scenes is empty")
+	_build_draw_pool()
+
+# Construit le pool pondéré. Le cube = seul obstacle ponctuel (spawn_centered == false),
+# détecté en instanciant brièvement chaque scène (coût unique au démarrage). Robuste si
+# l'ordre du tableau change, contrairement à un index hardcodé.
+func _build_draw_pool() -> void:
+	for scene in obstacle_scenes:
+		var probe: Node = scene.instantiate()
+		var is_cube: bool = probe is ObstacleBase and not (probe as ObstacleBase).spawn_centered
+		probe.free()
+		var weight: int = CUBE_WEIGHT if is_cube else 1
+		for _i in weight:
+			_draw_pool.append(scene)
 
 func _process(_delta: float) -> void:
 	if player == null or obstacle_scenes.is_empty():
@@ -36,7 +53,7 @@ func _process(_delta: float) -> void:
 			obstacle.queue_free()
 
 func _spawn_at(y: float) -> void:
-	var picked: PackedScene = obstacle_scenes.pick_random()
+	var picked: PackedScene = _draw_pool.pick_random()
 	var obstacle: Node3D = picked.instantiate()
 	get_parent().add_child(obstacle)
 	# Obstacles pleine largeur (barre, mur, oscillant) : centrés, ils gèrent leur
