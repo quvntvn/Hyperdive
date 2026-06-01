@@ -33,8 +33,9 @@ func _update_mode_buttons() -> void:
 	print("[Menu] déblocages — infinite=", record_unlocked,
 		  " jetpack=", jetpack_unlocked,
 		  " best_infinite_distance=", Settings.best_infinite_distance)
-	_set_mode_button(%RecordButton, record_unlocked, "RECORD", "Termine le niveau 1")
-	_set_mode_button(%JetpackButton, jetpack_unlocked, "JETPACK", "Atteins 1000m en Record")
+	# Libellés d'AFFICHAGE seulement ; active_mode reste "infinite"/"jetpack" en interne.
+	_set_mode_button(%RecordButton, record_unlocked, "CLASSIQUE", "Termine le niveau 1")
+	_set_mode_button(%JetpackButton, jetpack_unlocked, "JETPACK", "Atteins 1000m en Classique")
 
 # Débloqué : texte = nom du mode, cliquable, grande police. Verrouillé : texte = nom +
 # cadenas + condition (2 lignes), grisé, police réduite pour faire tenir la condition.

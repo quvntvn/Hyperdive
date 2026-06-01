@@ -104,14 +104,14 @@ theme_override_constants/separation = 16
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 80)
 size_flags_horizontal = 4
-text = "CAMPAGNE"
+text = "NIVEAU"
 theme_override_font_sizes/font_size = 36
 
 [node name="RecordButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 80)
 size_flags_horizontal = 4
-text = "RECORD"
+text = "CLASSIQUE"
 clip_text = false
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 32
