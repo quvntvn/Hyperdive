@@ -11,11 +11,11 @@ var _current_category: String = "skins"
 
 func _ready() -> void:
 	add_to_group("shop_screen")
-	_coins_label = $ShopPanel/Layout/CoinsLabel
-	_item_list = $ShopPanel/Layout/ScrollContainer/ItemList
-	_skins_btn = $ShopPanel/Layout/CategoryButtons/SkinsCatBtn
-	_trails_btn = $ShopPanel/Layout/CategoryButtons/TrailsCatBtn
-	_themes_btn = $ShopPanel/Layout/CategoryButtons/ThemesCatBtn
+	_coins_label = $Content/CoinsLabel
+	_item_list = $Content/ScrollContainer/ItemList
+	_skins_btn = $Content/CategoryButtons/SkinsCatBtn
+	_trails_btn = $Content/CategoryButtons/TrailsCatBtn
+	_themes_btn = $Content/CategoryButtons/ThemesCatBtn
 	Settings.coin_collected.connect(func(_n: int) -> void: refresh())
 	Settings.owned_skins_changed.connect(refresh)
 	Settings.equipped_skin_changed.connect(func(_id: String) -> void: refresh())
@@ -23,7 +23,7 @@ func _ready() -> void:
 	Settings.equipped_trail_changed.connect(func(_id: String) -> void: refresh())
 	Settings.owned_themes_changed.connect(refresh)
 	Settings.equipped_theme_changed.connect(func(_id: String) -> void: refresh())
-	$ShopPanel/Layout/CloseButton.pressed.connect(_on_close_pressed)
+	$Content/CloseButton.pressed.connect(_on_close_pressed)
 	_skins_btn.pressed.connect(_on_skins_pressed)
 	_trails_btn.pressed.connect(_on_trails_pressed)
 	_themes_btn.pressed.connect(_on_themes_pressed)
@@ -60,6 +60,14 @@ func refresh() -> void:
 	else:
 		_refresh_themes()
 	UIAnimations.wire_buttons(_item_list)
+
+# Enveloppe une ligne d'item dans une "carte verre" (translucide + arête + ombre) posée
+# sur le fond décor flouté de l'écran. Pas de blur par carte (le backdrop plein écran suffit).
+func _add_card(row: Control) -> void:
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", UIAnimations.glass_card_style())
+	card.add_child(row)
+	_item_list.add_child(card)
 
 func _refresh_skins() -> void:
 	for skin in Catalog.SKINS:
@@ -100,7 +108,7 @@ func _refresh_skins() -> void:
 			btn.text = "ACHETER"
 			btn.disabled = true
 		row.add_child(btn)
-		_item_list.add_child(row)
+		_add_card(row)
 
 func _refresh_trails() -> void:
 	for trail in Catalog.TRAILS:
@@ -151,7 +159,7 @@ func _refresh_trails() -> void:
 			btn.text = "ACHETER"
 			btn.disabled = true
 		row.add_child(btn)
-		_item_list.add_child(row)
+		_add_card(row)
 
 func _refresh_themes() -> void:
 	for theme in Catalog.THEMES:
@@ -199,15 +207,17 @@ func _refresh_themes() -> void:
 			btn.text = "ACHETER"
 			btn.disabled = true
 		row.add_child(btn)
-		_item_list.add_child(row)
+		_add_card(row)
 
 func open() -> void:
+	# On NE force PAS la pause : ouvert depuis le menu, on laisse la ville défiler derrière
+	# (fond décor flouté). Ouvert depuis le game over, le jeu est déjà en pause (figé) → on
+	# conserve l'état précédent et on le restaure à la fermeture.
 	_was_paused_before_open = get_tree().paused
 	Audio.duck_music()
 	visible = true
 	refresh()
-	get_tree().paused = true
-	UIAnimations.pop_in($ShopPanel, $Background)
+	UIAnimations.pop_in($Content, $Tint)
 
 func _on_close_pressed() -> void:
 	Audio.play_ui_click()

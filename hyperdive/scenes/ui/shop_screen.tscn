@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/shop_screen.gd" id="ShopScript"]
+[ext_resource type="Script" path="res://scripts/ui/glass_blur.gd" id="GlassBlurScript"]
 
 [node name="ShopScreen" type="CanvasLayer"]
 layer = 7
@@ -9,68 +10,63 @@ process_mode = 3
 groups=["shop_screen"]
 script = ExtResource("ShopScript")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Backdrop" type="ColorRect" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0, 0, 0, 0.75)
+script = ExtResource("GlassBlurScript")
 
-[node name="ShopPanel" type="Panel" parent="."]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -220.0
-offset_top = -340.0
-offset_right = 220.0
-offset_bottom = 340.0
+[node name="Tint" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.06, 0.05, 0.1, 0.45)
 
-[node name="Layout" type="VBoxContainer" parent="ShopPanel"]
+[node name="Content" type="VBoxContainer" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = 24.0
+offset_top = 60.0
 offset_right = -24.0
-offset_bottom = -24.0
+offset_bottom = -40.0
 theme_override_constants/separation = 16
 
-[node name="TitleLabel" type="Label" parent="ShopPanel/Layout"]
+[node name="TitleLabel" type="Label" parent="Content"]
 text = "SHOP"
 horizontal_alignment = 1
 theme_type_variation = &"Title"
 
-[node name="CoinsLabel" type="Label" parent="ShopPanel/Layout"]
+[node name="CoinsLabel" type="Label" parent="Content"]
 text = "Pièces : 0"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
 
-[node name="CategoryButtons" type="HBoxContainer" parent="ShopPanel/Layout"]
+[node name="CategoryButtons" type="HBoxContainer" parent="Content"]
 size_flags_horizontal = 1
 alignment = 1
 theme_override_constants/separation = 12
 
-[node name="SkinsCatBtn" type="Button" parent="ShopPanel/Layout/CategoryButtons"]
-custom_minimum_size = Vector2(120.0, 44.0)
+[node name="SkinsCatBtn" type="Button" parent="Content/CategoryButtons"]
+custom_minimum_size = Vector2(110.0, 44.0)
 text = "SKINS"
 disabled = true
 
-[node name="TrailsCatBtn" type="Button" parent="ShopPanel/Layout/CategoryButtons"]
-custom_minimum_size = Vector2(120.0, 44.0)
+[node name="TrailsCatBtn" type="Button" parent="Content/CategoryButtons"]
+custom_minimum_size = Vector2(110.0, 44.0)
 text = "SANG"
 
-[node name="ThemesCatBtn" type="Button" parent="ShopPanel/Layout/CategoryButtons"]
-custom_minimum_size = Vector2(120.0, 44.0)
+[node name="ThemesCatBtn" type="Button" parent="Content/CategoryButtons"]
+custom_minimum_size = Vector2(110.0, 44.0)
 text = "THÈMES"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="ShopPanel/Layout"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Content"]
 size_flags_vertical = 3
 scroll_horizontal_enabled = false
 
-[node name="ItemList" type="VBoxContainer" parent="ShopPanel/Layout/ScrollContainer"]
+[node name="ItemList" type="VBoxContainer" parent="Content/ScrollContainer"]
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="CloseButton" type="Button" parent="ShopPanel/Layout"]
+[node name="CloseButton" type="Button" parent="Content"]
 custom_minimum_size = Vector2(200.0, 60.0)
 size_flags_horizontal = 4
-text = "FERMER"
+text = "RETOUR"
