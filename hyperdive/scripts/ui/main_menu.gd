@@ -13,6 +13,10 @@ func _ready() -> void:
 	# Ville lointaine ancrée à la caméra du menu (même logique qu'en jeu, thème appliqué).
 	CitySkyline.attach_to($PreviewCamera)
 
+	# Le bouton campagne affiche le niveau de progression courant et le lance DIRECTEMENT
+	# (plus d'écran intermédiaire). Relu à chaque _ready → reflète la progression au retour.
+	%CampagneButton.text = "NIVEAU " + str(Settings.campaign_level)
+
 	_update_mode_buttons()
 	update_stats()
 	Settings.coin_collected.connect(func(_n: int) -> void: update_stats())
@@ -54,7 +58,11 @@ func update_stats() -> void:
 
 func _on_campagne_pressed() -> void:
 	Audio.play_ui_click()
-	Transition.change_scene("res://scenes/ui/level_screen.tscn")
+	# Lancement direct du niveau de progression courant, sans écran intermédiaire.
+	# Les pièces gagnées ne s'affichent qu'au pop-up de fin de niveau (dans le jeu).
+	Settings.active_mode = "campaign"
+	Settings.active_level = Settings.campaign_level
+	Transition.change_scene("res://scenes/game/main_game.tscn")
 
 func _on_record_pressed() -> void:
 	Audio.play_ui_click()
