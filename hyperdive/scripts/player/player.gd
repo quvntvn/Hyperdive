@@ -57,6 +57,7 @@ var _jetpack_smoke: GPUParticles3D
 signal game_over
 
 func _ready() -> void:
+	add_to_group("player")   # référence cross-scène (porte réactive, etc.)
 	Settings.reset_run_stats()
 	Settings.daily_games += 1
 	Settings.update_daily_progress()
