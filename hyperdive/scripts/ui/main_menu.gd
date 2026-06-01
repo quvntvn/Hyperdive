@@ -16,6 +16,7 @@ func _ready() -> void:
 	# Le bouton campagne affiche le niveau de progression courant et le lance DIRECTEMENT
 	# (plus d'écran intermédiaire). Relu à chaque _ready → reflète la progression au retour.
 	%CampagneButton.text = "NIVEAU " + str(Settings.campaign_level)
+	_style_gear_glass()
 
 	_update_mode_buttons()
 	update_stats()
@@ -91,6 +92,33 @@ func _on_reglages_pressed() -> void:
 	var s := get_tree().get_first_node_in_group("settings_screen")
 	if s:
 		s.open()
+
+# L'engrenage est un TextureButton (pas un Button → ignoré par l'autoload Glass). On lui
+# pose un backing "verre" : un Panel translucide (arête claire + ombre) DERRIÈRE l'icône
+# (show_behind_parent), avec un GlassBlur dessous pour flouter le décor. Cohérent avec les
+# autres boutons sans casser le rendu net de l'icône.
+func _style_gear_glass() -> void:
+	var gear: Control = %SettingsGearButton
+	if gear.has_node("GearGlass"):
+		return
+	var backing := Panel.new()
+	backing.name = "GearGlass"
+	backing.show_behind_parent = true
+	backing.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	backing.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.82, 0.86, 0.95, 0.18)
+	sb.set_corner_radius_all(16)
+	sb.set_border_width_all(1)
+	sb.border_width_top = 2
+	sb.border_color = Color(1.0, 1.0, 1.0, 0.48)
+	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.55)
+	sb.shadow_size = 10
+	sb.shadow_offset = Vector2(0, 5)
+	backing.add_theme_stylebox_override("panel", sb)
+	gear.add_child(backing)
+	gear.move_child(backing, 0)
+	GlassBlur.add_behind(backing)
 
 func _animate_title() -> void:
 	var tween: Tween = create_tween().set_loops()

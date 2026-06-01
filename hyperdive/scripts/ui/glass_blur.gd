@@ -23,3 +23,16 @@ func _init() -> void:
 	show_behind_parent = true
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	material = _get_material()
+
+# Pose un backdrop-blur DERRIÈRE n'importe quel Control (panneau, voile, carte) — pas
+# seulement les boutons (eux sont pris en charge automatiquement par l'autoload Glass).
+# Respecte le toggle perf Glass.USE_REAL_BLUR : si désactivé, ne pose rien (repli zéro coût).
+static func add_behind(control: Control) -> void:
+	if not Glass.USE_REAL_BLUR:
+		return
+	if control.has_node("GlassBlur"):
+		return
+	var g := GlassBlur.new()
+	g.name = "GlassBlur"
+	control.add_child(g)
+	control.move_child(g, 0)
