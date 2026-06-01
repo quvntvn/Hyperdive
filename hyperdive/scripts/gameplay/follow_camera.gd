@@ -16,13 +16,13 @@ func _ready() -> void:
 		target = get_node_or_null(target_path)
 	if target == null:
 		push_warning("FollowCamera : target non assigné, la caméra restera statique")
-	# Envol : on monte. Miroir vertical de la caméra de chute (pitch + offset inversés)
+	# Jetpack : on monte. Miroir vertical de la caméra de chute (pitch + offset inversés)
 	# → on regarde vers le HAUT, perso vers le bas du cadre. DEBUG Étape 1, à doser en Étape 2.
-	if Settings.active_mode == "envol":
+	if Settings.active_mode == "jetpack":
 		rotation_degrees.x = -rotation_degrees.x
 		offset.y = -offset.y
-		# Log angle caméra envol (pour comparer à l'angle skyline).
-		print("[Camera] ENVOL rotation_degrees=", rotation_degrees, " offset=", offset)
+		# Log angle caméra jetpack (pour comparer à l'angle skyline).
+		print("[Camera] JETPACK rotation_degrees=", rotation_degrees, " offset=", offset)
 
 func shake(amount: float) -> void:
 	_shake_intensity = amount

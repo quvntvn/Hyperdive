@@ -16,7 +16,7 @@ const WHOOSH_MIN_DB: float = -10.0
 const WHOOSH_MAX_DB: float = 0.0
 const WHOOSH_MAX_FALL_SPEED: float = 18.0
 const WHOOSH_DUCKED_DB: float = -40.0
-# Jetpack (mode envol) : MÊME logique que le whoosh — volume piloté par la vitesse
+# Jetpack (mode jetpack) : MÊME logique que le whoosh — volume piloté par la vitesse
 # verticale, lerp min↔max. Pas de RNG (le whoosh n'en a pas non plus).
 const JETPACK_MIN_DB: float = -10.0
 const JETPACK_MAX_DB: float = 0.0
@@ -60,7 +60,7 @@ func _ready() -> void:
 	add_child(_whoosh_player)
 	_whoosh_player.play()
 	# Jetpack : player dédié, même bus SFX, en boucle. Pas d'autoplay (lancé via
-	# play_jetpack() seulement en mode envol).
+	# play_jetpack() seulement en mode jetpack).
 	_jetpack_player = AudioStreamPlayer.new()
 	_jetpack_player.bus = "SFX"
 	_jetpack_player.process_mode = Node.PROCESS_MODE_ALWAYS

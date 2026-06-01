@@ -309,10 +309,10 @@ func is_jetpack_unlocked() -> bool:
 	# Débloqué après avoir atteint 1000 m en mode infini ("Record").
 	return best_infinite_distance >= JETPACK_UNLOCK_DISTANCE
 
-# Signe vertical centralisé (source de vérité unique pour l'inversion du mode envol).
-# +1.0 en envol (le joueur MONTE), -1.0 sinon (chute). Tous les scripts lisent ça.
+# Signe vertical centralisé (source de vérité unique pour l'inversion du mode jetpack).
+# +1.0 en jetpack (le joueur MONTE), -1.0 sinon (chute). Tous les scripts lisent ça.
 func get_fall_dir() -> float:
-	return 1.0 if active_mode == "envol" else -1.0
+	return 1.0 if active_mode == "jetpack" else -1.0
 
 func complete_current_level() -> void:
 	coins_total += get_level_reward(active_level)

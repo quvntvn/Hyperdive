@@ -7,7 +7,7 @@ extends ObstacleBase
 # central qui laisse passer.
 #
 # Déclenchement par DISTANCE VERTICALE absolue au joueur → marche en chute (le joueur
-# arrive par le haut) ET en envol (par le bas) sans dépendre du signe dir : dans les
+# arrive par le haut) ET en jetpack (par le bas) sans dépendre du signe dir : dans les
 # deux cas il se RAPPROCHE, donc abs(porte.y - joueur.y) décroît.
 const PANEL_HALF: float = 2.25     # demi-largeur d'un panneau (largeur 4.5)
 const GAP_HALF: float = 1.5        # passage ouvert = 3.0
@@ -25,7 +25,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if _player == null or not is_instance_valid(_player):
 		_player = get_tree().get_first_node_in_group("player")
-	# Cible : ouverte si le joueur est proche sur l'axe vertical (abs → chute ET envol).
+	# Cible : ouverte si le joueur est proche sur l'axe vertical (abs → chute ET jetpack).
 	var target: float = 0.0
 	if _player != null:
 		if absf(global_position.y - _player.global_position.y) < OPEN_DISTANCE:

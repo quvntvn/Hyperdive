@@ -7,9 +7,9 @@ var _success_handled: bool = false
 var _player_alive: bool = true
 
 func _ready() -> void:
-	# La skyline est ancrée à la caméra. En envol (caméra vers le haut) on lui passe le
+	# La skyline est ancrée à la caméra. En jetpack (caméra vers le haut) on lui passe le
 	# flag pour compenser le tangage et la garder en bas de l'écran comme en chute.
-	CitySkyline.attach_to(get_viewport().get_camera_3d(), Settings.active_mode == "envol")
+	CitySkyline.attach_to(get_viewport().get_camera_3d(), Settings.active_mode == "jetpack")
 	if Settings.active_mode != "campaign":
 		return
 	$CoinSpawner.set_process(false)

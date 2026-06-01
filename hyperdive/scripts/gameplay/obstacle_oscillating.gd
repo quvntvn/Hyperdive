@@ -2,7 +2,7 @@ extends ObstacleBase
 
 # Cube identique au cube de base mais qui GLISSE latéralement en va-et-vient.
 # PIÈGE géré : on ne touche QUE l'axe X (latéral). Y/Z sont laissés intacts → le
-# mouvement est identique en chute et en envol, aucune dérive verticale.
+# mouvement est identique en chute et en jetpack, aucune dérive verticale.
 # Amplitude bornée pour rester dans le couloir (half = 4.5, cube half ≈ 0.33).
 const SPEED: float = 2.0
 const AMPLITUDE: float = 2.5

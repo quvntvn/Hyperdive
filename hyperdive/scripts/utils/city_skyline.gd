@@ -6,12 +6,12 @@ class_name CitySkyline
 # façade pilotée par la couleur du thème équipé + fenêtres jaunes + brume teintée.
 
 # Construit la skyline et l'ajoute comme enfant de la caméra (donc fixe à l'écran).
-# ascending = true (mode envol) : PAS de skyline du tout (ciel + murs suffisent).
+# ascending = true (mode jetpack) : PAS de skyline du tout (ciel + murs suffisent).
 static func attach_to(cam: Camera3D, ascending: bool = false) -> void:
 	if cam == null:
 		push_warning("[Skyline] Caméra introuvable — skyline non créée")
 		return
-	# Mode envol : aucune ville (le rendu en contre-plongée ne marchait pas).
+	# Mode jetpack : aucune ville (le rendu en contre-plongée ne marchait pas).
 	if ascending:
 		return
 

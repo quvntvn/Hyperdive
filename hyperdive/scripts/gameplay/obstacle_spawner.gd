@@ -12,7 +12,7 @@ const DESPAWN_BEHIND: float = 15.0
 const CUBE_WEIGHT: int = 3   # le petit cube fixe sort 3× plus souvent que chaque autre type
 
 var _next_spawn_y: float = 0.0
-# Signe vertical : -1 chute (spawn en bas), +1 envol (spawn en haut). Lu une fois au départ.
+# Signe vertical : -1 chute (spawn en bas), +1 jetpack (spawn en haut). Lu une fois au départ.
 var _dir: float = -1.0
 # Pool de tirage pondéré : le cube y figure CUBE_WEIGHT fois, les autres 1 fois.
 # pick_random() dessus donne donc une pioche pondérée tout en gardant le ratio des autres.

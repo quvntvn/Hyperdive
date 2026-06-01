@@ -11,7 +11,7 @@ const CORRIDOR_HALF_WIDTH: float = 4.0
 const DESPAWN_BEHIND: float = 15.0
 
 var _next_spawn_y: float = -SPAWN_AHEAD
-# Signe vertical : -1 chute (spawn en bas), +1 envol (spawn en haut). Lu une fois au départ.
+# Signe vertical : -1 chute (spawn en bas), +1 jetpack (spawn en haut). Lu une fois au départ.
 var _dir: float = -1.0
 
 func _ready() -> void:

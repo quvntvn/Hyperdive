@@ -8,14 +8,14 @@ const TOUCH_FOLLOW_SPEED: float = 16.0   # finger-follow ×2 (plus réactif)
 const TRAIL_BASE_AMOUNT: int = 40
 const WALL_HIT_COOLDOWN: float = 0.3
 const CHARACTER_BASE_ROT := Vector3(205.0, 0.0, 0.0)
-# Pose FUSÉE (mode envol) : perso droit légèrement penché en avant, membres serrés
+# Pose FUSÉE (mode jetpack) : perso droit légèrement penché en avant, membres serrés
 # le long du corps. Séparé de la pose plongeon pour ne pas la casser.
-const ENVOL_CHARACTER_ROT := Vector3(-12.0, 0.0, 0.0)
-const ENVOL_ARM_L := Vector3(0.0, 0.0, 6.0)
-const ENVOL_ARM_R := Vector3(0.0, 0.0, -6.0)
-const ENVOL_LEG_L := Vector3(0.0, 0.0, 2.5)
-const ENVOL_LEG_R := Vector3(0.0, 0.0, -2.5)
-const ENVOL_HEAD := Vector3.ZERO
+const JETPACK_CHARACTER_ROT := Vector3(-12.0, 0.0, 0.0)
+const JETPACK_ARM_L := Vector3(0.0, 0.0, 6.0)
+const JETPACK_ARM_R := Vector3(0.0, 0.0, -6.0)
+const JETPACK_LEG_L := Vector3(0.0, 0.0, 2.5)
+const JETPACK_LEG_R := Vector3(0.0, 0.0, -2.5)
+const JETPACK_HEAD := Vector3.ZERO
 const SLOWMO_DURATION: float = 3.0
 const SLOWMO_FACTOR: float = 0.5
 const MAGNET_DURATION: float = 5.0
@@ -24,7 +24,7 @@ const MAGNET_LERP_SPEED: float = 8.0
 const BOOST_DURATION: float = 2.0
 const BOOST_SPEED_FACTOR: float = 2.5
 const SPEED_RAMP_STEP: float = 1000.0        # tous les 1000 m en infini
-const SPEED_RAMP_STEP_ENVOL: float = 500.0   # tous les 500 m en envol
+const SPEED_RAMP_STEP_JETPACK: float = 500.0   # tous les 500 m en jetpack
 const SPEED_RAMP_FACTOR: float = 1.1    # +10 % cumulatif par palier
 const SPEED_RAMP_RATE: float = MAX_FALL_SPEED * 0.10 / 10.0  # ≈ 0.18 m/s² → +10 % en ~10 s
 
@@ -62,14 +62,14 @@ func _ready() -> void:
 	Settings.daily_games += 1
 	Settings.update_daily_progress()
 	Settings.save_settings()
-	# Mode envol : on MONTE (jetpack). Pas de gravité (poussée constante pilotée dans
+	# Mode jetpack : on MONTE. Pas de gravité (poussée constante pilotée dans
 	# _physics_process), perso en pose FUSÉE penchée + réacteur dorsal + flammes.
-	# En envol le jetpack s'AJOUTE au whoosh du vent (les deux jouent ensemble).
+	# En jetpack le son du réacteur s'AJOUTE au whoosh du vent (les deux jouent ensemble).
 	# Sinon : chute, plongeon, whoosh seul.
 	Audio.play_whoosh()
-	if Settings.active_mode == "envol":
+	if Settings.active_mode == "jetpack":
 		gravity_scale = 0.0
-		$Character.rotation_degrees = ENVOL_CHARACTER_ROT
+		$Character.rotation_degrees = JETPACK_CHARACTER_ROT
 		_setup_jetpack()
 		Audio.play_jetpack()
 	else:
@@ -119,7 +119,7 @@ func _setup_fall_trail() -> void:
 	add_child(trail)
 	_trail_node = trail
 
-# Réacteur dorsal + flammes en bouffées, mode envol uniquement. En envol on voit le
+# Réacteur dorsal + flammes en bouffées, mode jetpack uniquement. En jetpack on voit le
 # DOS du perso et la caméra est côté +Z → le réacteur va sur +Z (face caméra = dos
 # visible), PAS en -Z (sinon masqué par le corps). Attaché au Torse (suit pose/lean).
 func _setup_jetpack() -> void:
@@ -340,7 +340,7 @@ func _trigger_ragdoll() -> void:
 	if _boost_active:
 		return
 	var death_vel := linear_velocity
-	# En envol, on montait (gravity_scale=0). À la mort : "on RETOMBE" → on rétablit la
+	# En jetpack, on montait (gravity_scale=0). À la mort : "on RETOMBE" → on rétablit la
 	# gravité et on lance le ragdoll vers le BAS (sinon il s'envolerait, vitesse positive).
 	var ascending: bool = Settings.get_fall_dir() > 0.0
 	gravity_scale = 1.0
@@ -371,7 +371,7 @@ func _trigger_ragdoll() -> void:
 			if mi and mi.material_override:
 				(mi.material_override as StandardMaterial3D).albedo_color = skin_col
 			var rb := part as RigidBody3D
-			# Envol : vitesse vers le bas (on retombe). Chute : on garde l'élan vers le bas.
+			# Jetpack : vitesse vers le bas (on retombe). Chute : on garde l'élan vers le bas.
 			var vy: float = -6.0 if ascending else maxf(death_vel.y, -6.0)
 			rb.linear_velocity = Vector3(
 				randf_range(-2.0, 2.0),
@@ -514,9 +514,9 @@ func _shake_camera(amount: float) -> void:
 		cam.shake(amount)
 
 func _body_recoil() -> void:
-	# Repos selon le mode : pose fusée en envol, plongeon sinon (sinon le recul
+	# Repos selon le mode : pose fusée en jetpack, plongeon sinon (sinon le recul
 	# remettrait le perso tête en bas en plein vol).
-	var base: Vector3 = ENVOL_CHARACTER_ROT if Settings.active_mode == "envol" else CHARACTER_BASE_ROT
+	var base: Vector3 = JETPACK_CHARACTER_ROT if Settings.active_mode == "jetpack" else CHARACTER_BASE_ROT
 	var tween := create_tween()
 	tween.tween_property($Character, "rotation_degrees",
 		base + Vector3(randf_range(-12.0, 12.0), 0.0, randf_range(-8.0, 8.0)), 0.05)
@@ -544,20 +544,20 @@ func _physics_process(delta: float) -> void:
 		if lateral != 0.0:
 			apply_central_force(Vector3(lateral * LATERAL_FORCE, 0.0, 0.0))
 		linear_velocity.x = clampf(linear_velocity.x, -MAX_LATERAL_SPEED, MAX_LATERAL_SPEED)
-	# Signe vertical centralisé : +1 en envol (on monte), -1 en chute.
+	# Signe vertical centralisé : +1 en jetpack (on monte), -1 en chute.
 	var dir: float = Settings.get_fall_dir()
 	if Settings.active_mode != "campaign" and not _level_completed:
-		# Même rampe fluide qu'en infini, mais palier 500 m en envol (1000 m sinon).
+		# Même rampe fluide qu'en infini, mais palier 500 m en jetpack (1000 m sinon).
 		# Lissage move_toward → montée progressive sans à-coup. Palier 0 = base inchangée.
-		var step_dist: float = SPEED_RAMP_STEP_ENVOL if Settings.active_mode == "envol" else SPEED_RAMP_STEP
+		var step_dist: float = SPEED_RAMP_STEP_JETPACK if Settings.active_mode == "jetpack" else SPEED_RAMP_STEP
 		var steps: int = int(abs(global_position.y) / step_dist)
 		var target_speed: float = MAX_FALL_SPEED * pow(SPEED_RAMP_FACTOR, steps)
 		_current_max_fall_speed = move_toward(_current_max_fall_speed, target_speed, SPEED_RAMP_RATE * delta)
 	if _boost_active:
-		# Boost dans le sens du déplacement (vers le haut en envol, pas vers la mort).
+		# Boost dans le sens du déplacement (vers le haut en jetpack, pas vers la mort).
 		linear_velocity.y = dir * MAX_FALL_SPEED * BOOST_SPEED_FACTOR
 	elif dir > 0.0:
-		# Envol : poussée constante vers le haut (gravity_scale = 0).
+		# Jetpack : poussée constante vers le haut (gravity_scale = 0).
 		linear_velocity.y = _current_max_fall_speed
 		if _slowmo_active:
 			linear_velocity.y = _current_max_fall_speed * SLOWMO_FACTOR
@@ -567,9 +567,9 @@ func _physics_process(delta: float) -> void:
 			linear_velocity.y = -_current_max_fall_speed
 		if _slowmo_active and linear_velocity.y < -_current_max_fall_speed * SLOWMO_FACTOR:
 			linear_velocity.y = -_current_max_fall_speed * SLOWMO_FACTOR
-	# Vent toujours actif ; en envol le jetpack s'ajoute (même pilotage par la vitesse).
+	# Vent toujours actif ; en jetpack le jetpack s'ajoute (même pilotage par la vitesse).
 	Audio.set_whoosh_intensity(absf(linear_velocity.y))
-	if Settings.active_mode == "envol":
+	if Settings.active_mode == "jetpack":
 		Audio.set_jetpack_intensity(absf(linear_velocity.y))
 
 func _process(delta: float) -> void:
@@ -592,8 +592,8 @@ func _process(delta: float) -> void:
 			_attract_coins(delta)
 	_sway_time += delta
 	_jolt = move_toward(_jolt, 0.0, delta * 4.0)
-	# Envol : pose fusée fixe (sway désactivé, calibré pour le perso flippé 180°).
-	if Settings.active_mode == "envol":
+	# Jetpack : pose fusée fixe (sway désactivé, calibré pour le perso flippé 180°).
+	if Settings.active_mode == "jetpack":
 		_apply_rocket_pose(delta)
 		return
 	var lateral: float = linear_velocity.x
@@ -606,20 +606,20 @@ func _process(delta: float) -> void:
 	_apply_limb_sway($Character/LegRight, lateral, delta, 3.1, 2.4,   35.0, 11.0, 13.0, 0.5,  20.0, -24.0)
 	_apply_limb_sway($Character/Head,     lateral, delta, 2.2, 3.2,    0.0, 11.0,  7.0, 0.4,  20.0,   8.0)
 
-# Pose fusée VIVANTE : oscillation légère et subtile autour des bases ENVOL (≈25 %
+# Pose fusée VIVANTE : oscillation légère et subtile autour des bases JETPACK (≈25 %
 # de l'amplitude du sway chute), pilotée par sin + un peu de vélocité latérale.
 func _apply_rocket_pose(delta: float) -> void:
 	var t: float = _sway_time
 	var lateral: float = linear_velocity.x
 	# node, base, phase, x_amp, z_amp, lat_z
-	_apply_envol_sway($Character/ArmLeft,  delta, ENVOL_ARM_L, t, lateral, 0.0, 3.0, 5.0,  0.3)
-	_apply_envol_sway($Character/ArmRight, delta, ENVOL_ARM_R, t, lateral, 1.7, 3.0, 5.0, -0.3)
-	_apply_envol_sway($Character/LegLeft,  delta, ENVOL_LEG_L, t, lateral, 0.9, 2.5, 3.0,  0.2)
-	_apply_envol_sway($Character/LegRight, delta, ENVOL_LEG_R, t, lateral, 2.4, 2.5, 3.0, -0.2)
-	_apply_envol_sway($Character/Head,     delta, ENVOL_HEAD,  t, lateral, 3.2, 2.0, 2.0,  0.0)
+	_apply_jetpack_sway($Character/ArmLeft,  delta, JETPACK_ARM_L, t, lateral, 0.0, 3.0, 5.0,  0.3)
+	_apply_jetpack_sway($Character/ArmRight, delta, JETPACK_ARM_R, t, lateral, 1.7, 3.0, 5.0, -0.3)
+	_apply_jetpack_sway($Character/LegLeft,  delta, JETPACK_LEG_L, t, lateral, 0.9, 2.5, 3.0,  0.2)
+	_apply_jetpack_sway($Character/LegRight, delta, JETPACK_LEG_R, t, lateral, 2.4, 2.5, 3.0, -0.2)
+	_apply_jetpack_sway($Character/Head,     delta, JETPACK_HEAD,  t, lateral, 3.2, 2.0, 2.0,  0.0)
 
 # Flottement subtil autour d'une base fixe (pose fusée). Lent (speed 2.5), faible amp.
-func _apply_envol_sway(node: Node3D, delta: float, base: Vector3, t: float, lateral: float,
+func _apply_jetpack_sway(node: Node3D, delta: float, base: Vector3, t: float, lateral: float,
 		phase: float, x_amp: float, z_amp: float, lat_z: float) -> void:
 	var s: float = sin(t * 2.5 + phase)
 	var target: Vector3 = base + Vector3(s * x_amp, 0.0, s * z_amp + lateral * lat_z)

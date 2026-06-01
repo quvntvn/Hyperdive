@@ -15,7 +15,7 @@ const TYPES_CAMPAIGN: Array[String] = ["shield", "slowmo", "boost"]
 
 var _next_spawn_y: float = 0.0
 var _campaign_mode: bool = false
-# Signe vertical : -1 chute (spawn en bas), +1 envol (spawn en haut). Lu une fois au départ.
+# Signe vertical : -1 chute (spawn en bas), +1 jetpack (spawn en haut). Lu une fois au départ.
 var _dir: float = -1.0
 
 func set_campaign_mode(enabled: bool) -> void:
