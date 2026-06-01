@@ -75,7 +75,14 @@ func _create_dust_motes() -> void:
 	p.draw_pass_1 = sphere
 	add_child(p)
 
+# Nuages : UNIQUEMENT en mode jetpack (plus de nuages en chute campagne/infini ni au
+# menu). Placés en FOND latéral GAUCHE, derrière le mur gauche (x très négatif, reculés
+# en z) → ils lisent comme des nuages lointains à gauche, pas au milieu de la piste.
 func _create_soft_clouds() -> void:
+	var is_menu: bool = loop_cells > 0.0
+	if is_menu or Settings.active_mode != "jetpack":
+		return
+
 	var p := GPUParticles3D.new()
 	p.amount = 10
 	p.lifetime = 14.0
@@ -84,22 +91,21 @@ func _create_soft_clouds() -> void:
 	p.randomness = 1.0
 	p.local_coords = true
 	p.emitting = true
-	# Jetpack : caméra vers le haut → on remonte les nuages et on étend leur zone
-	# verticale pour qu'ils couvrent le haut de l'écran. DEBUG, à doser. Hors menu.
-	var jetpack: bool = Settings.active_mode == "jetpack" and target != null
-	p.position = Vector3(0.0, 18.0 if jetpack else 4.0, 0.0)
+	# Tout à gauche, au-delà du mur gauche (couloir = ±4.5), reculé en profondeur.
+	p.position = Vector3(-10.0, 6.0, -5.0)
 
 	var mat := ParticleProcessMaterial.new()
 	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	mat.emission_box_extents = Vector3(3.5, 6.0 if jetpack else 2.0, 2.0)
+	mat.emission_box_extents = Vector3(2.0, 9.0, 2.5)
 	mat.direction = Vector3(1.0, 0.0, 0.0)
 	mat.spread = 20.0
-	mat.initial_velocity_min = 0.20
-	mat.initial_velocity_max = 0.50
+	mat.initial_velocity_min = 0.10
+	mat.initial_velocity_max = 0.30
 	mat.gravity = Vector3.ZERO
 	mat.scale_min = 0.60
 	mat.scale_max = 1.20
-	mat.color = Color(0.910, 0.875, 0.805, 0.075)
+	# Opacité /2 (0.075 -> 0.0375) : nuages lointains discrets.
+	mat.color = Color(0.910, 0.875, 0.805, 0.0375)
 	p.process_material = mat
 
 	var sphere := SphereMesh.new()
