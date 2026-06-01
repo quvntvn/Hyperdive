@@ -306,8 +306,17 @@ func _on_level_survived() -> void:
 	t.parallel().tween_property($Character, "rotation_degrees", Vector3.ZERO, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	Audio.set_whoosh_intensity(0.0)
 	await get_tree().create_timer(0.6).timeout
+	# Capturer AVANT complete_current_level() : il crédite les pièces et incrémente
+	# campaign_level. On affiche le niveau réussi + le gain exact dans l'overlay.
+	var completed: int = Settings.active_level
+	var reward: int = Settings.get_level_reward(completed)
 	Settings.complete_current_level()
-	Transition.change_scene("res://scenes/ui/level_screen.tscn")
+	# Overlay in-game (le jeu reste derrière, flouté) plutôt qu'un changement de scène.
+	var screen := get_tree().get_first_node_in_group("level_complete_screen")
+	if screen:
+		screen.show_level_complete(completed, reward)
+	else:
+		Transition.change_scene("res://scenes/ui/main_menu.tscn")
 
 func _on_body_entered(body: Node3D) -> void:
 	if _is_dead or _level_completed:

@@ -24,6 +24,13 @@ func _init() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	material = _get_material()
 
+# Respecte le toggle perf même pour les GlassBlur posés directement dans une scène (backdrops
+# plein écran du shop/défis/game over/fin de niveau, hors autoload) : si le flou est désactivé,
+# on se masque → coût nul, et le voile (Tint) translucide derrière sert de repli.
+func _ready() -> void:
+	if not Glass.USE_REAL_BLUR:
+		visible = false
+
 # Pose un backdrop-blur DERRIÈRE n'importe quel Control (panneau, voile, carte) — pas
 # seulement les boutons (eux sont pris en charge automatiquement par l'autoload Glass).
 # Respecte le toggle perf Glass.USE_REAL_BLUR : si désactivé, ne pose rien (repli zéro coût).

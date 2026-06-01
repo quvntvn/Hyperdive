@@ -1,0 +1,76 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/level_complete_screen.gd" id="LevelCompleteScript"]
+[ext_resource type="Script" path="res://scripts/ui/glass_blur.gd" id="GlassBlurScript"]
+
+[node name="LevelCompleteScreen" type="CanvasLayer"]
+layer = 6
+visible = false
+process_mode = 3
+script = ExtResource("LevelCompleteScript")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("GlassBlurScript")
+
+[node name="Tint" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.4)
+
+[node name="Content" type="Panel" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -280.0
+offset_right = 240.0
+offset_bottom = 280.0
+
+[node name="Layout" type="VBoxContainer" parent="Content"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = 32.0
+offset_right = -32.0
+offset_bottom = -32.0
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="Content/Layout"]
+unique_name_in_owner = true
+text = "NIVEAU 1 RÉUSSI"
+horizontal_alignment = 1
+autowrap_mode = 2
+theme_type_variation = &"Title"
+
+[node name="RewardLabel" type="Label" parent="Content/Layout"]
+unique_name_in_owner = true
+text = "+ 30 pièces"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 40
+theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
+
+[node name="NextInfoLabel" type="Label" parent="Content/Layout"]
+unique_name_in_owner = true
+text = "Prochain : niveau 2"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
+
+[node name="SpacerExpand" type="Control" parent="Content/Layout"]
+size_flags_vertical = 3
+
+[node name="ButtonsContainer" type="VBoxContainer" parent="Content/Layout"]
+theme_override_constants/separation = 12
+
+[node name="NextButton" type="Button" parent="Content/Layout/ButtonsContainer"]
+custom_minimum_size = Vector2(0.0, 72.0)
+text = "NIVEAU SUIVANT"
+theme_override_font_sizes/font_size = 30
+
+[node name="MenuButton" type="Button" parent="Content/Layout/ButtonsContainer"]
+custom_minimum_size = Vector2(0.0, 56.0)
+text = "MENU"
+theme_override_font_sizes/font_size = 24
