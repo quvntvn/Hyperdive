@@ -5,7 +5,7 @@
 [ext_resource type="FontFile" path="res://assets/fonts/Poppins-Bold.ttf" id="FontBold"]
 
 [sub_resource type="StyleBoxFlat" id="BtnNormal"]
-bg_color = Color(0.14, 0.17, 0.26, 0.32)
+bg_color = Color(0.82, 0.86, 0.95, 0.18)
 corner_radius_top_left = 18
 corner_radius_top_right = 18
 corner_radius_bottom_left = 18
@@ -18,13 +18,13 @@ border_width_left = 1
 border_width_right = 1
 border_width_top = 2
 border_width_bottom = 1
-border_color = Color(1.0, 1.0, 1.0, 0.3)
-shadow_color = Color(0.0, 0.0, 0.0, 0.45)
+border_color = Color(1.0, 1.0, 1.0, 0.48)
+shadow_color = Color(0.0, 0.0, 0.0, 0.55)
 shadow_size = 12
-shadow_offset = Vector2(0, 5)
+shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="BtnHover"]
-bg_color = Color(0.2, 0.24, 0.35, 0.42)
+bg_color = Color(0.88, 0.91, 0.98, 0.26)
 corner_radius_top_left = 18
 corner_radius_top_right = 18
 corner_radius_bottom_left = 18
@@ -37,13 +37,13 @@ border_width_left = 1
 border_width_right = 1
 border_width_top = 2
 border_width_bottom = 1
-border_color = Color(1.0, 1.0, 1.0, 0.45)
+border_color = Color(1.0, 1.0, 1.0, 0.62)
 shadow_color = Color(0.0, 0.0, 0.0, 0.5)
 shadow_size = 14
 shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="BtnPressed"]
-bg_color = Color(0.1, 0.12, 0.2, 0.5)
+bg_color = Color(0.7, 0.74, 0.85, 0.3)
 corner_radius_top_left = 18
 corner_radius_top_right = 18
 corner_radius_bottom_left = 18
@@ -78,7 +78,7 @@ border_width_bottom = 1
 border_color = Color(1.0, 1.0, 1.0, 0.1)
 
 [sub_resource type="StyleBoxFlat" id="BtnFocus"]
-bg_color = Color(0.16, 0.19, 0.28, 0.36)
+bg_color = Color(0.82, 0.86, 0.95, 0.2)
 corner_radius_top_left = 18
 corner_radius_top_right = 18
 corner_radius_bottom_left = 18

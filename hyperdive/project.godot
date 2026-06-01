@@ -24,6 +24,7 @@ Settings="*res://scripts/autoload/settings_manager.gd"
 Catalog="*res://scripts/autoload/cosmetics_catalog.gd"
 Audio="*res://scenes/autoload/audio_manager.tscn"
 Transition="*res://scenes/autoload/scene_transition.tscn"
+Glass="*res://scripts/autoload/glass_manager.gd"
 
 [display]
 
