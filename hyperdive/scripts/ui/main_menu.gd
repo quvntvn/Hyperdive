@@ -26,12 +26,16 @@ func _ready() -> void:
 
 # Campagne toujours jouable. Record (infini) et Jetpack restent affichés mais GRISÉS
 # (disabled) tant que verrouillés, avec leur condition de déblocage en sous-texte.
+# Relu à CHAQUE _ready (donc à chaque retour au menu) → un mode débloqué en jeu apparaît.
 func _update_mode_buttons() -> void:
 	var record_unlocked: bool = Settings.is_infinite_unlocked()
+	var jetpack_unlocked: bool = Settings.is_jetpack_unlocked()
+	print("[Menu] déblocages — infinite=", record_unlocked,
+		  " jetpack=", jetpack_unlocked,
+		  " best_infinite_distance=", Settings.best_infinite_distance)
 	%RecordButton.disabled = not record_unlocked
 	%RecordLockedLabel.visible = not record_unlocked
 
-	var jetpack_unlocked: bool = Settings.is_jetpack_unlocked()
 	%JetpackButton.disabled = not jetpack_unlocked
 	%JetpackLockedLabel.visible = not jetpack_unlocked
 

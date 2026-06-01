@@ -376,6 +376,11 @@ func load_settings() -> void:
 	coins_total = cfg.get_value("stats", "coins_total", 0)
 	best_distance = cfg.get_value("stats", "best_distance", 0)
 	best_infinite_distance = cfg.get_value("stats", "best_infinite_distance", 0)
+	# Migration : best_infinite_distance est un champ récent. Pour les sauvegardes
+	# antérieures (où il vaut 0 alors que best_distance reflète déjà des runs infini),
+	# on le sème depuis best_distance pour ne pas re-verrouiller le jetpack à tort.
+	if best_infinite_distance == 0 and best_distance > 0:
+		best_infinite_distance = best_distance
 	owned_skins.assign(cfg.get_value("cosmetics", "owned_skins", ["default"]))
 	equipped_skin = cfg.get_value("cosmetics", "equipped_skin", "default")
 	owned_trails.assign(cfg.get_value("cosmetics", "owned_trails", ["none"]))
