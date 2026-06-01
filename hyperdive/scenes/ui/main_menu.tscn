@@ -74,12 +74,6 @@ autowrap_mode = 0
 theme_type_variation = &"Title"
 theme_override_font_sizes/font_size = 72
 
-[node name="SubtitleLabel" type="Label" parent="MenuUI/Screen/Layout"]
-text = "TRAVERSE LE CIEL DE 1962"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 24
-theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
-
 [node name="Spacer1" type="Control" parent="MenuUI/Screen/Layout"]
 custom_minimum_size = Vector2(0, 60)
 
