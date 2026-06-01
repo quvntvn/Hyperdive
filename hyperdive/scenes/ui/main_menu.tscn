@@ -109,31 +109,21 @@ theme_override_font_sizes/font_size = 36
 
 [node name="RecordButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 72)
+custom_minimum_size = Vector2(300, 80)
 size_flags_horizontal = 4
 text = "RECORD"
+clip_text = false
+autowrap_mode = 2
 theme_override_font_sizes/font_size = 32
-
-[node name="RecordLockedLabel" type="Label" parent="MenuUI/Screen/Layout/ButtonsContainer"]
-unique_name_in_owner = true
-text = "Termine le niveau 1"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 0.6)
 
 [node name="JetpackButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 72)
+custom_minimum_size = Vector2(300, 80)
 size_flags_horizontal = 4
 text = "JETPACK"
+clip_text = false
+autowrap_mode = 2
 theme_override_font_sizes/font_size = 32
-
-[node name="JetpackLockedLabel" type="Label" parent="MenuUI/Screen/Layout/ButtonsContainer"]
-unique_name_in_owner = true
-text = "Atteins 1000m en Record"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 18
-theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 0.6)
 
 [node name="ShopButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true

@@ -25,19 +25,27 @@ func _ready() -> void:
 	_animate_title()
 
 # Campagne toujours jouable. Record (infini) et Jetpack restent affichés mais GRISÉS
-# (disabled) tant que verrouillés, avec leur condition de déblocage en sous-texte.
-# Relu à CHAQUE _ready (donc à chaque retour au menu) → un mode débloqué en jeu apparaît.
+# (disabled) tant que verrouillés. La condition de déblocage est écrite DANS le bouton
+# (pas de label séparé). Relu à CHAQUE _ready → un mode débloqué en jeu apparaît au retour.
 func _update_mode_buttons() -> void:
 	var record_unlocked: bool = Settings.is_infinite_unlocked()
 	var jetpack_unlocked: bool = Settings.is_jetpack_unlocked()
 	print("[Menu] déblocages — infinite=", record_unlocked,
 		  " jetpack=", jetpack_unlocked,
 		  " best_infinite_distance=", Settings.best_infinite_distance)
-	%RecordButton.disabled = not record_unlocked
-	%RecordLockedLabel.visible = not record_unlocked
+	_set_mode_button(%RecordButton, record_unlocked, "RECORD", "Termine le niveau 1")
+	_set_mode_button(%JetpackButton, jetpack_unlocked, "JETPACK", "Atteins 1000m en Record")
 
-	%JetpackButton.disabled = not jetpack_unlocked
-	%JetpackLockedLabel.visible = not jetpack_unlocked
+# Débloqué : texte = nom du mode, cliquable, grande police. Verrouillé : texte = nom +
+# cadenas + condition (2 lignes), grisé, police réduite pour faire tenir la condition.
+func _set_mode_button(btn: Button, unlocked: bool, mode_name: String, condition: String) -> void:
+	btn.disabled = not unlocked
+	if unlocked:
+		btn.text = mode_name
+		btn.add_theme_font_size_override("font_size", 32)
+	else:
+		btn.text = mode_name + " 🔒\n" + condition
+		btn.add_theme_font_size_override("font_size", 20)
 
 func update_stats() -> void:
 	%BestLabel.text = "Record : " + str(Settings.best_distance) + " m"
