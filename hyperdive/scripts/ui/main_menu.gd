@@ -19,6 +19,9 @@ func _ready() -> void:
 	# Descend l'engrenage sous la safe area (encoche/caméra frontale), avec une marge mini
 	# généreuse même sans encoche pour qu'il ne soit pas collé au bord haut.
 	UIAnimations.apply_top_safe_area(%SettingsGearButton, 28.0)
+	# Descend le bloc menu (centré) pour que le titre HYPERDIVE passe SOUS l'engrenage et ne
+	# le chevauche plus. On augmente seulement le haut de la zone (le bloc reste centré dedans).
+	$MenuUI/Screen/Layout.offset_top += UIAnimations.top_safe_inset(get_viewport()) + 64.0
 	_style_gear_glass()
 
 	_update_mode_buttons()
