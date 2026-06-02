@@ -123,6 +123,27 @@ func _style_gear_glass() -> void:
 	gear.add_child(backing)
 	gear.move_child(backing, 0)
 	GlassBlur.add_behind(backing)
+	# Icône engrenage 2× plus petite, CENTRÉE, fond verre/blur inchangé. La texture remplissait
+	# tout le bouton (80×80) ; on la retire du TextureButton et on la repose en TextureRect 40×40
+	# centré → plus de marge autour du pictogramme, le rond verre garde sa taille.
+	var tb := gear as TextureButton
+	if tb != null and tb.texture_normal != null and not gear.has_node("GearIcon"):
+		var icon := TextureRect.new()
+		icon.name = "GearIcon"
+		icon.texture = tb.texture_normal
+		tb.texture_normal = null
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.anchor_left = 0.5
+		icon.anchor_top = 0.5
+		icon.anchor_right = 0.5
+		icon.anchor_bottom = 0.5
+		icon.offset_left = -20.0
+		icon.offset_top = -20.0
+		icon.offset_right = 20.0
+		icon.offset_bottom = 20.0
+		gear.add_child(icon)
 
 func _animate_title() -> void:
 	var tween: Tween = create_tween().set_loops()
