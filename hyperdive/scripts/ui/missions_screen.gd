@@ -26,7 +26,7 @@ func refresh() -> void:
 	var sep := HSeparator.new()
 	_mission_list.add_child(sep)
 	_add_section_label("DÉFIS", Color(0.957, 0.914, 0.804))
-	for mission in Catalog.MISSIONS:
+	for mission in Missions.MISSIONS:
 		_build_row(mission)
 	UIAnimations.wire_buttons(_mission_list)
 
