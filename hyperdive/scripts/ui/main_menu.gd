@@ -109,9 +109,10 @@ func _style_gear_glass() -> void:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.82, 0.86, 0.95, 0.18)
 	sb.set_corner_radius_all(int(GlassBlur.DEFAULT_RADIUS))
-	sb.set_border_width_all(1)
-	sb.border_width_top = 2
-	sb.border_color = Color(1.0, 1.0, 1.0, 0.48)
+	# Pas de contour qui fait le tour : seulement un reflet de verre TRÈS discret en haut.
+	sb.set_border_width_all(0)
+	sb.border_width_top = 1
+	sb.border_color = Color(1.0, 1.0, 1.0, 0.18)
 	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.55)
 	sb.shadow_size = 10
 	sb.shadow_offset = Vector2(0, 5)
