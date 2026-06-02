@@ -19,6 +19,7 @@ signal daily_claimed_signal
 signal volume_changed
 
 var control_mode: ControlMode = ControlMode.KEYBOARD
+var vibration_enabled: bool = true
 var master_volume: float = 1.0
 var music_volume: float = 1.0
 var sfx_volume: float = 1.0
@@ -107,6 +108,19 @@ func set_sfx_volume(v: float) -> void:
 	sfx_volume = clampf(v, 0.0, 1.0)
 	_apply_bus_volume("SFX", sfx_volume)
 	volume_changed.emit()
+	save_settings()
+
+# Retour haptique centralisé. No-op si désactivé (option réglages) ou sur desktop
+# (Input.vibrate_handheld est déjà no-op sur PC, mais on garde le test pour éviter tout bruit).
+func vibrate(duration_ms: int) -> void:
+	if not vibration_enabled:
+		return
+	if not OS.has_feature("mobile"):
+		return
+	Input.vibrate_handheld(duration_ms)
+
+func set_vibration_enabled(v: bool) -> void:
+	vibration_enabled = v
 	save_settings()
 
 func set_control_mode_value(mode: ControlMode) -> void:
@@ -447,6 +461,7 @@ func _migrate_trails() -> void:
 func save_settings() -> void:
 	var cfg: ConfigFile = ConfigFile.new()
 	cfg.set_value("input", "control_mode", control_mode)
+	cfg.set_value("input", "vibration_enabled", vibration_enabled)
 	cfg.set_value("audio", "master_volume", master_volume)
 	cfg.set_value("audio", "music_volume", music_volume)
 	cfg.set_value("audio", "sfx_volume", sfx_volume)
@@ -492,6 +507,7 @@ func load_settings() -> void:
 	control_mode = cfg.get_value("input", "control_mode", ControlMode.KEYBOARD)
 	if control_mode > ControlMode.TOUCH:
 		control_mode = ControlMode.TOUCH
+	vibration_enabled = cfg.get_value("input", "vibration_enabled", true)
 	master_volume = cfg.get_value("audio", "master_volume", 1.0)
 	music_volume = cfg.get_value("audio", "music_volume", 1.0)
 	sfx_volume = cfg.get_value("audio", "sfx_volume", 1.0)

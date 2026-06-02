@@ -37,6 +37,7 @@ static func glass_card_style() -> StyleBoxFlat:
 
 static func wire_button(btn: BaseButton) -> void:
 	btn.button_down.connect(func() -> void:
+		Settings.vibrate(20)   # petit "tic" haptique au clic (centralisé → tous les boutons)
 		btn.pivot_offset = btn.size / 2.0
 		var t := btn.create_tween()
 		t.tween_property(btn, "scale", Vector2(0.96, 0.96), 0.06).set_trans(Tween.TRANS_QUAD)
