@@ -26,7 +26,17 @@ func refresh() -> void:
 	var sep := HSeparator.new()
 	_mission_list.add_child(sep)
 	_add_section_label("DÉFIS", Color(0.957, 0.914, 0.804))
+	# Chaînes de paliers : n'afficher que le PROCHAIN palier non réclamé de chaque chaîne
+	# (l'array est ordonné en paliers croissants). Les exploits (sans chain) restent tous visibles.
+	var shown_chains: Dictionary = {}
 	for mission in Missions.MISSIONS:
+		if mission.has("chain"):
+			if Settings.is_mission_claimed(mission["id"]):
+				continue                      # palier déjà réclamé → passer au suivant de la chaîne
+			var ch: String = mission["chain"]
+			if shown_chains.has(ch):
+				continue                      # prochain palier de cette chaîne déjà affiché
+			shown_chains[ch] = true
 		_build_row(mission)
 	UIAnimations.wire_buttons(_mission_list)
 
@@ -106,8 +116,17 @@ func _build_row(mission: Dictionary) -> void:
 	desc_label.text = mission["desc"]
 	desc_label.add_theme_font_size_override("font_size", 16)
 	desc_label.add_theme_color_override("font_color", Color(0.80, 0.78, 0.72))
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.add_child(name_label)
 	info.add_child(desc_label)
+	# Jalon à récompense cosmétique : on l'indique en jaune moutarde sous la description.
+	var cosmetic_name: String = _reward_cosmetic_name(mission)
+	if cosmetic_name != "":
+		var reward_label := Label.new()
+		reward_label.text = "🎁 Débloque : " + cosmetic_name
+		reward_label.add_theme_font_size_override("font_size", 15)
+		reward_label.add_theme_color_override("font_color", Color(0.949, 0.757, 0.306))
+		info.add_child(reward_label)
 	row.add_child(info)
 
 	var mission_id: String = mission["id"]
@@ -142,15 +161,39 @@ func _format_progress(mission: Dictionary, progress: int, target: int) -> String
 	match mission["type"]:
 		"campaign_level":
 			return "Niveau %d/%d" % [progress, target]
-		"distance":
+		"infinite_distance", "jetpack_distance", "distance", "dual_distance":
 			return "%d/%d m" % [progress, target]
-		"owned_skins":
+		"coins_lifetime", "coins_run":
+			return "%d/%d pièces" % [progress, target]
+		"obstacles_dodged", "obstacles_run":
+			return "%d/%d esquives" % [progress, target]
+		"no_wall_time":
+			return "%ds/%ds" % [progress, target]
+		"powerups_used":
+			return "%d/%d power-ups" % [progress, target]
+		"deaths":
+			return "%d/%d morts" % [progress, target]
+		"total_games":
+			return "%d/%d parties" % [progress, target]
+		"ascetic":
+			return "À accomplir"
+		"all_shop_skins", "owned_skins":
 			return "%d/%d skins" % [progress, target]
-		"owned_themes":
+		"all_shop_trails":
+			return "%d/%d trails" % [progress, target]
+		"all_shop_themes", "owned_themes":
 			return "%d/%d thèmes" % [progress, target]
 		"trail_equipped":
 			return "Non équipé" if progress == 0 else "Équipé"
 	return "%d/%d" % [progress, target]
+
+# Nom lisible du cosmétique récompense d'un jalon (ou "" si pas de récompense cosmétique).
+func _reward_cosmetic_name(mission: Dictionary) -> String:
+	if mission.has("reward_skin"):
+		return Catalog.get_skin_by_id(mission["reward_skin"])["name"]
+	if mission.has("reward_trail"):
+		return Catalog.get_trail(mission["reward_trail"])["name"]
+	return ""
 
 func open() -> void:
 	Settings.ensure_daily_challenges()
