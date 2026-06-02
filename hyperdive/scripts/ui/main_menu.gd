@@ -113,9 +113,6 @@ func _style_gear_glass() -> void:
 	sb.set_border_width_all(0)
 	sb.border_width_top = 1
 	sb.border_color = Color(1.0, 1.0, 1.0, 0.18)
-	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.55)
-	sb.shadow_size = 10
-	sb.shadow_offset = Vector2(0, 5)
 	backing.add_theme_stylebox_override("panel", sb)
 	gear.add_child(backing)
 	gear.move_child(backing, 0)

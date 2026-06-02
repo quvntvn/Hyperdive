@@ -32,9 +32,6 @@ static func glass_card_style() -> StyleBoxFlat:
 		sb.content_margin_right = 14.0
 		sb.content_margin_top = 10.0
 		sb.content_margin_bottom = 10.0
-		sb.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
-		sb.shadow_size = 6
-		sb.shadow_offset = Vector2(0, 3)
 		_card_style = sb
 	return _card_style
 

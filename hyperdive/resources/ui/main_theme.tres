@@ -19,9 +19,6 @@ border_width_right = 0
 border_width_top = 1
 border_width_bottom = 0
 border_color = Color(1.0, 1.0, 1.0, 0.18)
-shadow_color = Color(0.0, 0.0, 0.0, 0.55)
-shadow_size = 12
-shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="BtnHover"]
 bg_color = Color(0.88, 0.91, 0.98, 0.26)
@@ -38,9 +35,6 @@ border_width_right = 0
 border_width_top = 1
 border_width_bottom = 0
 border_color = Color(1.0, 1.0, 1.0, 0.26)
-shadow_color = Color(0.0, 0.0, 0.0, 0.5)
-shadow_size = 14
-shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="BtnPressed"]
 bg_color = Color(0.7, 0.74, 0.85, 0.3)
@@ -57,9 +51,6 @@ border_width_right = 0
 border_width_top = 1
 border_width_bottom = 0
 border_color = Color(1.0, 1.0, 1.0, 0.12)
-shadow_color = Color(0.0, 0.0, 0.0, 0.3)
-shadow_size = 6
-shadow_offset = Vector2(0, 2)
 
 [sub_resource type="StyleBoxFlat" id="BtnDisabled"]
 bg_color = Color(0.1, 0.1, 0.14, 0.2)
@@ -92,9 +83,6 @@ border_width_right = 0
 border_width_top = 1
 border_width_bottom = 0
 border_color = Color(1.0, 1.0, 1.0, 0.18)
-shadow_color = Color(0.0, 0.0, 0.0, 0.45)
-shadow_size = 12
-shadow_offset = Vector2(0, 5)
 
 [sub_resource type="StyleBoxFlat" id="PanelStyle"]
 bg_color = Color(0.1, 0.13, 0.22, 0.78)
@@ -111,9 +99,6 @@ border_width_right = 0
 border_width_top = 1
 border_width_bottom = 0
 border_color = Color(1.0, 1.0, 1.0, 0.14)
-shadow_color = Color(0.0, 0.0, 0.0, 0.55)
-shadow_size = 16
-shadow_offset = Vector2(0, 8)
 
 [sub_resource type="StyleBoxEmpty" id="EmptyStyle"]
 
