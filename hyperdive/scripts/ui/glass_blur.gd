@@ -15,7 +15,10 @@ extends ColorRect
 # (arrondi à l'entier) suffit pour tous les boutons d'un même rayon GUI.
 
 const SHADER_PATH := "res://assets/shaders/glass_blur.gdshader"
-const DEFAULT_RADIUS := 18.0
+# Rayon d'arrondi UNIQUE pour tout le verre du jeu (boutons, engrenage, cartes, panneaux).
+# Source de vérité centrale : l'engrenage et les cartes le lisent ; le thème global
+# (main_theme.tres) doit garder la MÊME valeur sur ses StyleBox de bouton/panneau.
+const DEFAULT_RADIUS := 20.0
 
 static var _mats: Dictionary = {}  # int(rayon écran px) -> ShaderMaterial
 

@@ -6,10 +6,10 @@
 
 [sub_resource type="StyleBoxFlat" id="BtnNormal"]
 bg_color = Color(0.82, 0.86, 0.95, 0.18)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_left = 18
-corner_radius_bottom_right = 18
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_left = 20
+corner_radius_bottom_right = 20
 content_margin_left = 22.0
 content_margin_right = 22.0
 content_margin_top = 14.0
@@ -25,10 +25,10 @@ shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="BtnHover"]
 bg_color = Color(0.88, 0.91, 0.98, 0.26)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_left = 18
-corner_radius_bottom_right = 18
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_left = 20
+corner_radius_bottom_right = 20
 content_margin_left = 22.0
 content_margin_right = 22.0
 content_margin_top = 14.0
@@ -44,10 +44,10 @@ shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="BtnPressed"]
 bg_color = Color(0.7, 0.74, 0.85, 0.3)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_left = 18
-corner_radius_bottom_right = 18
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_left = 20
+corner_radius_bottom_right = 20
 content_margin_left = 22.0
 content_margin_right = 22.0
 content_margin_top = 14.0
@@ -63,10 +63,10 @@ shadow_offset = Vector2(0, 2)
 
 [sub_resource type="StyleBoxFlat" id="BtnDisabled"]
 bg_color = Color(0.1, 0.1, 0.14, 0.2)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_left = 18
-corner_radius_bottom_right = 18
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_left = 20
+corner_radius_bottom_right = 20
 content_margin_left = 22.0
 content_margin_right = 22.0
 content_margin_top = 14.0
@@ -79,10 +79,10 @@ border_color = Color(1.0, 1.0, 1.0, 0.1)
 
 [sub_resource type="StyleBoxFlat" id="BtnFocus"]
 bg_color = Color(0.82, 0.86, 0.95, 0.2)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_left = 18
-corner_radius_bottom_right = 18
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_left = 20
+corner_radius_bottom_right = 20
 content_margin_left = 22.0
 content_margin_right = 22.0
 content_margin_top = 14.0

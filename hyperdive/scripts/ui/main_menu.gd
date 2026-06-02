@@ -108,7 +108,7 @@ func _style_gear_glass() -> void:
 	backing.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.82, 0.86, 0.95, 0.18)
-	sb.set_corner_radius_all(16)
+	sb.set_corner_radius_all(int(GlassBlur.DEFAULT_RADIUS))
 	sb.set_border_width_all(1)
 	sb.border_width_top = 2
 	sb.border_color = Color(1.0, 1.0, 1.0, 0.48)
