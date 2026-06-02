@@ -110,13 +110,16 @@ func set_sfx_volume(v: float) -> void:
 	volume_changed.emit()
 	save_settings()
 
-# Retour haptique centralisé. No-op si désactivé (option réglages) ou sur desktop
-# (Input.vibrate_handheld est déjà no-op sur PC, mais on garde le test pour éviter tout bruit).
+# Retour haptique centralisé. No-op si désactivé (option réglages) ou hors mobile.
+# On teste OS.get_name() (fiable sur l'APK) plutôt que has_feature("mobile") qui pouvait
+# court-circuiter la vibration. Log debug temporaire pour diagnostiquer sur appareil.
 func vibrate(duration_ms: int) -> void:
 	if not vibration_enabled:
 		return
-	if not OS.has_feature("mobile"):
+	var os_name: String = OS.get_name()
+	if os_name != "Android" and os_name != "iOS":
 		return
+	print("[haptic] vibrate called ", duration_ms, " ms (os=", os_name, ")")
 	Input.vibrate_handheld(duration_ms)
 
 func set_vibration_enabled(v: bool) -> void:
