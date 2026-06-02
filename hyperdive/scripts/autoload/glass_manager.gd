@@ -37,7 +37,9 @@ func _attach(btn: Node) -> void:
 		return
 	if btn.has_node("GlassBlur"):
 		return
-	var glass := GlassBlur.new()
+	# Le masque du verre suit l'arrondi RÉEL du bouton (px GUI converti en px écran côté GlassBlur),
+	# sinon ses coins dépassent de l'arrondi → liseré anguleux.
+	var glass := GlassBlur.new(GlassBlur.corner_radius_of(btn as Control))
 	glass.name = "GlassBlur"
 	btn.add_child(glass)
 	btn.move_child(glass, 0)
