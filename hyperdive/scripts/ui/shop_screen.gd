@@ -73,6 +73,8 @@ func _refresh_skins() -> void:
 	for skin in Catalog.SKINS:
 		var skin_id: String = skin["id"]
 		var price: int = skin["price"]
+		if price < 0:
+			continue  # exclusif défi : pas vendu au shop
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 12)
 		var preview := ColorRect.new()
@@ -114,6 +116,8 @@ func _refresh_trails() -> void:
 	for trail in Catalog.TRAILS:
 		var trail_id: String = trail["id"]
 		var price: int = trail["price"]
+		if price < 0:
+			continue  # exclusif défi : pas vendu au shop
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 12)
 		var preview := ColorRect.new()
@@ -165,6 +169,8 @@ func _refresh_themes() -> void:
 	for theme in Catalog.THEMES:
 		var theme_id: String = theme["id"]
 		var price: int = theme["price"]
+		if price < 0:
+			continue  # exclusif défi : pas vendu au shop
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 12)
 		var preview_box := HBoxContainer.new()

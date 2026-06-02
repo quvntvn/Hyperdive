@@ -7,6 +7,11 @@ const SKINS: Array[Dictionary] = [
 	{"id": "mustard",   "name": "Jaune Moutarde",   "price": 35, "color": Color(0.949, 0.757, 0.306)},
 	{"id": "cream",     "name": "Crème Pâle",       "price": 50, "color": Color(0.957, 0.914, 0.804)},
 	{"id": "bordeaux",  "name": "Bordeaux Lourd",   "price": 75, "color": Color(0.486, 0.180, 0.165)},
+	# Exclusifs défis (price -1 = non vendus au shop, débloqués par claim de défi).
+	{"id": "chrome",    "name": "Chrome spatial",   "price": -1, "color": Color(0.580, 0.630, 0.720)},
+	{"id": "or1962",    "name": "Or 1962",          "price": -1, "color": Color(0.945, 0.760, 0.255)},
+	{"id": "briscard",  "name": "Vieux briscard",   "price": -1, "color": Color(0.780, 0.720, 0.580)},
+	{"id": "funambule", "name": "Funambule",        "price": -1, "color": Color(0.520, 0.200, 0.180)},
 ]
 
 func get_skin_by_id(id: String) -> Dictionary:
@@ -25,6 +30,11 @@ const TRAILS: Array[Dictionary] = [
 	{"id": "antigel",  "name": "Antigel",      "color": Color(0.20, 0.85, 0.75), "price": 35},
 	{"id": "lait",     "name": "Lait",         "color": Color(0.96, 0.95, 0.90), "price": 40},
 	{"id": "petrole",  "name": "Pétrole",      "color": Color(0.10, 0.10, 0.13), "price": 45},
+	# Exclusifs défis (price -1 = non vendus au shop, débloqués par claim de défi).
+	{"id": "comete",   "name": "Comète",       "color": Color(0.98, 0.90, 0.55), "price": -1},
+	{"id": "confettis","name": "Confettis",    "color": Color(0.95, 0.35, 0.65), "price": -1},
+	{"id": "froleur",  "name": "Frôleur",      "color": Color(0.20, 0.85, 0.80), "price": -1},
+	{"id": "fantome",  "name": "Fantôme",      "color": Color(0.88, 0.90, 0.96), "price": -1},
 ]
 
 func get_trail(id: String) -> Dictionary:

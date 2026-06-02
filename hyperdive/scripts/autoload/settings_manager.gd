@@ -282,6 +282,19 @@ func claim_mission(mission: Dictionary) -> bool:
 	if not is_mission_complete(mission) or is_mission_claimed(id):
 		return false
 	coins_total += mission["reward"]
+	# Récompense cosmétique exclusive (jalons) : débloque le skin/trail s'il n'est pas déjà possédé.
+	if mission.has("reward_skin"):
+		var sid: String = mission["reward_skin"]
+		if not sid in owned_skins:
+			owned_skins.append(sid)
+			owned_skins_changed.emit()
+			print("[missions] skin exclusif débloqué : %s" % sid)
+	if mission.has("reward_trail"):
+		var tid: String = mission["reward_trail"]
+		if not tid in owned_trails:
+			owned_trails.append(tid)
+			owned_trails_changed.emit()
+			print("[missions] trail exclusif débloqué : %s" % tid)
 	claimed_missions.append(id)
 	coin_collected.emit(coins_total)
 	mission_claimed.emit()
