@@ -15,8 +15,8 @@ func _ready() -> void:
 	if node is PlayerController:
 		_player = node as PlayerController
 		_player.game_over.connect(_on_game_over)
-	_distance_label = $InfoBar/HBox/DistanceLabel
-	_coin_label = $InfoBar/HBox/CoinCounter/CoinLabel
+	_distance_label = $InfoBar/VBox/DistanceLabel
+	_coin_label = $InfoBar/VBox/CoinCounter/CoinLabel
 	_shield_label = $PowerupIndicator/ShieldLabel
 	_timed_label = $PowerupIndicator/TimedLabel
 	_coin_label.text = str(Settings.coins_total)
@@ -32,7 +32,7 @@ func _ready() -> void:
 
 func set_campaign_mode(enabled: bool) -> void:
 	_campaign_mode = enabled
-	$InfoBar/HBox/CoinCounter.visible = not enabled
+	$InfoBar/VBox/CoinCounter.visible = not enabled
 
 func update_campaign_time(seconds: float) -> void:
 	_distance_label.text = str(ceili(seconds)) + "s"

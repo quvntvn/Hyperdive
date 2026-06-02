@@ -17,35 +17,38 @@ text = "II"
 theme_override_font_sizes/font_size = 32
 
 [node name="InfoBar" type="PanelContainer" parent="."]
+anchor_left = 1.0
 anchor_right = 1.0
-offset_left = 100.0
+offset_left = -20.0
 offset_top = 20.0
 offset_right = -20.0
-offset_bottom = 90.0
+offset_bottom = 20.0
+grow_horizontal = 0
+grow_vertical = 1
 
-[node name="HBox" type="HBoxContainer" parent="InfoBar"]
-theme_override_constants/separation = 12
+[node name="VBox" type="VBoxContainer" parent="InfoBar"]
+theme_override_constants/separation = 4
 
-[node name="DistanceLabel" type="Label" parent="InfoBar/HBox"]
-size_flags_horizontal = 3
+[node name="DistanceLabel" type="Label" parent="InfoBar/VBox"]
 text = "0 m"
-vertical_alignment = 1
+horizontal_alignment = 2
 theme_override_font_sizes/font_size = 36
 theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
 theme_override_colors/font_outline_color = Color(0.04, 0.02, 0.01, 0.92)
 theme_override_constants/outline_size = 5
 
-[node name="CoinCounter" type="HBoxContainer" parent="InfoBar/HBox"]
+[node name="CoinCounter" type="HBoxContainer" parent="InfoBar/VBox"]
+alignment = 2
 theme_override_constants/separation = 6
 
-[node name="CoinIcon" type="TextureRect" parent="InfoBar/HBox/CoinCounter"]
+[node name="CoinIcon" type="TextureRect" parent="InfoBar/VBox/CoinCounter"]
 custom_minimum_size = Vector2(32.0, 32.0)
 size_flags_vertical = 4
 texture = ExtResource("CoinIconTexture")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="CoinLabel" type="Label" parent="InfoBar/HBox/CoinCounter"]
+[node name="CoinLabel" type="Label" parent="InfoBar/VBox/CoinCounter"]
 text = "0"
 vertical_alignment = 1
 theme_override_font_sizes/font_size = 30
