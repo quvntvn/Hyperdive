@@ -7,11 +7,11 @@ shader_type canvas_item;
 // par pixel écran), donc UN SEUL ShaderMaterial partagé suffit pour tous les boutons,
 // quelle que soit leur taille — pas besoin d'uniform de taille par instance.
 
-uniform float corner_radius : hint_range(0.0, 60.0) = 18.0; // doit matcher le thème
-uniform float blur_radius : hint_range(0.0, 8.0) = 3.6;     // MODÉRÉ ; élargir l'étalement
-                                                           // ne coûte RIEN de plus (même
-                                                           // nb de taps) mais rend le flou
-                                                           // visible sur écran haute densité.
+uniform float corner_radius : hint_range(0.0, 60.0) = 20.0; // doit matcher le thème
+uniform float blur_radius : hint_range(0.0, 16.0) = 6.0;    // FORT : espacement des taps du
+                                                           // noyau gaussien 5x5 (reach ≈ 2x
+                                                           // ce rayon). Augmenter = flou plus
+                                                           // large, même nb de taps (coût fixe).
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
 
 // SDF d'un rectangle à coins arrondis (espace pixels, centré).
@@ -31,23 +31,41 @@ void fragment() {
 		discard;
 	}
 
-	// Box-blur 13 taps (3x3 + 4 cardinaux à 2x) — modéré mais visible.
+	// Flou gaussien 5x5 (25 taps) — fort et bien diffus, mais lisse (pondération 1,4,6,4,1
+	// par axe, somme 256 → pas de banding même avec un grand espacement de taps).
 	vec2 o = SCREEN_PIXEL_SIZE * blur_radius;
 	vec3 c = vec3(0.0);
-	c += texture(screen_tex, SCREEN_UV + vec2(-1.0, -1.0) * o).rgb;
-	c += texture(screen_tex, SCREEN_UV + vec2( 0.0, -1.0) * o).rgb;
-	c += texture(screen_tex, SCREEN_UV + vec2( 1.0, -1.0) * o).rgb;
-	c += texture(screen_tex, SCREEN_UV + vec2(-1.0,  0.0) * o).rgb;
-	c += texture(screen_tex, SCREEN_UV + vec2( 0.0,  0.0) * o).rgb;
-	c += texture(screen_tex, SCREEN_UV + vec2( 1.0,  0.0) * o).rgb;
-	c += texture(screen_tex, SCREEN_UV + vec2(-1.0,  1.0) * o).rgb;
-	c += texture(screen_tex, SCREEN_UV + vec2( 0.0,  1.0) * o).rgb;
-	c += texture(screen_tex, SCREEN_UV + vec2( 1.0,  1.0) * o).rgb;
-	c += texture(screen_tex, SCREEN_UV + vec2( 0.0, -2.0) * o).rgb;
-	c += texture(screen_tex, SCREEN_UV + vec2( 0.0,  2.0) * o).rgb;
-	c += texture(screen_tex, SCREEN_UV + vec2(-2.0,  0.0) * o).rgb;
-	c += texture(screen_tex, SCREEN_UV + vec2( 2.0,  0.0) * o).rgb;
-	c /= 13.0;
+	// Ligne y=-2 (poids axe 1)
+	c += texture(screen_tex, SCREEN_UV + vec2(-2.0, -2.0) * o).rgb *  1.0;
+	c += texture(screen_tex, SCREEN_UV + vec2(-1.0, -2.0) * o).rgb *  4.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 0.0, -2.0) * o).rgb *  6.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 1.0, -2.0) * o).rgb *  4.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 2.0, -2.0) * o).rgb *  1.0;
+	// Ligne y=-1 (poids axe 4)
+	c += texture(screen_tex, SCREEN_UV + vec2(-2.0, -1.0) * o).rgb *  4.0;
+	c += texture(screen_tex, SCREEN_UV + vec2(-1.0, -1.0) * o).rgb * 16.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 0.0, -1.0) * o).rgb * 24.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 1.0, -1.0) * o).rgb * 16.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 2.0, -1.0) * o).rgb *  4.0;
+	// Ligne y=0 (poids axe 6)
+	c += texture(screen_tex, SCREEN_UV + vec2(-2.0,  0.0) * o).rgb *  6.0;
+	c += texture(screen_tex, SCREEN_UV + vec2(-1.0,  0.0) * o).rgb * 24.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 0.0,  0.0) * o).rgb * 36.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 1.0,  0.0) * o).rgb * 24.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 2.0,  0.0) * o).rgb *  6.0;
+	// Ligne y=1 (poids axe 4)
+	c += texture(screen_tex, SCREEN_UV + vec2(-2.0,  1.0) * o).rgb *  4.0;
+	c += texture(screen_tex, SCREEN_UV + vec2(-1.0,  1.0) * o).rgb * 16.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 0.0,  1.0) * o).rgb * 24.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 1.0,  1.0) * o).rgb * 16.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 2.0,  1.0) * o).rgb *  4.0;
+	// Ligne y=2 (poids axe 1)
+	c += texture(screen_tex, SCREEN_UV + vec2(-2.0,  2.0) * o).rgb *  1.0;
+	c += texture(screen_tex, SCREEN_UV + vec2(-1.0,  2.0) * o).rgb *  4.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 0.0,  2.0) * o).rgb *  6.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 1.0,  2.0) * o).rgb *  4.0;
+	c += texture(screen_tex, SCREEN_UV + vec2( 2.0,  2.0) * o).rgb *  1.0;
+	c /= 256.0;
 
 	COLOR = vec4(c, mask);
 }
