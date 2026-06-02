@@ -47,8 +47,7 @@ theme_type_variation = &"Title"
 
 [node name="VolumeHeader" type="Label" parent="SettingsPanel/Layout"]
 text = "VOLUME"
-theme_override_font_sizes/font_size = 24
-theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
+theme_type_variation = &"Subtitle"
 
 [node name="MasterRow" type="HBoxContainer" parent="SettingsPanel/Layout"]
 theme_override_constants/separation = 12
