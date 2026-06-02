@@ -8,6 +8,9 @@ func _ready() -> void:
 	add_to_group("missions_screen")
 	_coins_label = $Content/CoinsLabel
 	_mission_list = $Content/ScrollContainer/MissionList
+	# Le conteneur de liste ne doit pas bloquer le glissement tactile (sinon le ScrollContainer
+	# parent ne reçoit jamais le drag → liste non défilable au doigt sur mobile).
+	_mission_list.mouse_filter = Control.MOUSE_FILTER_PASS
 	$Content/MenuButton.pressed.connect(_on_menu_pressed)
 	Settings.mission_claimed.connect(func() -> void: refresh())
 	UIAnimations.wire_buttons(self)
@@ -46,7 +49,17 @@ func _add_card(row: Control) -> void:
 	var card := PanelContainer.new()
 	card.add_theme_stylebox_override("panel", UIAnimations.glass_card_style())
 	card.add_child(row)
+	# Laisser le glissement tactile remonter jusqu'au ScrollContainer : tous les éléments non
+	# interactifs (carte, ligne, labels) passent en PASS ; seuls les boutons gardent STOP (clic).
+	_allow_scroll_through(card)
 	_mission_list.add_child(card)
+
+# Met les Control non-boutons en MOUSE_FILTER_PASS pour ne pas capturer le drag du ScrollContainer.
+func _allow_scroll_through(node: Node) -> void:
+	if node is Control and not (node is BaseButton):
+		(node as Control).mouse_filter = Control.MOUSE_FILTER_PASS
+	for child in node.get_children():
+		_allow_scroll_through(child)
 
 func _add_section_label(title: String, color: Color) -> void:
 	var lbl := Label.new()
