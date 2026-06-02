@@ -16,6 +16,9 @@ func _ready() -> void:
 	# Le bouton campagne affiche le niveau de progression courant et le lance DIRECTEMENT
 	# (plus d'écran intermédiaire). Relu à chaque _ready → reflète la progression au retour.
 	%CampagneButton.text = "NIVEAU " + str(Settings.campaign_level)
+	# Descend l'engrenage sous la safe area (encoche/caméra frontale), avec une marge mini
+	# généreuse même sans encoche pour qu'il ne soit pas collé au bord haut.
+	UIAnimations.apply_top_safe_area(%SettingsGearButton, 28.0)
 	_style_gear_glass()
 
 	_update_mode_buttons()

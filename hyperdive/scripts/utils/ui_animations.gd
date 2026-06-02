@@ -59,3 +59,26 @@ static func allow_scroll_through(node: Node) -> void:
 		(node as Control).mouse_filter = Control.MOUSE_FILTER_PASS
 	for child in node.get_children():
 		allow_scroll_through(child)
+
+# Inset haut de la safe area (encoche/poinçon/barre de statut) converti en pixels GUI.
+# DisplayServer.get_display_safe_area() est en pixels PHYSIQUES ; on convertit via le ratio
+# canvas/écran (stretch canvas_items). 0 sur desktop (pas d'encoche).
+static func top_safe_inset(vp: Viewport) -> float:
+	if vp == null:
+		return 0.0
+	var win := DisplayServer.window_get_size()
+	if win.y <= 0:
+		return 0.0
+	var safe := DisplayServer.get_display_safe_area()
+	var gui_per_phys: float = vp.get_visible_rect().size.y / float(win.y)
+	return maxf(float(safe.position.y), 0.0) * gui_per_phys
+
+# Descend un Control sous la safe area : ajoute (inset haut, ou min_margin si pas d'encoche)
+# a offset_top ET offset_bottom → l'element descend en gardant sa taille/son comportement.
+# Gere tous les telephones automatiquement (encoche ou non) + une marge mini sur desktop.
+static func apply_top_safe_area(ctrl: Control, min_margin: float = 0.0) -> void:
+	var shift: float = maxf(top_safe_inset(ctrl.get_viewport()), min_margin)
+	if shift <= 0.0:
+		return
+	ctrl.offset_top += shift
+	ctrl.offset_bottom += shift

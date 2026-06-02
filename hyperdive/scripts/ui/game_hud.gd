@@ -22,6 +22,10 @@ func _ready() -> void:
 	_coin_label.text = str(Settings.coins_total)
 	Settings.coin_collected.connect(_on_coin_collected)
 	%PauseButton.pressed.connect(_on_pause_pressed)
+	# Descend les éléments hauts du HUD sous la safe area (encoche/caméra frontale).
+	UIAnimations.apply_top_safe_area($VBoxContainer, 12.0)
+	UIAnimations.apply_top_safe_area($CoinCounter, 12.0)
+	UIAnimations.apply_top_safe_area(%PauseButton, 12.0)
 
 func set_campaign_mode(enabled: bool) -> void:
 	_campaign_mode = enabled
