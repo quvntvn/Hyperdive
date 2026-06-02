@@ -361,13 +361,13 @@ func _make_daily_challenge(type: String, target: int, slot: int) -> Dictionary:
 	match type:
 		"distance":
 			desc = "Parcours %dm cumulé aujourd'hui" % target
-			reward = target / 10
+			reward = floori(target / 10.0)
 		"coins":
 			desc = "Ramasse %d pièces aujourd'hui" % target
 			reward = target
 		"time":
 			desc = "Joue %ds aujourd'hui" % target
-			reward = target / 2
+			reward = floori(target / 2.0)
 		"games":
 			desc = "Joue %d parties aujourd'hui" % target
 			reward = target * 8
