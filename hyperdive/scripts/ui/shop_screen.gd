@@ -13,6 +13,9 @@ func _ready() -> void:
 	add_to_group("shop_screen")
 	_coins_label = $Content/CoinsLabel
 	_item_list = $Content/ScrollContainer/ItemList
+	# Le conteneur de liste ne doit pas bloquer le glissement tactile (sinon le ScrollContainer
+	# parent ne reçoit jamais le drag → liste non défilable au doigt sur mobile).
+	_item_list.mouse_filter = Control.MOUSE_FILTER_PASS
 	_skins_btn = $Content/CategoryButtons/SkinsCatBtn
 	_trails_btn = $Content/CategoryButtons/TrailsCatBtn
 	_themes_btn = $Content/CategoryButtons/ThemesCatBtn
@@ -67,6 +70,9 @@ func _add_card(row: Control) -> void:
 	var card := PanelContainer.new()
 	card.add_theme_stylebox_override("panel", UIAnimations.glass_card_style())
 	card.add_child(row)
+	# Laisser le glissement tactile remonter jusqu'au ScrollContainer ; les boutons
+	# ÉQUIPER/ACHETER (BaseButton) gardent STOP et restent cliquables.
+	UIAnimations.allow_scroll_through(card)
 	_item_list.add_child(card)
 
 func _refresh_skins() -> void:

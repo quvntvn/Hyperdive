@@ -49,3 +49,12 @@ static func wire_button(btn: BaseButton) -> void:
 static func wire_buttons(root: Node) -> void:
 	for node in root.find_children("*", "BaseButton", true, false):
 		wire_button(node as BaseButton)
+
+# Laisse le glissement tactile remonter jusqu'au ScrollContainer parent : met tous les Control
+# non-boutons en MOUSE_FILTER_PASS (sinon ils avalent le drag et la liste ne défile pas au doigt
+# sur mobile). Les boutons gardent STOP pour rester cliquables. Mutualisé entre défis et shop.
+static func allow_scroll_through(node: Node) -> void:
+	if node is Control and not (node is BaseButton):
+		(node as Control).mouse_filter = Control.MOUSE_FILTER_PASS
+	for child in node.get_children():
+		allow_scroll_through(child)

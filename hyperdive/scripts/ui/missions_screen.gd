@@ -51,15 +51,8 @@ func _add_card(row: Control) -> void:
 	card.add_child(row)
 	# Laisser le glissement tactile remonter jusqu'au ScrollContainer : tous les éléments non
 	# interactifs (carte, ligne, labels) passent en PASS ; seuls les boutons gardent STOP (clic).
-	_allow_scroll_through(card)
+	UIAnimations.allow_scroll_through(card)
 	_mission_list.add_child(card)
-
-# Met les Control non-boutons en MOUSE_FILTER_PASS pour ne pas capturer le drag du ScrollContainer.
-func _allow_scroll_through(node: Node) -> void:
-	if node is Control and not (node is BaseButton):
-		(node as Control).mouse_filter = Control.MOUSE_FILTER_PASS
-	for child in node.get_children():
-		_allow_scroll_through(child)
 
 func _add_section_label(title: String, color: Color) -> void:
 	var lbl := Label.new()
