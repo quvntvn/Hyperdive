@@ -33,8 +33,14 @@ func set_target(node: Node3D) -> void:
 func _process(delta: float) -> void:
 	if target == null:
 		return
+	# La caméra n'est PAS interpolée (physics_interpolation_mode OFF), mais le perso EST rendu
+	# interpolé (interpolation physique 120Hz). Lire target.global_position donnerait la position
+	# physique BRUTE (calée sur les ticks), décalée du rendu interpolé du perso → vibration verticale.
+	# On suit donc la transform INTERPOLÉE du perso : caméra et perso restent dans le même temps-espace.
+	# (Suivi Y rigide, aucun lerp — conforme au CLAUDE.md.) S'applique à TOUS les modes (chute/jetpack).
+	var target_y: float = target.get_global_transform_interpolated().origin.y
 	global_position.x = offset.x
-	global_position.y = target.global_position.y + offset.y
+	global_position.y = target_y + offset.y
 	if _shake_intensity > 0.0:
 		global_position.x += randf_range(-1.0, 1.0) * _shake_intensity
 		global_position.y += randf_range(-1.0, 1.0) * _shake_intensity
