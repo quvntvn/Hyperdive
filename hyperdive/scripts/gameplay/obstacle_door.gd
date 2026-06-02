@@ -13,7 +13,10 @@ const PANEL_HALF: float = 2.25     # demi-largeur d'un panneau (largeur 4.5)
 const GAP_HALF: float = 1.5        # passage ouvert = 3.0
 const OPEN_DISTANCE: float = 16.0  # ouvre quand le joueur est à moins de 16 u (assez tôt
                                    # pour finir d'ouvrir avant l'arrivée, même à haute vitesse)
-const OPEN_SPEED: float = 3.0      # vitesse de lerp de l'openness (s^-1) → mouvement fluide
+const OPEN_SPEED: float = 15.0     # vitesse de lerp de l'openness (s^-1) → ~0.067 s pour ouvrir
+                                   # entièrement (×5 vs avant). Marge énorme : à 16 u de
+                                   # déclenchement, la porte ne serait en retard qu'au-delà de
+                                   # ~240 m/s (≈27 paliers / 27 000 m), donc jamais en pratique.
 
 var _openness: float = 0.0
 var _player: Node3D = null
