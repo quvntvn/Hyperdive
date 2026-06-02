@@ -351,6 +351,7 @@ func _on_body_entered(body: Node3D) -> void:
 func _trigger_ragdoll() -> void:
 	if _boost_active:
 		return
+	Settings.vibrate(120)   # impact haptique marqué qui accompagne le ragdoll (mort satisfaisante)
 	var death_vel := linear_velocity
 	# En jetpack, on montait (gravity_scale=0). À la mort : "on RETOMBE" → on rétablit la
 	# gravité et on lance le ragdoll vers le BAS (sinon il s'envolerait, vitesse positive).
