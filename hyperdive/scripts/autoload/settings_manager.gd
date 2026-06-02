@@ -259,17 +259,37 @@ func equip_theme(theme_id: String) -> bool:
 
 func get_mission_progress(mission: Dictionary) -> int:
 	match mission["type"]:
-		"campaign_level":
-			return campaign_level
-		"distance":
-			return best_distance
-		"owned_skins":
-			return owned_skins.size()
-		"owned_themes":
-			return owned_themes.size()
-		"trail_equipped":
-			return 1 if equipped_trail != "default" else 0
+		"campaign_level":    return campaign_level
+		"infinite_distance": return best_infinite_distance
+		"jetpack_distance":  return best_jetpack_distance
+		"distance":          return best_distance   # compat héritée
+		"coins_lifetime":    return coins_lifetime
+		"total_games":       return total_games
+		"obstacles_dodged":  return total_obstacles_dodged
+		"obstacles_run":     return best_obstacles_run
+		"coins_run":         return best_coins_run
+		"no_wall_time":      return best_no_wall_time
+		"powerups_used":     return powerups_used.size()
+		"deaths":            return total_deaths
+		"ascetic":           return 1 if ascetic_done else 0
+		# Composé : complété quand les DEUX distances atteignent la cible (min >= target).
+		"dual_distance":     return mini(best_infinite_distance, best_jetpack_distance)
+		"all_shop_skins":    return _owned_shop_count(Catalog.SKINS, owned_skins)
+		"all_shop_trails":   return _owned_shop_count(Catalog.TRAILS, owned_trails)
+		"all_shop_themes":   return _owned_shop_count(Catalog.THEMES, owned_themes)
+		"owned_skins":       return owned_skins.size()
+		"owned_themes":      return owned_themes.size()
+		"trail_equipped":    return 1 if equipped_trail != "none" else 0
 	return 0
+
+# Nombre de cosmétiques ACHETABLES (price >= 0) possédés — les exclusifs défis (price -1)
+# ne comptent pas pour les défis "possède tous les X du shop".
+func _owned_shop_count(catalog: Array, owned: Array) -> int:
+	var n: int = 0
+	for item in catalog:
+		if int(item.get("price", 0)) >= 0 and item["id"] in owned:
+			n += 1
+	return n
 
 func is_mission_complete(mission: Dictionary) -> bool:
 	return get_mission_progress(mission) >= mission["target"]
