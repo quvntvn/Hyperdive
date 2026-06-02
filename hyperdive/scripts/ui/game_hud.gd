@@ -29,10 +29,24 @@ func _ready() -> void:
 	# Descend les éléments hauts du HUD sous la safe area (encoche/caméra frontale).
 	UIAnimations.apply_top_safe_area($InfoBar, 12.0)
 	UIAnimations.apply_top_safe_area(%PauseButton, 12.0)
+	# Hauteur adaptative : recalée après le 1er layout (largeur fixe en scène, hauteur = contenu).
+	_resize_info_bar.call_deferred()
+
+# Largeur FIXE (offsets gauche/droite de la scène) ; hauteur ADAPTÉE au contenu visible du VBox
+# (2 lignes en classique/jetpack, 1 ligne en campagne quand les pièces sont masquées). Le
+# GlassBlur plein-rect derrière suit cette hauteur et recalcule son masque sur 'resized'.
+func _resize_info_bar() -> void:
+	var bar := $InfoBar as Panel
+	var vbox := $InfoBar/VBox as Control
+	var content_h: float = vbox.get_combined_minimum_size().y
+	bar.offset_bottom = bar.offset_top + content_h + 16.0   # +16 = padding vertical (8 haut + 8 bas)
 
 func set_campaign_mode(enabled: bool) -> void:
 	_campaign_mode = enabled
 	$InfoBar/VBox/CoinCounter.visible = not enabled
+	# Le contenu du VBox change (1 ou 2 lignes) → recaler la hauteur du fond (différé : la
+	# taille mini du conteneur se met à jour après le toggle de visibilité).
+	_resize_info_bar.call_deferred()
 
 func update_campaign_time(seconds: float) -> void:
 	_distance_label.text = str(ceili(seconds)) + "s"
