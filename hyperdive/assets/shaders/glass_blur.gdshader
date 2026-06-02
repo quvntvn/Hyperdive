@@ -8,16 +8,24 @@ shader_type canvas_item;
 // quelle que soit leur taille — pas besoin d'uniform de taille par instance.
 
 uniform float corner_radius : hint_range(0.0, 60.0) = 20.0; // doit matcher le thème
-uniform float blur_radius : hint_range(0.0, 16.0) = 6.0;    // FORT : espacement des taps du
-                                                           // noyau gaussien 5x5 (reach ≈ 2x
-                                                           // ce rayon). Augmenter = flou plus
-                                                           // large, même nb de taps (coût fixe).
+uniform float blur_radius : hint_range(0.0, 40.0) = 16.0;   // RAYON du disque de flou en px
+                                                           // (reach max des taps). Augmenter =
+                                                           // flou plus large, même nb de taps.
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
+
+// Nb de taps du disque. Coût = nb de fetchs texture. 16 = compromis mobile (lisse + pas cher).
+const int TAPS = 16;
+const float GOLDEN_ANGLE = 2.39996323; // angle d'or → spirale de Vogel régulière
 
 // SDF d'un rectangle à coins arrondis (espace pixels, centré).
 float rounded_box(vec2 p, vec2 half_size, float r) {
 	vec2 q = abs(p) - half_size + vec2(r);
 	return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r;
+}
+
+// Bruit pseudo-aléatoire 0..1 par pixel (sert à tourner le disque → casse tout motif résiduel).
+float hash12(vec2 p) {
+	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
 }
 
 void fragment() {
@@ -31,41 +39,21 @@ void fragment() {
 		discard;
 	}
 
-	// Flou gaussien 5x5 (25 taps) — fort et bien diffus, mais lisse (pondération 1,4,6,4,1
-	// par axe, somme 256 → pas de banding même avec un grand espacement de taps).
-	vec2 o = SCREEN_PIXEL_SIZE * blur_radius;
+	// Échantillonnage en DISQUE DE VOGEL (spirale par angle d'or), PAS une grille carrée :
+	// une grille régulière entre en résonance avec le motif de fenêtres du décor → moiré /
+	// quadrillage. Le disque répartit les taps de façon homogène et apériodique. On tourne
+	// le disque d'un angle pseudo-aléatoire par pixel pour transformer le moindre motif
+	// résiduel en bruit fin (imperceptible) plutôt qu'en grille visible.
+	float rot = hash12(SCREEN_UV) * 6.28318530718;
 	vec3 c = vec3(0.0);
-	// Ligne y=-2 (poids axe 1)
-	c += texture(screen_tex, SCREEN_UV + vec2(-2.0, -2.0) * o).rgb *  1.0;
-	c += texture(screen_tex, SCREEN_UV + vec2(-1.0, -2.0) * o).rgb *  4.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 0.0, -2.0) * o).rgb *  6.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 1.0, -2.0) * o).rgb *  4.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 2.0, -2.0) * o).rgb *  1.0;
-	// Ligne y=-1 (poids axe 4)
-	c += texture(screen_tex, SCREEN_UV + vec2(-2.0, -1.0) * o).rgb *  4.0;
-	c += texture(screen_tex, SCREEN_UV + vec2(-1.0, -1.0) * o).rgb * 16.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 0.0, -1.0) * o).rgb * 24.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 1.0, -1.0) * o).rgb * 16.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 2.0, -1.0) * o).rgb *  4.0;
-	// Ligne y=0 (poids axe 6)
-	c += texture(screen_tex, SCREEN_UV + vec2(-2.0,  0.0) * o).rgb *  6.0;
-	c += texture(screen_tex, SCREEN_UV + vec2(-1.0,  0.0) * o).rgb * 24.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 0.0,  0.0) * o).rgb * 36.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 1.0,  0.0) * o).rgb * 24.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 2.0,  0.0) * o).rgb *  6.0;
-	// Ligne y=1 (poids axe 4)
-	c += texture(screen_tex, SCREEN_UV + vec2(-2.0,  1.0) * o).rgb *  4.0;
-	c += texture(screen_tex, SCREEN_UV + vec2(-1.0,  1.0) * o).rgb * 16.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 0.0,  1.0) * o).rgb * 24.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 1.0,  1.0) * o).rgb * 16.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 2.0,  1.0) * o).rgb *  4.0;
-	// Ligne y=2 (poids axe 1)
-	c += texture(screen_tex, SCREEN_UV + vec2(-2.0,  2.0) * o).rgb *  1.0;
-	c += texture(screen_tex, SCREEN_UV + vec2(-1.0,  2.0) * o).rgb *  4.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 0.0,  2.0) * o).rgb *  6.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 1.0,  2.0) * o).rgb *  4.0;
-	c += texture(screen_tex, SCREEN_UV + vec2( 2.0,  2.0) * o).rgb *  1.0;
-	c /= 256.0;
+	for (int i = 0; i < TAPS; i++) {
+		float fi = float(i) + 0.5;
+		float r = sqrt(fi / float(TAPS));          // densité uniforme sur le disque
+		float a = fi * GOLDEN_ANGLE + rot;
+		vec2 off = vec2(cos(a), sin(a)) * r * blur_radius * SCREEN_PIXEL_SIZE;
+		c += texture(screen_tex, SCREEN_UV + off).rgb;
+	}
+	c /= float(TAPS);
 
 	COLOR = vec4(c, mask);
 }
