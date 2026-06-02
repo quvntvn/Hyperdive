@@ -1,46 +1,11 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/game_hud.gd" id="GameHUDScript"]
 [ext_resource type="Texture2D" path="res://assets/ui/coin_icon.svg" id="CoinIconTexture"]
+[ext_resource type="Script" path="res://scripts/ui/glass_blur.gd" id="GlassBlurScript"]
 
 [node name="GameHUD" type="CanvasLayer"]
 script = ExtResource("GameHUDScript")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -100.0
-offset_right = 100.0
-offset_top = 20.0
-
-[node name="DistanceLabel" type="Label" parent="VBoxContainer"]
-text = "0 m"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 48
-theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
-theme_override_colors/font_outline_color = Color(0.04, 0.02, 0.01, 0.92)
-theme_override_constants/outline_size = 5
-
-[node name="CoinCounter" type="HBoxContainer" parent="."]
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -130.0
-offset_right = -20.0
-offset_top = 20.0
-
-[node name="CoinIcon" type="TextureRect" parent="CoinCounter"]
-custom_minimum_size = Vector2(36.0, 36.0)
-size_flags_vertical = 4
-texture = ExtResource("CoinIconTexture")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="CoinLabel" type="Label" parent="CoinCounter"]
-text = "0"
-theme_override_font_sizes/font_size = 32
-theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
-theme_override_colors/font_outline_color = Color(0.04, 0.02, 0.01, 0.92)
-theme_override_constants/outline_size = 4
 
 [node name="PauseButton" type="Button" parent="."]
 unique_name_in_owner = true
@@ -50,6 +15,43 @@ offset_right = 90.0
 offset_bottom = 90.0
 text = "II"
 theme_override_font_sizes/font_size = 32
+
+[node name="InfoBar" type="PanelContainer" parent="."]
+anchor_right = 1.0
+offset_left = 100.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 90.0
+
+[node name="HBox" type="HBoxContainer" parent="InfoBar"]
+theme_override_constants/separation = 12
+
+[node name="DistanceLabel" type="Label" parent="InfoBar/HBox"]
+size_flags_horizontal = 3
+text = "0 m"
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.02, 0.01, 0.92)
+theme_override_constants/outline_size = 5
+
+[node name="CoinCounter" type="HBoxContainer" parent="InfoBar/HBox"]
+theme_override_constants/separation = 6
+
+[node name="CoinIcon" type="TextureRect" parent="InfoBar/HBox/CoinCounter"]
+custom_minimum_size = Vector2(32.0, 32.0)
+size_flags_vertical = 4
+texture = ExtResource("CoinIconTexture")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinLabel" type="Label" parent="InfoBar/HBox/CoinCounter"]
+text = "0"
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.02, 0.01, 0.92)
+theme_override_constants/outline_size = 4
 
 [node name="PowerupIndicator" type="VBoxContainer" parent="."]
 anchor_top = 1.0

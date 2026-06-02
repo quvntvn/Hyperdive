@@ -15,21 +15,24 @@ func _ready() -> void:
 	if node is PlayerController:
 		_player = node as PlayerController
 		_player.game_over.connect(_on_game_over)
-	_distance_label = $VBoxContainer/DistanceLabel
-	_coin_label = $CoinCounter/CoinLabel
+	_distance_label = $InfoBar/HBox/DistanceLabel
+	_coin_label = $InfoBar/HBox/CoinCounter/CoinLabel
 	_shield_label = $PowerupIndicator/ShieldLabel
 	_timed_label = $PowerupIndicator/TimedLabel
 	_coin_label.text = str(Settings.coins_total)
 	Settings.coin_collected.connect(_on_coin_collected)
 	%PauseButton.pressed.connect(_on_pause_pressed)
+	# Bandeau d'infos en verre flouté (score + pièces sur la même rangée), comme les boutons.
+	$InfoBar.add_theme_stylebox_override("panel", UIAnimations.glass_card_style())
+	GlassBlur.add_behind($InfoBar)
+	UIAnimations.wire_buttons(self)   # feedback + haptique sur le bouton pause
 	# Descend les éléments hauts du HUD sous la safe area (encoche/caméra frontale).
-	UIAnimations.apply_top_safe_area($VBoxContainer, 12.0)
-	UIAnimations.apply_top_safe_area($CoinCounter, 12.0)
+	UIAnimations.apply_top_safe_area($InfoBar, 12.0)
 	UIAnimations.apply_top_safe_area(%PauseButton, 12.0)
 
 func set_campaign_mode(enabled: bool) -> void:
 	_campaign_mode = enabled
-	$CoinCounter.visible = not enabled
+	$InfoBar/HBox/CoinCounter.visible = not enabled
 
 func update_campaign_time(seconds: float) -> void:
 	_distance_label.text = str(ceili(seconds)) + "s"
