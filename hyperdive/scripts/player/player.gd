@@ -35,6 +35,9 @@ var _is_dead: bool = false
 var _parachute_active: bool = false
 var _level_completed: bool = false
 var _run_time: float = 0.0
+# Série en cours sans toucher un mur + meilleure série du run (défi "survis X s sans mur").
+var _no_wall_streak: float = 0.0
+var _best_no_wall_run: float = 0.0
 var _base_skin_color: Color = Color.WHITE
 var _trail_gradient: Gradient
 var _trail_node: GPUParticles3D
@@ -58,10 +61,7 @@ signal game_over
 
 func _ready() -> void:
 	add_to_group("player")   # référence cross-scène (porte réactive, etc.)
-	Settings.reset_run_stats()
-	Settings.daily_games += 1
-	Settings.update_daily_progress()
-	Settings.save_settings()
+	Settings.register_run_start()
 	# Mode jetpack : on MONTE. Pas de gravité (poussée constante pilotée dans
 	# _physics_process), perso en pose FUSÉE penchée + réacteur dorsal + flammes.
 	# En jetpack le son du réacteur s'AJOUTE au whoosh du vent (les deux jouent ensemble).
@@ -298,6 +298,8 @@ func _on_level_survived() -> void:
 	Settings.daily_distance += distance
 	Settings.daily_time += int(_run_time)
 	Settings.update_daily_progress()
+	# Niveau réussi (pas une mort) : on fige quand même les meilleurs scores de run.
+	Settings.finalize_run(distance, int(_best_no_wall_run))
 	var para := $Character/Parachute
 	para.visible = true
 	para.scale = Vector3.ZERO
@@ -327,6 +329,7 @@ func _on_body_entered(body: Node3D) -> void:
 			_shake_camera(0.15)
 			_jolt = 0.4
 			_wall_hit_cooldown = WALL_HIT_COOLDOWN
+			_no_wall_streak = 0.0   # série sans mur cassée
 		return
 	if not body.is_in_group("obstacles"):
 		return
@@ -404,7 +407,8 @@ func _trigger_ragdoll() -> void:
 	Settings.daily_distance += distance
 	Settings.daily_time += int(_run_time)
 	Settings.update_daily_progress()
-	Settings.save_settings()
+	Settings.register_death()
+	Settings.finalize_run(distance, int(_best_no_wall_run))
 	Audio.play_game_over()
 	game_over.emit()
 	var go_screen := get_tree().get_first_node_in_group("game_over_screen")
@@ -464,6 +468,7 @@ func _flash_hit() -> void:
 
 func collect_powerup(powerup_type: String) -> void:
 	Audio.play_coin()
+	Settings.register_powerup_used(powerup_type)
 	match powerup_type:
 		"shield":
 			has_shield = true
@@ -537,6 +542,10 @@ func _physics_process(delta: float) -> void:
 	_wall_hit_cooldown = maxf(_wall_hit_cooldown - delta, 0.0)
 	if not _level_completed:
 		_run_time += delta
+		# Série sans toucher un mur : s'accumule tant qu'on joue, reset à chaque hit de mur.
+		_no_wall_streak += delta
+		if _no_wall_streak > _best_no_wall_run:
+			_best_no_wall_run = _no_wall_streak
 	if _parachute_active:
 		linear_velocity.y = maxf(linear_velocity.y, -1.5)
 		linear_velocity.x = move_toward(linear_velocity.x, 0.0, 10.0 * delta)

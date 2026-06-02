@@ -26,7 +26,26 @@ var coins_total: int = 0
 var coins_this_run: int = 0
 var best_distance: int = 0
 var best_infinite_distance: int = 0   # record en mode infini ("Record") — débloque le jetpack à 1000 m
+var best_jetpack_distance: int = 0    # record d'altitude en mode jetpack (défis altitude)
 var infinite_unlocked: bool = false   # passé true à la 1re fin de niveau campagne
+
+# === Stats cumulées pour les défis (persistées) ===
+var coins_lifetime: int = 0           # total de pièces JAMAIS ramassées (ne baisse pas aux achats)
+var total_games: int = 0              # parties jouées tous modes
+var games_infinite: int = 0
+var games_jetpack: int = 0
+var games_campaign: int = 0
+var total_deaths: int = 0
+var total_obstacles_dodged: int = 0   # esquives cumulées (1 par obstacle dépassé)
+var best_obstacles_run: int = 0       # MEILLEUR nb d'esquives en une partie
+var best_coins_run: int = 0           # MEILLEUR nb de pièces ramassées en une partie
+var best_no_wall_time: int = 0        # plus longue série (s) sans toucher un mur
+var powerups_used: Array[String] = [] # ensemble des types de power-up déjà utilisés
+var ascetic_done: bool = false        # 1500 m en classique sans ramasser une seule pièce
+
+# === Transient (par run, NON persisté) ===
+var obstacles_dodged_run: int = 0
+var run_active: bool = false          # garde-fou : ne compter les esquives que pendant le run
 var owned_skins: Array[String] = ["default"]
 var equipped_skin: String = "default"
 var owned_trails: Array[String] = ["none"]
@@ -98,6 +117,7 @@ func set_control_mode_value(mode: ControlMode) -> void:
 func add_coin() -> void:
 	coins_total += 1
 	coins_this_run += 1
+	coins_lifetime += 1   # cumul historique (ne baisse jamais, contrairement à coins_total)
 	daily_coins += 1
 	update_daily_progress()
 	coin_collected.emit(coins_total)
@@ -105,6 +125,8 @@ func add_coin() -> void:
 
 func reset_run_stats() -> void:
 	coins_this_run = 0
+	obstacles_dodged_run = 0
+	run_active = true
 
 func update_best_distance(distance: int) -> void:
 	var changed: bool = false
@@ -115,8 +137,62 @@ func update_best_distance(distance: int) -> void:
 	if active_mode == "infinite" and distance > best_infinite_distance:
 		best_infinite_distance = distance
 		changed = true
+	if active_mode == "jetpack" and distance > best_jetpack_distance:
+		best_jetpack_distance = distance
+		changed = true
 	if changed:
 		save_settings()
+
+# === Hooks de stats pour les défis (un seul point d'appel chacun) ===
+
+# Début de partie (appelé depuis player._ready). Incrémente parties + remet les compteurs de run.
+func register_run_start() -> void:
+	reset_run_stats()
+	total_games += 1
+	daily_games += 1
+	match active_mode:
+		"infinite": games_infinite += 1
+		"jetpack":  games_jetpack += 1
+		"campaign": games_campaign += 1
+	update_daily_progress()
+	print("[stats] run start: mode=%s total_games=%d (inf=%d jet=%d camp=%d)" % [active_mode, total_games, games_infinite, games_jetpack, games_campaign])
+	save_settings()
+
+# Un obstacle dépassé = une esquive. Appelé au despawn (une seule fois par obstacle).
+# Garde-fou run_active : ne compte pas après la mort (le joueur est figé, mais ceinture+bretelles).
+func register_obstacle_dodged() -> void:
+	if not run_active:
+		return
+	total_obstacles_dodged += 1
+	obstacles_dodged_run += 1
+	# Pas de save ici (trop fréquent) : persisté au finalize_run de fin de partie.
+
+# Type de power-up ramassé. On mémorise l'ensemble des types vus (défi "utilise les 4").
+func register_powerup_used(ptype: String) -> void:
+	if ptype in powerups_used:
+		return
+	powerups_used.append(ptype)
+	print("[stats] powerup used: %s (types=%d/4)" % [ptype, powerups_used.size()])
+	save_settings()
+
+func register_death() -> void:
+	total_deaths += 1
+
+# Fin de partie (mort OU niveau réussi). Met à jour les MEILLEURS scores par run + flags.
+# no_wall_seconds = plus longue série sans toucher un mur (calculée côté player).
+func finalize_run(distance: int, no_wall_seconds: int) -> void:
+	if coins_this_run > best_coins_run:
+		best_coins_run = coins_this_run
+	if obstacles_dodged_run > best_obstacles_run:
+		best_obstacles_run = obstacles_dodged_run
+	if no_wall_seconds > best_no_wall_time:
+		best_no_wall_time = no_wall_seconds
+	# Ascète : 1500 m en classique sans une seule pièce ramassée sur ce run.
+	if active_mode == "infinite" and distance >= 1500 and coins_this_run == 0:
+		ascetic_done = true
+	run_active = false
+	print("[stats] run end: mode=%s dist=%d coins_run=%d(best%d) dodged_run=%d(best%d) no_wall=%ds(best%d) deaths=%d obstacles_tot=%d coins_life=%d ascetic=%s" % [active_mode, distance, coins_this_run, best_coins_run, obstacles_dodged_run, best_obstacles_run, no_wall_seconds, best_no_wall_time, total_deaths, total_obstacles_dodged, coins_lifetime, ascetic_done])
+	save_settings()
 
 func buy_skin(skin_id: String) -> bool:
 	var skin: Dictionary = Catalog.get_skin_by_id(skin_id)
@@ -344,6 +420,19 @@ func save_settings() -> void:
 	cfg.set_value("stats", "coins_total", coins_total)
 	cfg.set_value("stats", "best_distance", best_distance)
 	cfg.set_value("stats", "best_infinite_distance", best_infinite_distance)
+	cfg.set_value("stats", "best_jetpack_distance", best_jetpack_distance)
+	cfg.set_value("stats", "coins_lifetime", coins_lifetime)
+	cfg.set_value("stats", "total_games", total_games)
+	cfg.set_value("stats", "games_infinite", games_infinite)
+	cfg.set_value("stats", "games_jetpack", games_jetpack)
+	cfg.set_value("stats", "games_campaign", games_campaign)
+	cfg.set_value("stats", "total_deaths", total_deaths)
+	cfg.set_value("stats", "total_obstacles_dodged", total_obstacles_dodged)
+	cfg.set_value("stats", "best_obstacles_run", best_obstacles_run)
+	cfg.set_value("stats", "best_coins_run", best_coins_run)
+	cfg.set_value("stats", "best_no_wall_time", best_no_wall_time)
+	cfg.set_value("stats", "powerups_used", powerups_used)
+	cfg.set_value("stats", "ascetic_done", ascetic_done)
 	cfg.set_value("cosmetics", "owned_skins", owned_skins)
 	cfg.set_value("cosmetics", "equipped_skin", equipped_skin)
 	cfg.set_value("cosmetics", "owned_trails", owned_trails)
@@ -376,6 +465,19 @@ func load_settings() -> void:
 	coins_total = cfg.get_value("stats", "coins_total", 0)
 	best_distance = cfg.get_value("stats", "best_distance", 0)
 	best_infinite_distance = cfg.get_value("stats", "best_infinite_distance", 0)
+	best_jetpack_distance = cfg.get_value("stats", "best_jetpack_distance", 0)
+	coins_lifetime = cfg.get_value("stats", "coins_lifetime", 0)
+	total_games = cfg.get_value("stats", "total_games", 0)
+	games_infinite = cfg.get_value("stats", "games_infinite", 0)
+	games_jetpack = cfg.get_value("stats", "games_jetpack", 0)
+	games_campaign = cfg.get_value("stats", "games_campaign", 0)
+	total_deaths = cfg.get_value("stats", "total_deaths", 0)
+	total_obstacles_dodged = cfg.get_value("stats", "total_obstacles_dodged", 0)
+	best_obstacles_run = cfg.get_value("stats", "best_obstacles_run", 0)
+	best_coins_run = cfg.get_value("stats", "best_coins_run", 0)
+	best_no_wall_time = cfg.get_value("stats", "best_no_wall_time", 0)
+	powerups_used.assign(cfg.get_value("stats", "powerups_used", []))
+	ascetic_done = cfg.get_value("stats", "ascetic_done", false)
 	# Migration : best_infinite_distance est un champ récent. Pour les sauvegardes
 	# antérieures (où il vaut 0 alors que best_distance reflète déjà des runs infini),
 	# on le sème depuis best_distance pour ne pas re-verrouiller le jetpack à tort.

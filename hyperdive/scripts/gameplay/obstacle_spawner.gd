@@ -50,6 +50,8 @@ func _process(_delta: float) -> void:
 	# Despawn ce qui est passé DERRIÈRE le joueur (sinon fuite mémoire).
 	for obstacle in get_tree().get_nodes_in_group("obstacles"):
 		if _dir * obstacle.global_position.y < _dir * player_y - DESPAWN_BEHIND:
+			# Obstacle passé derrière le joueur = esquivé (compté une seule fois, au despawn).
+			Settings.register_obstacle_dodged()
 			obstacle.queue_free()
 
 func _spawn_at(y: float) -> void:
