@@ -100,6 +100,15 @@ max_value = 1.0
 step = 0.01
 value = 1.0
 
+[node name="AutreHeader" type="Label" parent="SettingsPanel/Layout"]
+text = "AUTRE"
+theme_type_variation = &"Subtitle"
+
+[node name="VibrationCheck" type="CheckButton" parent="SettingsPanel/Layout"]
+unique_name_in_owner = true
+button_pressed = true
+text = "Vibrations"
+theme_override_font_sizes/font_size = 20
 
 [node name="Spacer" type="Control" parent="SettingsPanel/Layout"]
 size_flags_vertical = 3

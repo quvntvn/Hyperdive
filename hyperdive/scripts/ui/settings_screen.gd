@@ -9,6 +9,7 @@ func _ready() -> void:
 	%MasterSlider.value_changed.connect(Settings.set_master_volume)
 	%MusicSlider.value_changed.connect(Settings.set_music_volume)
 	%SfxSlider.value_changed.connect(Settings.set_sfx_volume)
+	%VibrationCheck.toggled.connect(Settings.set_vibration_enabled)
 	%CloseButton.pressed.connect(close)
 	UIAnimations.wire_buttons(self)
 
@@ -16,6 +17,7 @@ func _refresh_values() -> void:
 	%MasterSlider.set_value_no_signal(Settings.master_volume)
 	%MusicSlider.set_value_no_signal(Settings.music_volume)
 	%SfxSlider.set_value_no_signal(Settings.sfx_volume)
+	%VibrationCheck.set_pressed_no_signal(Settings.vibration_enabled)
 
 func open() -> void:
 	_was_paused = get_tree().paused
