@@ -1,13 +1,18 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Shader" path="res://assets/shaders/halftone.gdshader" id="HalftoneShader"]
+[ext_resource type="Script" path="res://scripts/effects/post_process.gd" id="PostProcessScript"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMat_1"]
 shader = ExtResource("HalftoneShader")
 shader_parameter/halftone_intensity = 0.12
 
+[sub_resource type="CanvasItemMaterial" id="FlashMat_1"]
+blend_mode = 1
+
 [node name="PostProcess" type="CanvasLayer"]
 layer = 0
+script = ExtResource("PostProcessScript")
 
 [node name="ScreenEffect" type="ColorRect" parent="."]
 anchor_right = 1.0
@@ -16,3 +21,12 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 material = SubResource("ShaderMat_1")
+
+[node name="Flash" type="ColorRect" parent="."]
+material = SubResource("FlashMat_1")
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
