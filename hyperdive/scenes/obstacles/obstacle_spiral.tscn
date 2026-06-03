@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/obstacle_spiral.gd" id="Script_1"]
+
+[node name="ObstacleSpiral" type="StaticBody3D" groups=["obstacles"]]
+script = ExtResource("Script_1")
+spawn_centered = true
+zone_length = 18.0
