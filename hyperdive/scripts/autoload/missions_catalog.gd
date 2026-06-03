@@ -8,7 +8,7 @@ class_name MissionsCatalog
 #   id, name, desc, type, target, reward (pièces)
 #   chain (optionnel)        : id de chaîne de paliers — l'UI n'affiche que le PROCHAIN
 #                              palier non réclamé de chaque chaîne (paliers ascendants).
-#   reward_skin / reward_trail (optionnel) : id d'un cosmétique exclusif débloqué au claim.
+#   reward_skin / reward_trail / reward_theme (optionnel) : id d'un cosmétique exclusif débloqué au claim.
 #
 # Types reconnus (voir settings_manager.get_mission_progress) :
 #   campaign_level, infinite_distance, jetpack_distance, coins_lifetime, total_games,
@@ -33,6 +33,7 @@ const MISSIONS: Array[Dictionary] = [
 	{"id": "j_dist_3500",  "chain": "j_dist", "name": "Ligne de Kármán",      "desc": "Monte à 3 500 m en jetpack",    "type": "jetpack_distance", "target": 3500,  "reward": 200},
 	{"id": "j_dist_5000",  "chain": "j_dist", "name": "En orbite",            "desc": "Monte à 5 000 m en jetpack",    "type": "jetpack_distance", "target": 5000,  "reward": 300},
 	{"id": "j_dist_7500",  "chain": "j_dist", "name": "Vers l'infini",        "desc": "Monte à 7 500 m en jetpack",    "type": "jetpack_distance", "target": 7500,  "reward": 400, "reward_skin": "chrome"},
+	{"id": "j_dist_10000", "chain": "j_dist", "name": "Acier trempé",         "desc": "Monte à 10 000 m en jetpack",   "type": "jetpack_distance", "target": 10000, "reward": 600, "reward_theme": "steel"},
 
 	# === PALIERS — Campagne (campaign_level) ===
 	{"id": "camp_3",  "chain": "camp", "name": "Apprenti plongeur",  "desc": "Atteins le niveau 3",  "type": "campaign_level", "target": 3,  "reward": 50},
@@ -49,6 +50,7 @@ const MISSIONS: Array[Dictionary] = [
 	{"id": "coins_10000", "chain": "coins", "name": "Petite fortune",     "desc": "Ramasse 10 000 pièces au total", "type": "coins_lifetime", "target": 10000, "reward": 280},
 	{"id": "coins_25000", "chain": "coins", "name": "Coffre-fort",        "desc": "Ramasse 25 000 pièces au total", "type": "coins_lifetime", "target": 25000, "reward": 500},
 	{"id": "coins_50000", "chain": "coins", "name": "Dragon sur son or",  "desc": "Ramasse 50 000 pièces au total", "type": "coins_lifetime", "target": 50000, "reward": 800, "reward_trail": "confettis"},
+	{"id": "coins_100000","chain": "coins", "name": "Fonderie",           "desc": "Ramasse 100 000 pièces au total","type": "coins_lifetime", "target": 100000,"reward": 1200, "reward_trail": "steel"},
 
 	# === PALIERS — Parties jouées (total_games) ===
 	{"id": "games_10",  "chain": "games", "name": "Première chute",   "desc": "Joue 10 parties",  "type": "total_games", "target": 10,  "reward": 25},
@@ -61,6 +63,7 @@ const MISSIONS: Array[Dictionary] = [
 	{"id": "dodge_50",     "name": "Slalomeur",                "desc": "Esquive 50 obstacles au total",      "type": "obstacles_dodged", "target": 50,   "reward": 40},
 	{"id": "dodge_500",    "name": "Anguille",                 "desc": "Esquive 500 obstacles au total",     "type": "obstacles_dodged", "target": 500,  "reward": 120},
 	{"id": "dodge_2000",   "name": "Frôleur professionnel",    "desc": "Esquive 2 000 obstacles au total",   "type": "obstacles_dodged", "target": 2000, "reward": 300, "reward_trail": "froleur"},
+	{"id": "dodge_5000",   "name": "Maître esquiveur",         "desc": "Esquive 5 000 obstacles au total",   "type": "obstacles_dodged", "target": 5000, "reward": 500, "reward_skin": "steel"},
 	{"id": "dodge_run_30", "name": "Tête froide",              "desc": "Esquive 30 obstacles en une partie", "type": "obstacles_run",    "target": 30,   "reward": 80},
 	{"id": "coins_run_30", "name": "Pillard",                  "desc": "Ramasse 30 pièces en une partie",    "type": "coins_run",        "target": 30,   "reward": 60},
 	{"id": "coins_run_60", "name": "Cleptomane",               "desc": "Ramasse 60 pièces en une partie",    "type": "coins_run",        "target": 60,   "reward": 120},
@@ -73,7 +76,8 @@ const MISSIONS: Array[Dictionary] = [
 	{"id": "ascetic",      "name": "Ascète",                   "desc": "Atteins 1 500 m en classique sans ramasser une pièce", "type": "ascetic", "target": 1, "reward": 90},
 	{"id": "coins_run_75", "name": "Glouton",                  "desc": "Ramasse 75 pièces en une partie",    "type": "coins_run",        "target": 75,   "reward": 160},
 	{"id": "dual_1000",    "name": "Polyvalent",               "desc": "Atteins 1 000 m en classique ET en jetpack", "type": "dual_distance", "target": 1000, "reward": 150},
-	{"id": "all_skins",    "name": "Garde-robe complète",      "desc": "Possède tous les skins du shop",     "type": "all_shop_skins",   "target": 5,    "reward": 80},
-	{"id": "all_trails",   "name": "Palette de sang",          "desc": "Possède tous les trails du shop",    "type": "all_shop_trails",  "target": 9,    "reward": 80},
-	{"id": "all_themes",   "name": "Décorateur",               "desc": "Possède tous les thèmes du shop",    "type": "all_shop_themes",  "target": 6,    "reward": 80},
+	# Cibles +1 chacune : l'Or (achetable, price>=0) ajoute un item shop par catégorie.
+	{"id": "all_skins",    "name": "Garde-robe complète",      "desc": "Possède tous les skins du shop",     "type": "all_shop_skins",   "target": 6,    "reward": 80},
+	{"id": "all_trails",   "name": "Palette de sang",          "desc": "Possède tous les trails du shop",    "type": "all_shop_trails",  "target": 10,   "reward": 80},
+	{"id": "all_themes",   "name": "Décorateur",               "desc": "Possède tous les thèmes du shop",    "type": "all_shop_themes",  "target": 7,    "reward": 80},
 ]

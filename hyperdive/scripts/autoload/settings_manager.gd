@@ -332,6 +332,12 @@ func claim_mission(mission: Dictionary) -> bool:
 			owned_trails.append(tid)
 			owned_trails_changed.emit()
 			print("[missions] trail exclusif débloqué : %s" % tid)
+	if mission.has("reward_theme"):
+		var thid: String = mission["reward_theme"]
+		if not thid in owned_themes:
+			owned_themes.append(thid)
+			owned_themes_changed.emit()
+			print("[missions] thème exclusif débloqué : %s" % thid)
 	claimed_missions.append(id)
 	coin_collected.emit(coins_total)
 	mission_claimed.emit()
