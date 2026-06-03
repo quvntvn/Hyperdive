@@ -67,6 +67,10 @@ const THEMES: Array[Dictionary] = [
 	{"id": "ocean",    "name": "Océan",              "wall_color": Color(0.05,  0.17,  0.19),  "line_color": Color(0.957, 0.914, 0.804), "sky_top": Color(0.06,  0.22,  0.32),  "sky_horizon": Color(0.40,  0.72,  0.75),  "price": 150},
 	{"id": "mono",     "name": "Monochrome",         "wall_color": Color(0.20,  0.19,  0.18),  "line_color": Color(0.95,  0.93,  0.88),  "sky_top": Color(0.30,  0.29,  0.28),  "sky_horizon": Color(0.88,  0.86,  0.83),  "price": 350},
 	{"id": "foret",    "name": "Forêt",              "wall_color": Color(0.06,  0.16,  0.08),  "line_color": Color(0.949, 0.757, 0.306), "sky_top": Color(0.04,  0.11,  0.05),  "sky_horizon": Color(0.52,  0.66,  0.38),  "price": 250},
+	# Âge d'or : ACHETABLE (10000). Ambiance dorée luxe (murs or sombre, lignes or vif, ciel chaud).
+	{"id": "gold",     "name": "Âge d'or",           "wall_color": Color(0.26,  0.18,  0.05),  "line_color": Color(1.0,   0.80,  0.25),  "sky_top": Color(0.28,  0.18,  0.05),  "sky_horizon": Color(0.95,  0.72,  0.30),  "price": 10000},
+	# Acier (défi) : ambiance métallique froide (gris acier, lignes chrome, ciel gris métal).
+	{"id": "steel",    "name": "Acier",              "wall_color": Color(0.16,  0.17,  0.19),  "line_color": Color(0.78,  0.82,  0.88),  "sky_top": Color(0.18,  0.20,  0.24),  "sky_horizon": Color(0.62,  0.66,  0.72),  "price": -1},
 ]
 
 func get_theme(id: String) -> Dictionary:
