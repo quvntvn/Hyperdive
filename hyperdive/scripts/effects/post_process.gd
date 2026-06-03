@@ -9,6 +9,9 @@ var _shader_mat: ShaderMaterial
 var _flash: ColorRect
 var _slowmo_tween: Tween
 var _slowmo_amount: float = 0.0
+var _speed_mat: ShaderMaterial
+var _speed_tween: Tween
+var _speed_amount: float = 0.0
 
 func _ready() -> void:
 	add_to_group("post_process")
@@ -18,7 +21,11 @@ func _ready() -> void:
 	_flash = $Flash as ColorRect
 	if _flash != null:
 		_flash.color.a = 0.0
+	var speed := $SpeedLines as ColorRect
+	if speed != null:
+		_speed_mat = speed.material as ShaderMaterial
 	_apply_slowmo(0.0)
+	_apply_speed_lines(0.0)
 
 # Flash bref plein écran (ramassage de power-up) : monte vite puis redescend. Additif,
 # léger (strength ~0.3), ne masque pas le jeu.
@@ -47,3 +54,16 @@ func _apply_slowmo(x: float) -> void:
 	_shader_mat.set_shader_parameter("desaturation", x * 0.35)
 	# Teinte froide (bleutée) dosée par l'alpha → slow-motion "cinéma" sans masquer le centre.
 	_shader_mat.set_shader_parameter("tint_color", Color(0.7, 0.8, 1.0, x * 0.25))
+
+# Boost : lignes de vitesse radiales sur les bords. Transition douce en entrée/sortie.
+func set_speed_lines(active: bool) -> void:
+	var target: float = 1.0 if active else 0.0
+	if _speed_tween != null and _speed_tween.is_valid():
+		_speed_tween.kill()
+	_speed_tween = create_tween()
+	_speed_tween.tween_method(_apply_speed_lines, _speed_amount, target, 0.25)
+
+func _apply_speed_lines(x: float) -> void:
+	_speed_amount = x
+	if _speed_mat != null:
+		_speed_mat.set_shader_parameter("strength", x * 0.7)

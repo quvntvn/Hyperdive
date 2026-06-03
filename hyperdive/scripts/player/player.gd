@@ -54,6 +54,10 @@ var magnet_timer: float = 0.0
 var _boost_active: bool = false
 var boost_timer: float = 0.0
 var _boost_trail: GPUParticles3D
+var _boost_aura: MeshInstance3D
+var _magnet_aura: Node3D
+var _magnet_ring_t: float = 0.0
+var _pulverize_sfx_cd: float = 0.0   # throttle du son/vibration de pulverisation (anti-spam zones)
 var _current_max_fall_speed: float = MAX_FALL_SPEED
 var _jetpack_flames: GPUParticles3D
 var _jetpack_smoke: GPUParticles3D
@@ -76,6 +80,9 @@ func _ready() -> void:
 	else:
 		$Character.rotation_degrees = CHARACTER_BASE_ROT
 	body_entered.connect(_on_body_entered)
+	# Pulverisation en boost : signal PAR FORME touchee → gere le par-element des zones rares
+	# (on ne detruit que ce qu'on percute reellement, le reste de la zone survit).
+	body_shape_entered.connect(_on_body_shape_entered)
 	_apply_skin(Settings.equipped_skin)
 	Settings.equipped_skin_changed.connect(_apply_skin)
 	_update_body_color()
@@ -428,6 +435,9 @@ func _trigger_ragdoll() -> void:
 	# Nettoie les effets de power-up encore actifs (sinon vignette/pitch/bulle restent au menu).
 	_stop_slowmo_fx()
 	_remove_shield_aura()
+	_remove_magnet_aura()
+	_remove_boost_aura()
+	_stop_boost_fx()
 	if _trail_node:
 		_trail_node.emitting = false
 	if _jetpack_flames:
@@ -540,7 +550,7 @@ func _flash_hit() -> void:
 	tween.tween_property(mat, "albedo_color", _base_skin_color, 0.10)
 
 func collect_powerup(powerup_type: String) -> void:
-	Audio.play_coin()
+	# Le son dedie + le feedback de ramassage sont joues cote powerup.gd (_juicy_pickup).
 	Settings.register_powerup_used(powerup_type)
 	match powerup_type:
 		"shield":
@@ -553,10 +563,12 @@ func collect_powerup(powerup_type: String) -> void:
 		"magnet":
 			_magnet_active = true
 			magnet_timer = MAGNET_DURATION
+			_show_magnet_aura()
 		"boost":
 			_boost_active = true
 			boost_timer = BOOST_DURATION
 			_start_boost_trail()
+			_start_boost_fx()
 
 func _show_shield_aura() -> void:
 	if _shield_aura != null:
@@ -674,7 +686,10 @@ func _attract_coins(delta: float) -> void:
 	for coin: Node3D in get_tree().get_nodes_in_group("coins"):
 		var dist: float = global_position.distance_to(coin.global_position)
 		if dist < MAGNET_RADIUS:
-			coin.global_position = coin.global_position.lerp(global_position, delta * MAGNET_LERP_SPEED)
+			# Aspiration MARQUEE : plus la piece est proche, plus elle accelere (effet "happee").
+			var t: float = clampf(1.0 - dist / MAGNET_RADIUS, 0.0, 1.0)
+			var speed: float = MAGNET_LERP_SPEED * (1.0 + t * 2.5)
+			coin.global_position = coin.global_position.lerp(global_position, delta * speed)
 
 func _shake_camera(amount: float) -> void:
 	var cam := get_tree().get_first_node_in_group("follow_camera")
@@ -747,11 +762,13 @@ func _physics_process(delta: float) -> void:
 func _process(delta: float) -> void:
 	if _is_dead or _parachute_active:
 		return
+	_pulverize_sfx_cd = maxf(_pulverize_sfx_cd - delta, 0.0)
 	if boost_timer > 0.0:
 		boost_timer = maxf(boost_timer - delta, 0.0)
 		if boost_timer == 0.0:
 			_boost_active = false
 			_stop_boost_trail()
+			_stop_boost_fx()
 	if slowmo_timer > 0.0:
 		slowmo_timer = maxf(slowmo_timer - delta, 0.0)
 		if slowmo_timer == 0.0:
@@ -761,8 +778,10 @@ func _process(delta: float) -> void:
 		magnet_timer = maxf(magnet_timer - delta, 0.0)
 		if magnet_timer == 0.0:
 			_magnet_active = false
+			_remove_magnet_aura()
 		else:
 			_attract_coins(delta)
+			_emit_magnet_rings(delta)
 	_sway_time += delta
 	_jolt = move_toward(_jolt, 0.0, delta * 4.0)
 	# Jetpack : pose fusée fixe (sway désactivé, calibré pour le perso flippé 180°).
@@ -803,19 +822,26 @@ func _start_boost_trail() -> void:
 		return
 	var trail := GPUParticles3D.new()
 	trail.one_shot = false
-	trail.amount = 60
-	trail.lifetime = 0.25
+	trail.amount = 90
+	trail.lifetime = 0.3
 	trail.local_coords = false
 	trail.emitting = true
 	var mat := ParticleProcessMaterial.new()
 	mat.direction = Vector3(0.0, 1.0, 0.0)
-	mat.spread = 12.0
+	mat.spread = 14.0
 	mat.initial_velocity_min = 10.0
-	mat.initial_velocity_max = 18.0
+	mat.initial_velocity_max = 20.0
 	mat.gravity = Vector3.ZERO
-	mat.scale_min = 0.08
-	mat.scale_max = 0.18
-	mat.color = Color(0.914, 0.310, 0.216, 1.0)
+	mat.scale_min = 0.1
+	mat.scale_max = 0.24
+	# Degrade jaune moutarde -> orange -> transparent (flamme).
+	var grad := Gradient.new()
+	grad.set_color(0, Color(0.949, 0.757, 0.306, 1.0))   # jaune #F2C14E
+	grad.set_color(1, Color(0.914, 0.310, 0.216, 0.0))   # orange #E94F37 -> fondu
+	grad.add_point(0.5, Color(0.914, 0.310, 0.216, 1.0))
+	var ramp := GradientTexture1D.new()
+	ramp.gradient = grad
+	mat.color_ramp = ramp
 	trail.process_material = mat
 	var sphere := SphereMesh.new()
 	sphere.radius = 0.05
@@ -831,6 +857,172 @@ func _stop_boost_trail() -> void:
 	_boost_trail = null
 	old_trail.emitting = false
 	get_tree().create_timer(0.4).timeout.connect(old_trail.queue_free)
+
+# ── Boost : effets ecran + aura d'immunite + punch camera ────────────────────────────────
+func _start_boost_fx() -> void:
+	_show_boost_aura()
+	var pp := get_tree().get_first_node_in_group("post_process")
+	if pp != null and pp.has_method("set_speed_lines"):
+		pp.set_speed_lines(true)
+	_shake_camera(0.25)   # "punch" au declenchement
+
+func _stop_boost_fx() -> void:
+	_remove_boost_aura()
+	var pp := get_tree().get_first_node_in_group("post_process")
+	if pp != null and pp.has_method("set_speed_lines"):
+		pp.set_speed_lines(false)
+
+# Aura d'IMMUNITE visible (blanc-orange) : meme bulle Fresnel que le bouclier mais orange →
+# le joueur SAIT qu'il est invincible et fonce (sinon il freine par reflexe). Distincte du
+# bouclier (turquoise) par la couleur.
+func _show_boost_aura() -> void:
+	if _boost_aura != null:
+		return
+	_boost_aura = MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 1.0
+	sphere.height = 2.0
+	sphere.radial_segments = 24
+	sphere.rings = 12
+	_boost_aura.mesh = sphere
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://assets/shaders/shield_bubble.gdshader")
+	mat.set_shader_parameter("bubble_color", Color(1.0, 0.55, 0.3, 1.0))   # blanc-orange chaud
+	mat.set_shader_parameter("rim_power", 2.0)
+	mat.set_shader_parameter("pulse", 1.1)
+	_boost_aura.material_override = mat
+	add_child(_boost_aura)
+
+func _remove_boost_aura() -> void:
+	if _boost_aura == null:
+		return
+	_boost_aura.queue_free()
+	_boost_aura = null
+
+# ── Aimant : champ magnetique visible (anneaux qui emanent) ───────────────────────────────
+func _show_magnet_aura() -> void:
+	if _magnet_aura != null:
+		return
+	_magnet_aura = Node3D.new()
+	add_child(_magnet_aura)
+	_magnet_ring_t = 0.0
+
+func _remove_magnet_aura() -> void:
+	if _magnet_aura == null:
+		return
+	_magnet_aura.queue_free()
+	_magnet_aura = null
+
+# Emane un anneau jaune toutes les ~0.45 s tant que l'aimant est actif : il grandit et
+# s'efface → "champ" qui aspire, lisible, centre degage. Peu de noeuds vivants a la fois.
+func _emit_magnet_rings(delta: float) -> void:
+	if _magnet_aura == null:
+		return
+	_magnet_ring_t -= delta
+	if _magnet_ring_t > 0.0:
+		return
+	_magnet_ring_t = 0.45
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.5
+	torus.outer_radius = 0.62
+	torus.rings = 16
+	torus.ring_segments = 8
+	ring.mesh = torus
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	mat.albedo_color = Color(0.949, 0.757, 0.306, 0.7)   # jaune moutarde
+	mat.emission_enabled = true
+	mat.emission = Color(0.949, 0.757, 0.306, 1.0)
+	mat.emission_energy_multiplier = 2.5
+	ring.material_override = mat
+	ring.rotation_degrees = Vector3(90.0, 0.0, 0.0)   # face camera
+	_magnet_aura.add_child(ring)
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(ring, "scale", Vector3.ONE * 2.2, 0.6).set_ease(Tween.EASE_OUT)
+	tw.tween_property(mat, "albedo_color:a", 0.0, 0.6)
+	tw.chain().tween_callback(ring.queue_free)
+
+# ── Pulverisation (boost) : detruit l'obstacle/element percute au lieu de mourir ──────────
+# Regle de comptage : un obstacle DETRUIT compte comme esquive/franchi (register_obstacle_dodged),
+# comme s'il avait ete depasse. Les ZONES rares ne sont PAS comptees par element : la zone
+# (corps StaticBody) survit videe de ses elements et est comptee une fois a son despawn.
+func _on_body_shape_entered(_body_rid: RID, body: Node, body_shape_index: int, _local_shape_index: int) -> void:
+	if not _boost_active or _is_dead or _level_completed:
+		return
+	if body == null or not body.is_in_group("obstacles"):
+		return
+	_pulverize_contact(body, body_shape_index)
+
+func _pulverize_contact(body: Node, body_shape_index: int) -> void:
+	var is_zone: bool = body is ObstacleBase and (body as ObstacleBase).zone_length > 0.0
+	var col: Node3D = _get_collision_node(body, body_shape_index)
+	var pos: Vector3 = col.global_position if col != null else (body as Node3D).global_position
+	_spawn_pulverize_burst(pos, _obstacle_color(body))
+	# Feedback son/shake/vibration limite (anti-spam quand on traverse une zone a 4 elements).
+	if _pulverize_sfx_cd <= 0.0:
+		Audio.play_hit()
+		_shake_camera(0.12)
+		Settings.vibrate(25)
+		_pulverize_sfx_cd = 0.08
+	if is_zone:
+		_remove_zone_element(body, col)   # retire juste l'element percute, garde le reste
+	else:
+		Settings.register_obstacle_dodged()
+		(body as Node3D).queue_free()
+
+# Retrouve le CollisionShape3D correspondant a l'index de forme rapporte par le signal.
+func _get_collision_node(body: Node, body_shape_index: int) -> Node3D:
+	if not (body is CollisionObject3D):
+		return null
+	var owner_id: int = (body as CollisionObject3D).shape_find_owner(body_shape_index)
+	var owner_node: Object = (body as CollisionObject3D).shape_owner_get_owner(owner_id)
+	return owner_node as Node3D
+
+# Zone : retire la forme percutee + le mesh apparie (meme position locale), garde le corps
+# (il finira par despawn proprement, comptant une fois). Le reste de la zone reste intact.
+func _remove_zone_element(body: Node, col: Node3D) -> void:
+	if col == null:
+		return
+	var cpos: Vector3 = col.position
+	for child in body.get_children():
+		if child is MeshInstance3D and (child as MeshInstance3D).position.distance_to(cpos) < 0.1:
+			(child as MeshInstance3D).queue_free()
+			break
+	col.queue_free()
+
+func _obstacle_color(body: Node) -> Color:
+	# Zones rares / porte = marron noyer ; obstacles standards = orange brule.
+	if body is ObstacleBase and (body as ObstacleBase).zone_length > 0.0:
+		return Color(0.239, 0.173, 0.118, 1.0)
+	return Color(0.914, 0.310, 0.216, 1.0)
+
+func _spawn_pulverize_burst(pos: Vector3, color: Color) -> void:
+	var burst := GPUParticles3D.new()
+	burst.one_shot = true
+	burst.explosiveness = 1.0
+	burst.amount = 18
+	burst.lifetime = 0.45
+	burst.emitting = true
+	var mat := ParticleProcessMaterial.new()
+	mat.direction = Vector3(0.0, 1.0, 0.0)
+	mat.spread = 180.0
+	mat.initial_velocity_min = 5.0
+	mat.initial_velocity_max = 11.0
+	mat.gravity = Vector3(0.0, -6.0, 0.0)
+	mat.scale_min = 0.1
+	mat.scale_max = 0.25
+	mat.color = color
+	burst.process_material = mat
+	var shard := BoxMesh.new()
+	shard.size = Vector3(0.14, 0.14, 0.14)
+	burst.draw_pass_1 = shard
+	get_tree().current_scene.add_child(burst)
+	burst.global_position = pos
+	get_tree().create_timer(0.7).timeout.connect(burst.queue_free)
 
 func _apply_limb_sway(node: Node3D, lateral: float, delta: float,
 		speed: float, phase: float,
