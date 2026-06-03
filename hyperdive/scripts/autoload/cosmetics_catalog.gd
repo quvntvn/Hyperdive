@@ -10,7 +10,11 @@ const SKINS: Array[Dictionary] = [
 	# doré dans _apply_skin (metallic + anisotropie + émission dorée fixe faible).
 	{"id": "gold",      "name": "Or",               "price": 10000, "color": Color(1.0, 0.784, 0.314), "gold": true},
 	# Exclusifs défis (price -1 = non vendus au shop, débloqués par claim de défi).
-	{"id": "chrome",    "name": "Chrome spatial",   "price": -1, "color": Color(0.580, 0.630, 0.720)},
+	# Acier : métal SOMBRE (anthracite) — même rendu métallique (metallic+aniso) que "Chrome poli"
+	# mais albedo très foncé → reflète la lumière tout en restant noir métal. id "chrome" conservé
+	# (le défi j_dist_7500 le débloque toujours), seul le nom/la couleur change. Distinct du skin
+	# "steel" (Chrome poli, clair) et du thème "steel" (Acier).
+	{"id": "chrome",    "name": "Acier",            "price": -1, "color": Color(0.165, 0.176, 0.200), "metallic": true},
 	{"id": "briscard",  "name": "Vieux briscard",   "price": -1, "color": Color(0.780, 0.720, 0.580)},
 	{"id": "funambule", "name": "Funambule",        "price": -1, "color": Color(0.520, 0.200, 0.180)},
 	# Chrome poli (défi) : "metallic" = matériau métallique réfléchissant (spéculaire).
