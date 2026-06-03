@@ -16,12 +16,12 @@ const JETPACK_ARM_R := Vector3(0.0, 0.0, -6.0)
 const JETPACK_LEG_L := Vector3(0.0, 0.0, 2.5)
 const JETPACK_LEG_R := Vector3(0.0, 0.0, -2.5)
 const JETPACK_HEAD := Vector3.ZERO
-const SLOWMO_DURATION: float = 3.0
+const SLOWMO_DURATION: float = 4.5    # allonge (etait 3.0) pour savourer le slow-motion
 const SLOWMO_FACTOR: float = 0.5
-const MAGNET_DURATION: float = 5.0
+const MAGNET_DURATION: float = 8.0    # le plus long (effet passif utilitaire), etait 5.0
 const MAGNET_RADIUS: float = 10.0
 const MAGNET_LERP_SPEED: float = 8.0
-const BOOST_DURATION: float = 2.0
+const BOOST_DURATION: float = 4.0     # allonge (etait 2.0) pour pulveriser plusieurs obstacles
 const BOOST_SPEED_FACTOR: float = 2.5
 const SPEED_RAMP_STEP: float = 1000.0        # tous les 1000 m en infini
 const SPEED_RAMP_STEP_JETPACK: float = 500.0   # tous les 500 m en jetpack
@@ -397,16 +397,17 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	if _boost_active:
 		return
-	_flash_hit()
+	# Choc sur un obstacle : impact commun (son + shake + recul), puis bouclier OU mort.
+	Audio.play_hit()
 	_shake_camera(0.3)
 	_body_recoil()
 	_jolt = 1.0
-	Audio.play_hit()
 	if has_shield:
 		has_shield = false
 		_remove_shield_aura()
-		_flash_shield_blocked()
+		_shield_shatter()   # eclatement turquoise = SAUVEGARDE (jamais rouge), pas une mort
 		return
+	_flash_hit()   # flash blanc "mortel" seulement quand on meurt vraiment
 	_is_dead = true
 	_trigger_ragdoll()
 
@@ -424,6 +425,9 @@ func _trigger_ragdoll() -> void:
 	freeze = true
 	Audio.set_whoosh_intensity(0.0)
 	Audio.stop_jetpack()
+	# Nettoie les effets de power-up encore actifs (sinon vignette/pitch/bulle restent au menu).
+	_stop_slowmo_fx()
+	_remove_shield_aura()
 	if _trail_node:
 		_trail_node.emitting = false
 	if _jetpack_flames:
@@ -545,6 +549,7 @@ func collect_powerup(powerup_type: String) -> void:
 		"slowmo":
 			_slowmo_active = true
 			slowmo_timer = SLOWMO_DURATION
+			_start_slowmo_fx()
 		"magnet":
 			_magnet_active = true
 			magnet_timer = MAGNET_DURATION
@@ -558,18 +563,28 @@ func _show_shield_aura() -> void:
 		return
 	_shield_aura = MeshInstance3D.new()
 	var sphere := SphereMesh.new()
-	sphere.radius = 0.9
-	sphere.height = 1.8
+	sphere.radius = 0.95
+	sphere.height = 1.9
+	sphere.radial_segments = 24
+	sphere.rings = 12
 	_shield_aura.mesh = sphere
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = Color(0.235, 0.682, 0.639, 0.22)
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.emission_enabled = true
-	mat.emission = Color(0.235, 0.682, 0.639, 1.0)
-	mat.emission_energy_multiplier = 0.6
+	# Bulle Fresnel : transparente au centre, lumineuse sur les bords (ne masque pas la vue).
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://assets/shaders/shield_bubble.gdshader")
+	mat.set_shader_parameter("bubble_color", Color(0.235, 0.682, 0.639, 1.0))
 	_shield_aura.material_override = mat
 	add_child(_shield_aura)
+	# Pulsation douce en boucle (bulle vivante) ; le tween meurt avec le noeud au remove.
+	var tw := create_tween().set_loops()
+	tw.tween_method(_set_shield_pulse, 0.8, 1.1, 0.7).set_trans(Tween.TRANS_SINE)
+	tw.tween_method(_set_shield_pulse, 1.1, 0.8, 0.7).set_trans(Tween.TRANS_SINE)
+
+func _set_shield_pulse(v: float) -> void:
+	if _shield_aura == null:
+		return
+	var mat := _shield_aura.material_override as ShaderMaterial
+	if mat != null:
+		mat.set_shader_parameter("pulse", v)
 
 func _remove_shield_aura() -> void:
 	if _shield_aura == null:
@@ -577,13 +592,83 @@ func _remove_shield_aura() -> void:
 	_shield_aura.queue_free()
 	_shield_aura = null
 
-func _flash_shield_blocked() -> void:
-	var mat := $Character/Torso.material_override as StandardMaterial3D
-	if mat == null:
-		return
-	var tween := create_tween()
-	tween.tween_property(mat, "albedo_color", Color(0.235, 0.682, 0.639, 1.0), 0.05)
-	tween.tween_property(mat, "albedo_color", _base_skin_color, 0.25)
+# Eclatement du bouclier au choc absorbe : doit lire comme une SAUVEGARDE (turquoise, jamais
+# rouge), pas une mort. Onde de choc + eclats + flash turquoise + son "verre casse" + vibration.
+func _shield_shatter() -> void:
+	var turquoise := Color(0.235, 0.682, 0.639, 1.0)
+	Audio.play_shield_break()
+	Settings.vibrate(60)
+	var pp := get_tree().get_first_node_in_group("post_process")
+	if pp != null and pp.has_method("flash"):
+		pp.flash(turquoise, 0.4, 0.22)
+	# Torse qui pulse turquoise (feedback sur le perso).
+	var tmat := $Character/Torso.material_override as StandardMaterial3D
+	if tmat != null:
+		var tween := create_tween()
+		tween.tween_property(tmat, "albedo_color", turquoise, 0.05)
+		tween.tween_property(tmat, "albedo_color", _base_skin_color, 0.25)
+	# Onde de choc : anneau qui s'agrandit et s'efface.
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.7
+	torus.outer_radius = 0.9
+	torus.rings = 20
+	torus.ring_segments = 10
+	ring.mesh = torus
+	var rmat := StandardMaterial3D.new()
+	rmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	rmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	rmat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	rmat.albedo_color = turquoise
+	rmat.emission_enabled = true
+	rmat.emission = turquoise
+	rmat.emission_energy_multiplier = 3.0
+	ring.material_override = rmat
+	get_tree().current_scene.add_child(ring)
+	ring.global_position = global_position
+	ring.rotation_degrees = Vector3(90.0, 0.0, 0.0)   # face a la camera
+	var rtw := create_tween()
+	rtw.set_parallel(true)
+	rtw.tween_property(ring, "scale", Vector3.ONE * 3.5, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	rtw.tween_property(rmat, "albedo_color:a", 0.0, 0.4)
+	rtw.chain().tween_callback(ring.queue_free)
+	# Eclats : burst de particules turquoise/blanches vers l'exterieur.
+	var burst := GPUParticles3D.new()
+	burst.one_shot = true
+	burst.explosiveness = 1.0
+	burst.amount = 24
+	burst.lifetime = 0.5
+	burst.emitting = true
+	var pmat := ParticleProcessMaterial.new()
+	pmat.direction = Vector3(0.0, 1.0, 0.0)
+	pmat.spread = 180.0
+	pmat.initial_velocity_min = 5.0
+	pmat.initial_velocity_max = 10.0
+	pmat.gravity = Vector3.ZERO
+	pmat.scale_min = 0.1
+	pmat.scale_max = 0.22
+	pmat.color = turquoise
+	burst.process_material = pmat
+	var shard := BoxMesh.new()
+	shard.size = Vector3(0.1, 0.1, 0.1)
+	burst.draw_pass_1 = shard
+	get_tree().current_scene.add_child(burst)
+	burst.global_position = global_position
+	get_tree().create_timer(0.8).timeout.connect(burst.queue_free)
+
+# Ralenti : effet d'ecran (vignette froide + desaturation, transition douce via PostProcess)
+# + vent pitche vers le bas. On RESSENT le slow-motion sans masquer le centre/obstacles.
+func _start_slowmo_fx() -> void:
+	var pp := get_tree().get_first_node_in_group("post_process")
+	if pp != null and pp.has_method("set_slowmo"):
+		pp.set_slowmo(true)
+	Audio.set_whoosh_pitch(0.7)
+
+func _stop_slowmo_fx() -> void:
+	var pp := get_tree().get_first_node_in_group("post_process")
+	if pp != null and pp.has_method("set_slowmo"):
+		pp.set_slowmo(false)
+	Audio.set_whoosh_pitch(1.0)
 
 func _attract_coins(delta: float) -> void:
 	for coin: Node3D in get_tree().get_nodes_in_group("coins"):
@@ -671,6 +756,7 @@ func _process(delta: float) -> void:
 		slowmo_timer = maxf(slowmo_timer - delta, 0.0)
 		if slowmo_timer == 0.0:
 			_slowmo_active = false
+			_stop_slowmo_fx()
 	if magnet_timer > 0.0:
 		magnet_timer = maxf(magnet_timer - delta, 0.0)
 		if magnet_timer == 0.0:

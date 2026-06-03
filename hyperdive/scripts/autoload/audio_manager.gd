@@ -145,6 +145,11 @@ func set_whoosh_intensity(fall_speed: float) -> void:
 	var t: float = clamp(absf(fall_speed) / WHOOSH_MAX_FALL_SPEED, 0.0, 1.0)
 	_whoosh_player.volume_db = lerpf(WHOOSH_MIN_DB, WHOOSH_MAX_DB, t)
 
+# Ralenti : baisse la hauteur du vent (le temps s'etire). 1.0 = normal, ~0.7 = ralenti.
+func set_whoosh_pitch(p: float) -> void:
+	if _whoosh_player != null:
+		_whoosh_player.pitch_scale = p
+
 func play_jetpack() -> void:
 	if _jetpack_player:
 		_jetpack_player.volume_db = JETPACK_MIN_DB
