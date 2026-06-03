@@ -12,9 +12,9 @@
 [ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_box.tscn" id="ObstacleBoxScene"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_door.tscn" id="ObstacleDoorScene"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_oscillating.tscn" id="ObstacleOscillatingScene"]
-[ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_wall.tscn" id="ObstacleWallScene"]
-[ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_roller.tscn" id="ObstacleRollerScene"]
+[ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_zigzag.tscn" id="ObstacleZigzagScene"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_spiral.tscn" id="ObstacleSpiralScene"]
+[ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_wall.tscn" id="ObstacleWallScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_screen.tscn" id="PauseScreenScene"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="PlayerScene"]
 [ext_resource type="PackedScene" path="res://scenes/effects/post_process.tscn" id="PostProcessScene"]
@@ -77,7 +77,7 @@ powerup_scene = ExtResource("PowerupScene")
 script = ExtResource("SpawnerScript")
 player_path = NodePath("../Player")
 obstacle_scenes = Array[PackedScene]([ExtResource("ObstacleBoxScene"), ExtResource("ObstacleBarScene"), ExtResource("ObstacleWallScene"), ExtResource("ObstacleOscillatingScene"), ExtResource("ObstacleDoorScene")])
-special_scenes = Array[PackedScene]([ExtResource("ObstacleRollerScene"), ExtResource("ObstacleSpiralScene")])
+special_scenes = Array[PackedScene]([ExtResource("ObstacleZigzagScene"), ExtResource("ObstacleSpiralScene")])
 
 [node name="PostProcess" parent="." unique_id=1022185359 instance=ExtResource("PostProcessScene")]
 
