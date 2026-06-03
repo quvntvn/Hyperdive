@@ -318,6 +318,13 @@ func _apply_skin(skin_id: String) -> void:
 	var mat := $Character/Torso.material_override as StandardMaterial3D
 	if mat == null:
 		return
+	_style_body_material(mat, skin)
+
+# Applique TOUTES les propriétés du matériau (pas que l'albedo) selon le skin : metallic,
+# roughness, anisotropie, émission. Centralisé pour que le ragdoll hérite du même rendu que
+# le perso vivant (un or métallique reste métallique à la mort, un skin plat reste plat).
+func _style_body_material(mat: StandardMaterial3D, skin: Dictionary) -> void:
+	mat.albedo_color = skin["color"]
 	# Skin OR : métal brossé doré chaud. metallic plein + roughness basse (réfléchit le
 	# ciel + le reflet de la DirectionalLight) + anisotropie (reflet allongé = stries du
 	# brossé). Légère émission dorée FIXE (pas animée) pour réchauffer/donner le côté luxe.
@@ -327,7 +334,7 @@ func _apply_skin(skin_id: String) -> void:
 		mat.anisotropy_enabled = true
 		mat.anisotropy = 0.9
 		mat.emission_enabled = true
-		mat.emission = _base_skin_color
+		mat.emission = skin["color"]
 		mat.emission_energy_multiplier = 0.15
 	# Skin MÉTAL : chrome/acier brossé froid. Même base métallique, pas d'émission.
 	elif skin.get("metallic", false):
@@ -343,7 +350,6 @@ func _apply_skin(skin_id: String) -> void:
 		mat.anisotropy_enabled = false
 		mat.anisotropy = 0.0
 		mat.emission_enabled = false
-	_update_body_color()
 
 func _on_level_survived() -> void:
 	if _level_completed:
@@ -433,12 +439,18 @@ func _trigger_ragdoll() -> void:
 	rag.rotation = $Character.global_rotation
 	get_tree().current_scene.add_child(rag)
 
-	var skin_col: Color = _base_skin_color
+	# Le ragdoll hérite du MÊME matériau que le perso vivant (skin équipé) : metallic,
+	# roughness, anisotropie, émission, albedo — pas juste la couleur. Sinon un or/acier
+	# métallique redevenait jaune/gris plat à la mort. On duplique le matériau par partie
+	# (sinon toutes partageraient la ressource du .tscn) pour ne pas polluer d'autres ragdolls.
+	var skin: Dictionary = Catalog.get_skin_by_id(Settings.equipped_skin)
 	for part: Node in rag.get_children():
 		if part is RigidBody3D:
 			var mi: MeshInstance3D = part.get_node_or_null("MeshInstance3D")
 			if mi and mi.material_override:
-				(mi.material_override as StandardMaterial3D).albedo_color = skin_col
+				var pmat := (mi.material_override as StandardMaterial3D).duplicate() as StandardMaterial3D
+				_style_body_material(pmat, skin)
+				mi.material_override = pmat
 			var rb := part as RigidBody3D
 			# Jetpack : vitesse vers le bas (on retombe). Chute : on garde l'élan vers le bas.
 			var vy: float = -6.0 if ascending else maxf(death_vel.y, -6.0)
