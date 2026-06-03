@@ -75,17 +75,39 @@ func _add_card(row: Control) -> void:
 	UIAnimations.allow_scroll_through(card)
 	_item_list.add_child(card)
 
+# Condition de déblocage d'un cosmétique exclusif (price -1) : on cherche dans les défis
+# celui dont reward_skin/reward_trail/reward_theme vaut l'id du cosmétique, et on affiche
+# sa description. Générique si aucun défi ne le débloque (sécurité).
+func _unlock_condition(reward_key: String, item_id: String) -> String:
+	for m in Missions.MISSIONS:
+		if String(m.get(reward_key, "")) == item_id:
+			return "🔒 Défi : " + String(m["desc"])
+	return "🔒 Récompense de défi"
+
+# Pastille assombrie pour un exclusif verrouillé (montre la couleur mais grisée).
+func _dim(c: Color) -> Color:
+	return Color(c.r * 0.30, c.g * 0.30, c.b * 0.30, c.a)
+
+# Configure le label de prix/condition : condition de défi si verrouillé, sinon le prix.
+func _set_price_label(label: Label, locked: bool, condition: String, price: int) -> void:
+	if locked:
+		label.text = condition
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_font_size_override("font_size", 16)
+	else:
+		label.text = "Prix : " + str(price) if price > 0 else "Gratuit"
+
 func _refresh_skins() -> void:
 	for skin in Catalog.SKINS:
 		var skin_id: String = skin["id"]
 		var price: int = skin["price"]
-		if price < 0:
-			continue  # exclusif défi : pas vendu au shop
+		var owned: bool = skin_id in Settings.owned_skins
+		var locked: bool = price < 0 and not owned   # exclusif défi pas encore débloqué
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 12)
 		var preview := ColorRect.new()
 		preview.custom_minimum_size = Vector2(64.0, 64.0)
-		preview.color = skin["color"]
+		preview.color = _dim(skin["color"]) if locked else skin["color"]
 		row.add_child(preview)
 		var info := VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -93,16 +115,19 @@ func _refresh_skins() -> void:
 		name_label.text = skin["name"]
 		name_label.add_theme_font_size_override("font_size", 24)
 		var price_label := Label.new()
-		price_label.text = "Prix : " + str(price)
+		_set_price_label(price_label, locked, _unlock_condition("reward_skin", skin_id), price)
 		info.add_child(name_label)
 		info.add_child(price_label)
 		row.add_child(info)
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(110.0, 48.0)
-		if skin_id == Settings.equipped_skin:
+		if locked:
+			btn.text = "🔒"
+			btn.disabled = true
+		elif skin_id == Settings.equipped_skin:
 			btn.text = "ÉQUIPÉ"
 			btn.disabled = true
-		elif skin_id in Settings.owned_skins:
+		elif owned:
 			btn.text = "ÉQUIPER"
 			btn.pressed.connect(func() -> void:
 				Audio.play_ui_click()
@@ -122,8 +147,8 @@ func _refresh_trails() -> void:
 	for trail in Catalog.TRAILS:
 		var trail_id: String = trail["id"]
 		var price: int = trail["price"]
-		if price < 0:
-			continue  # exclusif défi : pas vendu au shop
+		var owned: bool = trail_id in Settings.owned_trails
+		var locked: bool = price < 0 and not owned   # exclusif défi pas encore débloqué
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 12)
 		var preview := ColorRect.new()
@@ -138,7 +163,7 @@ func _refresh_trails() -> void:
 			dash.add_theme_font_size_override("font_size", 32)
 			preview.add_child(dash)
 		else:
-			preview.color = trail["color"]
+			preview.color = _dim(trail["color"]) if locked else trail["color"]
 		row.add_child(preview)
 		var info := VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -146,16 +171,19 @@ func _refresh_trails() -> void:
 		name_label.text = trail["name"]
 		name_label.add_theme_font_size_override("font_size", 24)
 		var price_label := Label.new()
-		price_label.text = "Prix : " + str(price) if price > 0 else "Gratuit"
+		_set_price_label(price_label, locked, _unlock_condition("reward_trail", trail_id), price)
 		info.add_child(name_label)
 		info.add_child(price_label)
 		row.add_child(info)
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(110.0, 48.0)
-		if trail_id == Settings.equipped_trail:
+		if locked:
+			btn.text = "🔒"
+			btn.disabled = true
+		elif trail_id == Settings.equipped_trail:
 			btn.text = "ÉQUIPÉ"
 			btn.disabled = true
-		elif trail_id in Settings.owned_trails:
+		elif owned:
 			btn.text = "ÉQUIPER"
 			btn.pressed.connect(func() -> void:
 				Audio.play_ui_click()
@@ -175,18 +203,18 @@ func _refresh_themes() -> void:
 	for theme in Catalog.THEMES:
 		var theme_id: String = theme["id"]
 		var price: int = theme["price"]
-		if price < 0:
-			continue  # exclusif défi : pas vendu au shop
+		var owned: bool = theme_id in Settings.owned_themes
+		var locked: bool = price < 0 and not owned   # exclusif défi pas encore débloqué
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 12)
 		var preview_box := HBoxContainer.new()
 		preview_box.add_theme_constant_override("separation", 4)
 		var swatch_wall := ColorRect.new()
 		swatch_wall.custom_minimum_size = Vector2(30.0, 64.0)
-		swatch_wall.color = theme["wall_color"]
+		swatch_wall.color = _dim(theme["wall_color"]) if locked else theme["wall_color"]
 		var swatch_line := ColorRect.new()
 		swatch_line.custom_minimum_size = Vector2(30.0, 64.0)
-		swatch_line.color = theme["line_color"]
+		swatch_line.color = _dim(theme["line_color"]) if locked else theme["line_color"]
 		preview_box.add_child(swatch_wall)
 		preview_box.add_child(swatch_line)
 		row.add_child(preview_box)
@@ -196,16 +224,19 @@ func _refresh_themes() -> void:
 		name_label.text = theme["name"]
 		name_label.add_theme_font_size_override("font_size", 24)
 		var price_label := Label.new()
-		price_label.text = "Prix : " + str(price) if price > 0 else "Gratuit"
+		_set_price_label(price_label, locked, _unlock_condition("reward_theme", theme_id), price)
 		info.add_child(name_label)
 		info.add_child(price_label)
 		row.add_child(info)
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(110.0, 48.0)
-		if theme_id == Settings.equipped_theme:
+		if locked:
+			btn.text = "🔒"
+			btn.disabled = true
+		elif theme_id == Settings.equipped_theme:
 			btn.text = "ÉQUIPÉ"
 			btn.disabled = true
-		elif theme_id in Settings.owned_themes:
+		elif owned:
 			btn.text = "ÉQUIPER"
 			btn.pressed.connect(func() -> void:
 				Audio.play_ui_click()
