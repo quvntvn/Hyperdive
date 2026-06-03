@@ -7,6 +7,10 @@ const MAX_FALL_SPEED: float = 18.0
 const TOUCH_FOLLOW_SPEED: float = 16.0   # finger-follow ×2 (plus réactif)
 const TRAIL_BASE_AMOUNT: int = 40
 const WALL_HIT_COOLDOWN: float = 0.3
+# Scintillement du skin Or : émission dorée qui pulse doucement (subtil, pas stroboscope).
+const GOLD_EMISSION_BASE: float = 0.6
+const GOLD_EMISSION_AMP: float = 0.4
+const GOLD_SCINTILLATE_SPEED: float = 4.0
 const CHARACTER_BASE_ROT := Vector3(205.0, 0.0, 0.0)
 # Pose FUSÉE (mode jetpack) : perso droit légèrement penché en avant, membres serrés
 # le long du corps. Séparé de la pose plongeon pour ne pas la casser.
@@ -39,6 +43,9 @@ var _run_time: float = 0.0
 var _no_wall_streak: float = 0.0
 var _best_no_wall_run: float = 0.0
 var _base_skin_color: Color = Color.WHITE
+var _body_mat: StandardMaterial3D            # matériau partagé du corps (cache)
+var _gold_skin_active: bool = false          # skin Or → scintillement animé dans _process
+var _gold_phase: float = 0.0
 var _trail_gradient: Gradient
 var _trail_grad_tex: GradientTexture1D
 var _trail_node: GPUParticles3D
@@ -316,8 +323,28 @@ func _apply_skin(skin_id: String) -> void:
 	var skin: Dictionary = Catalog.get_skin_by_id(skin_id)
 	_base_skin_color = skin["color"]
 	var mat := $Character/Torso.material_override as StandardMaterial3D
-	if mat:
-		_update_body_color()
+	if mat == null:
+		return
+	_body_mat = mat
+	# Skin OR : doré émissif + léger metallic, scintillement animé dans _process.
+	_gold_skin_active = skin.get("gold", false)
+	if _gold_skin_active:
+		mat.metallic = 0.6
+		mat.roughness = 0.25
+		mat.emission_enabled = true
+		mat.emission = _base_skin_color
+		mat.emission_energy_multiplier = GOLD_EMISSION_BASE
+	# Skin MÉTAL : chrome poli, réfléchit la DirectionalLight (spéculaire), pas d'émission.
+	elif skin.get("metallic", false):
+		mat.metallic = 1.0
+		mat.roughness = 0.12
+		mat.emission_enabled = false
+	# Skins normaux : remettre le matériau à plat (sinon résidu metallic/émission d'un skin spécial).
+	else:
+		mat.metallic = 0.0
+		mat.roughness = 1.0
+		mat.emission_enabled = false
+	_update_body_color()
 
 func _on_level_survived() -> void:
 	if _level_completed:
@@ -622,6 +649,11 @@ func _physics_process(delta: float) -> void:
 		Audio.set_jetpack_intensity(absf(linear_velocity.y))
 
 func _process(delta: float) -> void:
+	# Scintillement du skin Or (émission qui pulse). Hors du early-return pour rester
+	# vivant même au parachute ; coupé seulement à la mort (matériau ragdoll distinct).
+	if _gold_skin_active and _body_mat != null and not _is_dead:
+		_gold_phase += delta * GOLD_SCINTILLATE_SPEED
+		_body_mat.emission_energy_multiplier = GOLD_EMISSION_BASE + sin(_gold_phase) * GOLD_EMISSION_AMP
 	if _is_dead or _parachute_active:
 		return
 	if boost_timer > 0.0:

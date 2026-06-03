@@ -7,11 +7,16 @@ const SKINS: Array[Dictionary] = [
 	{"id": "mustard",   "name": "Jaune Moutarde",   "price": 150, "color": Color(0.949, 0.757, 0.306)},
 	{"id": "cream",     "name": "Crème Pâle",       "price": 300, "color": Color(0.957, 0.914, 0.804)},
 	{"id": "bordeaux",  "name": "Bordeaux Lourd",   "price": 450, "color": Color(0.486, 0.180, 0.165)},
+	# Or scintillant : ACHETABLE (haut de gamme, 10000). "gold" = traitement spécial dans
+	# _apply_skin (émission dorée animée + léger metallic) → look luxe brillant.
+	{"id": "gold",      "name": "Or scintillant",   "price": 10000, "color": Color(1.0, 0.78, 0.30), "gold": true},
 	# Exclusifs défis (price -1 = non vendus au shop, débloqués par claim de défi).
 	{"id": "chrome",    "name": "Chrome spatial",   "price": -1, "color": Color(0.580, 0.630, 0.720)},
 	{"id": "or1962",    "name": "Or 1962",          "price": -1, "color": Color(0.945, 0.760, 0.255)},
 	{"id": "briscard",  "name": "Vieux briscard",   "price": -1, "color": Color(0.780, 0.720, 0.580)},
 	{"id": "funambule", "name": "Funambule",        "price": -1, "color": Color(0.520, 0.200, 0.180)},
+	# Chrome poli (défi) : "metallic" = matériau métallique réfléchissant (spéculaire).
+	{"id": "steel",     "name": "Chrome poli",      "price": -1, "color": Color(0.75, 0.78, 0.82), "metallic": true},
 ]
 
 func get_skin_by_id(id: String) -> Dictionary:
