@@ -38,7 +38,8 @@ const TRAILS: Array[Dictionary] = [
 		"ramp": [Color(0.95, 0.15, 0.15), Color(0.97, 0.55, 0.10), Color(0.97, 0.90, 0.20),
 			Color(0.20, 0.80, 0.30), Color(0.15, 0.45, 0.95), Color(0.65, 0.25, 0.90)]},
 	{"id": "froleur",  "name": "Frôleur",      "color": Color(0.20, 0.85, 0.80), "price": -1},
-	{"id": "fantome",  "name": "Fantôme",      "color": Color(0.88, 0.90, 0.96), "price": -1},
+	# Fantôme : bleu pâle spectral + "alpha" bas → traînée vaporeuse translucide.
+	{"id": "fantome",  "name": "Fantôme",      "color": Color(0.70, 0.85, 1.0), "price": -1, "alpha": 0.35},
 ]
 
 func get_trail(id: String) -> Dictionary:
