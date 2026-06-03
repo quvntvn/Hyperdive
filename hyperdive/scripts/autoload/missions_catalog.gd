@@ -41,7 +41,7 @@ const MISSIONS: Array[Dictionary] = [
 	{"id": "camp_10", "chain": "camp", "name": "Confirmé",            "desc": "Atteins le niveau 10", "type": "campaign_level", "target": 10, "reward": 180},
 	{"id": "camp_15", "chain": "camp", "name": "Expert",              "desc": "Atteins le niveau 15", "type": "campaign_level", "target": 15, "reward": 280},
 	{"id": "camp_20", "chain": "camp", "name": "Maître",              "desc": "Atteins le niveau 20", "type": "campaign_level", "target": 20, "reward": 400},
-	{"id": "camp_25", "chain": "camp", "name": "Légende de 1962",     "desc": "Atteins le niveau 25", "type": "campaign_level", "target": 25, "reward": 600, "reward_skin": "or1962"},
+	{"id": "camp_25", "chain": "camp", "name": "Légende de 1962",     "desc": "Atteins le niveau 25", "type": "campaign_level", "target": 25, "reward": 800},
 
 	# === PALIERS — Pièces cumulées (coins_lifetime) ===
 	{"id": "coins_500",   "chain": "coins", "name": "Économe",            "desc": "Ramasse 500 pièces au total",    "type": "coins_lifetime", "target": 500,   "reward": 30},
@@ -76,8 +76,10 @@ const MISSIONS: Array[Dictionary] = [
 	{"id": "ascetic",      "name": "Ascète",                   "desc": "Atteins 1 500 m en classique sans ramasser une pièce", "type": "ascetic", "target": 1, "reward": 90},
 	{"id": "coins_run_75", "name": "Glouton",                  "desc": "Ramasse 75 pièces en une partie",    "type": "coins_run",        "target": 75,   "reward": 160},
 	{"id": "dual_1000",    "name": "Polyvalent",               "desc": "Atteins 1 000 m en classique ET en jetpack", "type": "dual_distance", "target": 1000, "reward": 150},
-	# Cibles +1 chacune : l'Or (achetable, price>=0) ajoute un item shop par catégorie.
-	{"id": "all_skins",    "name": "Garde-robe complète",      "desc": "Possède tous les skins du shop",     "type": "all_shop_skins",   "target": 6,    "reward": 80},
-	{"id": "all_trails",   "name": "Palette de sang",          "desc": "Possède tous les trails du shop",    "type": "all_shop_trails",  "target": 10,   "reward": 80},
+	# Cibles = nb d'items ACHETABLES (price>=0) par catégorie. Skins : default, turquoise,
+	# cream, bordeaux, gold = 5. Trails : none, sang, royal, bile, encre, antigel, lait,
+	# petrole, gold = 9. Thèmes : default, minuit, sunset, ocean, mono, foret, gold = 7.
+	{"id": "all_skins",    "name": "Garde-robe complète",      "desc": "Possède tous les skins du shop",     "type": "all_shop_skins",   "target": 5,    "reward": 80},
+	{"id": "all_trails",   "name": "Palette de sang",          "desc": "Possède tous les trails du shop",    "type": "all_shop_trails",  "target": 9,    "reward": 80},
 	{"id": "all_themes",   "name": "Décorateur",               "desc": "Possède tous les thèmes du shop",    "type": "all_shop_themes",  "target": 7,    "reward": 80},
 ]

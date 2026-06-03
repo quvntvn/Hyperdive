@@ -4,15 +4,13 @@ class_name CosmeticsCatalog
 const SKINS: Array[Dictionary] = [
 	{"id": "default",   "name": "Orange Brûlé",    "price": 0,  "color": Color(0.914, 0.310, 0.216)},
 	{"id": "turquoise", "name": "Turquoise Rétro",  "price": 50,  "color": Color(0.235, 0.682, 0.639)},
-	{"id": "mustard",   "name": "Jaune Moutarde",   "price": 150, "color": Color(0.949, 0.757, 0.306)},
 	{"id": "cream",     "name": "Crème Pâle",       "price": 300, "color": Color(0.957, 0.914, 0.804)},
 	{"id": "bordeaux",  "name": "Bordeaux Lourd",   "price": 450, "color": Color(0.486, 0.180, 0.165)},
-	# Or scintillant : ACHETABLE (haut de gamme, 10000). "gold" = traitement spécial dans
-	# _apply_skin (émission dorée animée + léger metallic) → look luxe brillant.
-	{"id": "gold",      "name": "Or scintillant",   "price": 10000, "color": Color(1.0, 0.78, 0.30), "gold": true},
+	# Or : ACHETABLE (haut de gamme, 10000). SEUL or du jeu. "gold" = rendu métal brossé
+	# doré dans _apply_skin (metallic + anisotropie + émission dorée fixe faible).
+	{"id": "gold",      "name": "Or",               "price": 10000, "color": Color(1.0, 0.784, 0.314), "gold": true},
 	# Exclusifs défis (price -1 = non vendus au shop, débloqués par claim de défi).
 	{"id": "chrome",    "name": "Chrome spatial",   "price": -1, "color": Color(0.580, 0.630, 0.720)},
-	{"id": "or1962",    "name": "Or 1962",          "price": -1, "color": Color(0.945, 0.760, 0.255)},
 	{"id": "briscard",  "name": "Vieux briscard",   "price": -1, "color": Color(0.780, 0.720, 0.580)},
 	{"id": "funambule", "name": "Funambule",        "price": -1, "color": Color(0.520, 0.200, 0.180)},
 	# Chrome poli (défi) : "metallic" = matériau métallique réfléchissant (spéculaire).
@@ -30,7 +28,6 @@ const TRAILS: Array[Dictionary] = [
 	{"id": "sang",     "name": "Sang",        "color": Color(0.70, 0.05, 0.05), "price": 40},
 	{"id": "royal",    "name": "Sang royal",   "color": Color(0.15, 0.20, 0.70), "price": 80},
 	{"id": "bile",     "name": "Bile",         "color": Color(0.45, 0.62, 0.10), "price": 110},
-	{"id": "ichor",    "name": "Sang d'or",    "color": Color(0.95, 0.75, 0.12), "price": 250},
 	{"id": "encre",    "name": "Encre",        "color": Color(0.22, 0.10, 0.32), "price": 140},
 	{"id": "antigel",  "name": "Antigel",      "color": Color(0.20, 0.85, 0.75), "price": 200},
 	{"id": "lait",     "name": "Lait",         "color": Color(0.96, 0.95, 0.90), "price": 160},

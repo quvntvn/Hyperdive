@@ -467,6 +467,36 @@ func _migrate_trails() -> void:
 		cleaned.insert(0, "none")
 	owned_trails.assign(cleaned)
 
+# Si un cosmétique a été retiré du catalogue (ex skin/trail supprimé d'une version à
+# l'autre), on purge les listes possédées des ids orphelins et on rééquipe un fallback
+# valide. Évite un id équipé qui n'existe plus (rendu cassé) ou un item fantôme au shop.
+func _validate_cosmetics() -> void:
+	owned_skins = _keep_existing(owned_skins, Catalog.SKINS, "default")
+	owned_trails = _keep_existing(owned_trails, Catalog.TRAILS, "none")
+	owned_themes = _keep_existing(owned_themes, Catalog.THEMES, "default")
+	# get_*(id) renvoie l'entrée par défaut (index 0) si l'id est introuvable : si l'id
+	# rendu ne correspond plus à l'équipé, c'est qu'il a été supprimé → fallback.
+	if Catalog.get_skin_by_id(equipped_skin)["id"] != equipped_skin:
+		equipped_skin = "default"
+	if Catalog.get_trail(equipped_trail)["id"] != equipped_trail:
+		equipped_trail = "none"
+	if Catalog.get_theme(equipped_theme)["id"] != equipped_theme:
+		equipped_theme = "default"
+
+# Filtre une liste possédée pour ne garder que les ids encore présents au catalogue
+# (dédoublonnés), en garantissant la présence du fallback gratuit.
+func _keep_existing(owned: Array[String], catalog: Array, fallback: String) -> Array[String]:
+	var valid: Dictionary = {}
+	for item in catalog:
+		valid[item["id"]] = true
+	var result: Array[String] = []
+	for id in owned:
+		if valid.has(id) and not id in result:
+			result.append(id)
+	if not fallback in result:
+		result.insert(0, fallback)
+	return result
+
 # DEBUG TEMP — débloque TOUT (cosmétiques + pièces) ET pousse les stats à fond pour
 # tester l'affichage/le flux des défis. À RETIRER avant la sortie. Déclenché par la
 # touche "U" / appui long sur le titre (main_menu).
@@ -591,6 +621,7 @@ func load_settings() -> void:
 	_migrate_trails()
 	owned_themes.assign(cfg.get_value("cosmetics", "owned_themes", ["default"]))
 	equipped_theme = cfg.get_value("cosmetics", "equipped_theme", "default")
+	_validate_cosmetics()   # purge les ids supprimés + rééquipe un fallback valide
 	claimed_missions.assign(cfg.get_value("missions", "claimed_missions", []))
 	campaign_level = cfg.get_value("campaign", "campaign_level", 1)
 	infinite_unlocked = cfg.get_value("campaign", "infinite_unlocked", false)
