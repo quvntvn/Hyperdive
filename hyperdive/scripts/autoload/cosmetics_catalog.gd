@@ -35,8 +35,15 @@ const TRAILS: Array[Dictionary] = [
 	{"id": "antigel",  "name": "Antigel",      "color": Color(0.20, 0.85, 0.75), "price": 200},
 	{"id": "lait",     "name": "Lait",         "color": Color(0.96, 0.95, 0.90), "price": 160},
 	{"id": "petrole",  "name": "Pétrole",      "color": Color(0.10, 0.10, 0.13), "price": 280},
+	# Sillage d'or : ACHETABLE (10000). "ramp" en couleurs HDR (>1) = doré qui BRILLE,
+	# variation bright/dim le long de la traînée → effet scintillant. Distinct de Comète (pâle).
+	{"id": "gold",     "name": "Sillage d'or",  "color": Color(1.0, 0.80, 0.20), "price": 10000,
+		"ramp": [Color(1.7, 1.35, 0.55), Color(0.95, 0.70, 0.15), Color(1.5, 1.15, 0.40)]},
 	# Exclusifs défis (price -1 = non vendus au shop, débloqués par claim de défi).
 	{"id": "comete",   "name": "Comète",       "color": Color(0.98, 0.90, 0.55), "price": -1},
+	# Sillage chromé (défi) : "ramp" HDR chrome → gris acier brillant, look métal poli.
+	{"id": "steel",    "name": "Sillage chromé","color": Color(0.82, 0.86, 0.92), "price": -1,
+		"ramp": [Color(1.3, 1.35, 1.45), Color(0.62, 0.66, 0.74), Color(1.1, 1.15, 1.25)]},
 	# Confettis : champ "ramp" = dégradé arc-en-ciel le long de la durée de vie (≠ couleur unique).
 	# "color" sert juste à la pastille d'aperçu du shop.
 	{"id": "confettis","name": "Confettis",    "color": Color(0.95, 0.35, 0.65), "price": -1,
