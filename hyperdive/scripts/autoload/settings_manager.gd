@@ -467,8 +467,12 @@ func _migrate_trails() -> void:
 		cleaned.insert(0, "none")
 	owned_trails.assign(cleaned)
 
-# DEBUG TEMP — débloque TOUT (cosmétiques + pièces) pour tester sans faire les défis.
-# À RETIRER avant la sortie. Déclenché par la touche "U" / appui long sur le titre (main_menu).
+# DEBUG TEMP — débloque TOUT (cosmétiques + pièces) ET pousse les stats à fond pour
+# tester l'affichage/le flux des défis. À RETIRER avant la sortie. Déclenché par la
+# touche "U" / appui long sur le titre (main_menu).
+# NB : on NE marque PAS claimed_missions → les défis restent RÉCLAMABLES (on teste le flux
+# de claim). Les cosmétiques exclusifs sont quand même ajoutés en direct à owned_* pour
+# pouvoir les équiper tout de suite.
 func debug_unlock_all() -> void:
 	for skin in Catalog.SKINS:
 		if not skin["id"] in owned_skins:
@@ -480,12 +484,31 @@ func debug_unlock_all() -> void:
 		if not theme["id"] in owned_themes:
 			owned_themes.append(theme["id"])
 	coins_total = 99999
+	# Stats à fond → tous les défis (paliers + exploits) apparaissent complétés/réclamables.
+	best_infinite_distance = 999999
+	best_jetpack_distance = 999999
+	best_distance = 999999
+	coins_lifetime = 999999
+	total_games = 9999
+	games_infinite = 9999
+	games_jetpack = 9999
+	games_campaign = 9999
+	total_deaths = 9999
+	total_obstacles_dodged = 999999
+	best_obstacles_run = 9999
+	best_coins_run = 9999
+	best_no_wall_time = 9999
+	powerups_used = ["shield", "slowmo", "magnet", "boost"]
+	ascetic_done = true
+	campaign_level = 99
+	infinite_unlocked = true
 	owned_skins_changed.emit()
 	owned_trails_changed.emit()
 	owned_themes_changed.emit()
 	coin_collected.emit(coins_total)
+	mission_claimed.emit()   # rafraîchit l'écran des défis s'il est ouvert
 	save_settings()
-	print("[debug] tout débloqué")
+	print("[debug] tout débloqué (cosmétiques + stats à fond, défis réclamables)")
 
 func save_settings() -> void:
 	var cfg: ConfigFile = ConfigFile.new()
