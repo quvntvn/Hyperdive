@@ -461,6 +461,26 @@ func _migrate_trails() -> void:
 		cleaned.insert(0, "none")
 	owned_trails.assign(cleaned)
 
+# DEBUG TEMP — débloque TOUT (cosmétiques + pièces) pour tester sans faire les défis.
+# À RETIRER avant la sortie. Déclenché par la touche "U" / appui long sur le titre (main_menu).
+func debug_unlock_all() -> void:
+	for skin in Catalog.SKINS:
+		if not skin["id"] in owned_skins:
+			owned_skins.append(skin["id"])
+	for trail in Catalog.TRAILS:
+		if not trail["id"] in owned_trails:
+			owned_trails.append(trail["id"])
+	for theme in Catalog.THEMES:
+		if not theme["id"] in owned_themes:
+			owned_themes.append(theme["id"])
+	coins_total = 99999
+	owned_skins_changed.emit()
+	owned_trails_changed.emit()
+	owned_themes_changed.emit()
+	coin_collected.emit(coins_total)
+	save_settings()
+	print("[debug] tout débloqué")
+
 func save_settings() -> void:
 	var cfg: ConfigFile = ConfigFile.new()
 	cfg.set_value("input", "control_mode", control_mode)
