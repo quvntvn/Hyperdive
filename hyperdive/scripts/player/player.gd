@@ -40,6 +40,7 @@ var _no_wall_streak: float = 0.0
 var _best_no_wall_run: float = 0.0
 var _base_skin_color: Color = Color.WHITE
 var _trail_gradient: Gradient
+var _trail_grad_tex: GradientTexture1D
 var _trail_node: GPUParticles3D
 var _sway_time: float = 0.0
 var _jolt: float = 0.0
@@ -104,6 +105,7 @@ func _setup_fall_trail() -> void:
 	var grad_tex := GradientTexture1D.new()
 	grad_tex.gradient = _trail_gradient
 	mat.color_ramp = grad_tex
+	_trail_grad_tex = grad_tex
 	trail.process_material = mat
 
 	var sphere := SphereMesh.new()
@@ -277,9 +279,37 @@ func _apply_trail() -> void:
 	if Settings.equipped_trail == "none":
 		_trail_node.emitting = false
 		return
-	var c: Color = Catalog.get_trail(Settings.equipped_trail)["color"]
-	_trail_gradient.set_color(0, Color(c.r, c.g, c.b, 1.0))
-	_trail_gradient.set_color(1, Color(c.r, c.g, c.b, 0.0))
+	var data: Dictionary = Catalog.get_trail(Settings.equipped_trail)
+	# On rebâtit un Gradient neuf à chaque fois : les trails multicolores ont N stops,
+	# les monocouleurs 2 — assigner directement offsets/colors d'arrays de tailles
+	# différentes peut désynchroniser le Gradient, donc on repart d'un objet propre.
+	var g := Gradient.new()
+	var offsets := PackedFloat32Array()
+	var colors := PackedColorArray()
+	if data.has("ramp"):
+		# Confettis : dégradé arc-en-ciel fluide le long de la durée de vie.
+		var ramp: Array = data["ramp"]
+		var n: int = ramp.size()
+		for i in range(n):
+			# Réparti sur 0..0.85 ; on garde la fin pour un fondu transparent.
+			offsets.append(float(i) / float(n - 1) * 0.85)
+			var rc: Color = ramp[i]
+			colors.append(Color(rc.r, rc.g, rc.b, 1.0))
+		var last: Color = ramp[n - 1]
+		offsets.append(1.0)
+		colors.append(Color(last.r, last.g, last.b, 0.0))
+	else:
+		# Trail monocouleur : couleur unique avec fondu α→0 en fin de vie.
+		# "alpha" optionnel (Fantôme) abaisse l'opacité de départ → effet vaporeux.
+		var c: Color = data["color"]
+		var a: float = data.get("alpha", 1.0)
+		offsets.append_array([0.0, 1.0])
+		colors.append(Color(c.r, c.g, c.b, a))
+		colors.append(Color(c.r, c.g, c.b, 0.0))
+	g.offsets = offsets
+	g.colors = colors
+	_trail_gradient = g
+	_trail_grad_tex.gradient = g
 	_trail_node.emitting = true
 
 func _apply_skin(skin_id: String) -> void:

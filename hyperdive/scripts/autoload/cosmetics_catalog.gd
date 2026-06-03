@@ -32,7 +32,11 @@ const TRAILS: Array[Dictionary] = [
 	{"id": "petrole",  "name": "Pétrole",      "color": Color(0.10, 0.10, 0.13), "price": 280},
 	# Exclusifs défis (price -1 = non vendus au shop, débloqués par claim de défi).
 	{"id": "comete",   "name": "Comète",       "color": Color(0.98, 0.90, 0.55), "price": -1},
-	{"id": "confettis","name": "Confettis",    "color": Color(0.95, 0.35, 0.65), "price": -1},
+	# Confettis : champ "ramp" = dégradé arc-en-ciel le long de la durée de vie (≠ couleur unique).
+	# "color" sert juste à la pastille d'aperçu du shop.
+	{"id": "confettis","name": "Confettis",    "color": Color(0.95, 0.35, 0.65), "price": -1,
+		"ramp": [Color(0.95, 0.15, 0.15), Color(0.97, 0.55, 0.10), Color(0.97, 0.90, 0.20),
+			Color(0.20, 0.80, 0.30), Color(0.15, 0.45, 0.95), Color(0.65, 0.25, 0.90)]},
 	{"id": "froleur",  "name": "Frôleur",      "color": Color(0.20, 0.85, 0.80), "price": -1},
 	{"id": "fantome",  "name": "Fantôme",      "color": Color(0.88, 0.90, 0.96), "price": -1},
 ]
