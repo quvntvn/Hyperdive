@@ -73,7 +73,13 @@ func _process(_delta: float) -> void:
 			_next_spawn_y += _dir * SPAWN_INTERVAL_Y
 	# Despawn ce qui est passé DERRIÈRE le joueur (sinon fuite mémoire).
 	for obstacle in get_tree().get_nodes_in_group("obstacles"):
-		if _dir * obstacle.global_position.y < _dir * player_y - DESPAWN_BEHIND:
+		# Étendue de la zone : une zone rare (rouleau/spirale/zigzag) est UN seul corps dont
+		# l'origine = l'élément d'ENTRÉE ; ses autres éléments s'étalent vers l'AVANT (sens dir)
+		# sur zone_length. On ne libère la zone que quand son EXTRÉMITÉ la plus avancée
+		# (origine + dir*zone_length) est derrière le joueur — sinon despawn prématuré alors que
+		# des éléments sont encore devant. zone_length = 0 pour un obstacle normal → inchangé.
+		var zlen: float = (obstacle as ObstacleBase).zone_length if obstacle is ObstacleBase else 0.0
+		if _dir * obstacle.global_position.y + zlen < _dir * player_y - DESPAWN_BEHIND:
 			# Obstacle passé derrière le joueur = esquivé (compté une seule fois, au despawn).
 			Settings.register_obstacle_dodged()
 			obstacle.queue_free()
