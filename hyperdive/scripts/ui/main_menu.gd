@@ -15,7 +15,7 @@ func _ready() -> void:
 
 	# Le bouton campagne affiche le niveau de progression courant et le lance DIRECTEMENT
 	# (plus d'écran intermédiaire). Relu à chaque _ready → reflète la progression au retour.
-	%CampagneButton.text = "NIVEAU " + str(Settings.campaign_level)
+	%CampagneButton.text = "NIVEAU " + UIAnimations.format_number(Settings.campaign_level)
 	# Descend l'engrenage sous la safe area (encoche/caméra frontale), avec une marge mini
 	# généreuse même sans encoche pour qu'il ne soit pas collé au bord haut.
 	UIAnimations.apply_top_safe_area(%SettingsGearButton, 28.0)
@@ -64,8 +64,8 @@ func _set_mode_button(btn: Button, unlocked: bool, mode_name: String, condition:
 		btn.add_theme_font_size_override("font_size", 20)
 
 func update_stats() -> void:
-	%BestLabel.text = "Record : " + str(Settings.best_distance) + " m"
-	%CoinsLabel.text = "Pièces : " + str(Settings.coins_total)
+	%BestLabel.text = "Record : " + UIAnimations.format_number(Settings.best_distance) + " m"
+	%CoinsLabel.text = "Pièces : " + UIAnimations.format_number(Settings.coins_total)
 
 func _on_campagne_pressed() -> void:
 	Audio.play_ui_click()

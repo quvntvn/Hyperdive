@@ -3,6 +3,22 @@ class_name UIAnimations
 
 const POP_DURATION: float = 0.2
 
+# Sépare un entier par groupes de 3 chiffres avec une espace INSÉCABLE (U+00A0) :
+# 1561161 → "1 561 161". Insécable → un nombre ne se coupe jamais en bout de ligne.
+# AFFICHAGE seulement : la logique garde les ints, on formate juste au moment de l'afficher.
+# < 1000 → inchangé (pas d'espace) ; 0 → "0" ; négatifs gérés (signe conservé).
+static func format_number(n: int) -> String:
+	var neg: bool = n < 0
+	var digits: String = str(absi(n))
+	var out: String = ""
+	var count: int = 0
+	for i in range(digits.length() - 1, -1, -1):
+		out = digits[i] + out
+		count += 1
+		if count % 3 == 0 and i > 0:
+			out = " " + out
+	return ("-" + out) if neg else out
+
 static func pop_in(panel: Control, scrim: Control = null) -> void:
 	panel.pivot_offset = panel.size / 2.0
 	panel.scale = Vector2(0.92, 0.92)

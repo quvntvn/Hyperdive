@@ -19,7 +19,7 @@ func _ready() -> void:
 	_coin_label = $InfoBar/VBox/CoinCounter/CoinLabel
 	_shield_label = $PowerupIndicator/ShieldLabel
 	_timed_label = $PowerupIndicator/TimedLabel
-	_coin_label.text = str(Settings.coins_total)
+	_coin_label.text = UIAnimations.format_number(Settings.coins_total)
 	Settings.coin_collected.connect(_on_coin_collected)
 	%PauseButton.pressed.connect(_on_pause_pressed)
 	# Bandeau d'infos en verre flouté (score + pièces sur la même rangée), comme les boutons.
@@ -55,7 +55,7 @@ func _process(_delta: float) -> void:
 	if _player == null:
 		return
 	if not _campaign_mode:
-		_distance_label.text = str(int(abs(_player.global_position.y))) + " m"
+		_distance_label.text = UIAnimations.format_number(int(abs(_player.global_position.y))) + " m"
 	_update_powerup_indicator()
 
 func _update_powerup_indicator() -> void:
@@ -79,7 +79,7 @@ func _on_game_over() -> void:
 	print("GAME OVER")
 
 func _on_coin_collected(new_total: int) -> void:
-	_coin_label.text = str(new_total)
+	_coin_label.text = UIAnimations.format_number(new_total)
 
 func _on_pause_pressed() -> void:
 	Audio.play_ui_click()

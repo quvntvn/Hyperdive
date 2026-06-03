@@ -49,7 +49,7 @@ func _on_themes_pressed() -> void:
 	refresh()
 
 func refresh() -> void:
-	_coins_label.text = "Pièces : " + str(Settings.coins_total)
+	_coins_label.text = "Pièces : " + UIAnimations.format_number(Settings.coins_total)
 	_skins_btn.disabled = _current_category == "skins"
 	_trails_btn.disabled = _current_category == "trails"
 	_themes_btn.disabled = _current_category == "themes"
@@ -95,7 +95,7 @@ func _set_price_label(label: Label, locked: bool, condition: String, price: int)
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_font_size_override("font_size", 16)
 	else:
-		label.text = "Prix : " + str(price) if price > 0 else "Gratuit"
+		label.text = "Prix : " + UIAnimations.format_number(price) if price > 0 else "Gratuit"
 
 func _refresh_skins() -> void:
 	for skin in Catalog.SKINS:

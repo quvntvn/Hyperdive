@@ -13,9 +13,9 @@ func _ready() -> void:
 # completed_level / reward sont capturés AVANT complete_current_level() (qui incrémente
 # campaign_level et crédite les pièces) pour afficher le niveau réussi et le gain exact.
 func show_level_complete(completed_level: int, reward: int) -> void:
-	%TitleLabel.text = "NIVEAU " + str(completed_level) + " RÉUSSI"
-	%RewardLabel.text = "+ " + str(reward) + " pièces"
-	%NextInfoLabel.text = "Prochain : niveau " + str(Settings.campaign_level)
+	%TitleLabel.text = "NIVEAU " + UIAnimations.format_number(completed_level) + " RÉUSSI"
+	%RewardLabel.text = "+ " + UIAnimations.format_number(reward) + " pièces"
+	%NextInfoLabel.text = "Prochain : niveau " + UIAnimations.format_number(Settings.campaign_level)
 	Audio.duck_music()
 	visible = true
 	get_tree().paused = true

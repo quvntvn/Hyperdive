@@ -19,7 +19,7 @@ func _ready() -> void:
 	refresh()
 
 func refresh() -> void:
-	_coins_label.text = "Pièces : " + str(Settings.coins_total)
+	_coins_label.text = "Pièces : " + UIAnimations.format_number(Settings.coins_total)
 	for child in _mission_list.get_children():
 		_mission_list.remove_child(child)
 		child.queue_free()
@@ -86,7 +86,7 @@ func _build_daily_row(ch: Dictionary) -> void:
 		row.add_child(claimed_label)
 	elif Settings.is_daily_complete(ch):
 		var btn := Button.new()
-		btn.text = "RÉCLAMER " + str(reward)
+		btn.text = "RÉCLAMER " + UIAnimations.format_number(reward)
 		btn.custom_minimum_size = Vector2(148.0, 48.0)
 		btn.pressed.connect(func() -> void:
 			Audio.play_ui_click()
@@ -101,12 +101,14 @@ func _build_daily_row(ch: Dictionary) -> void:
 	_add_card(row)
 
 func _format_daily_progress(ch: Dictionary, progress: int, target: int) -> String:
+	var p: String = UIAnimations.format_number(progress)
+	var t: String = UIAnimations.format_number(target)
 	match ch["type"]:
-		"distance": return "%d/%d m" % [progress, target]
-		"coins":    return "%d/%d pièces" % [progress, target]
-		"time":     return "%ds/%ds" % [progress, target]
-		"games":    return "%d/%d parties" % [progress, target]
-	return "%d/%d" % [progress, target]
+		"distance": return "%s/%s m" % [p, t]
+		"coins":    return "%s/%s pièces" % [p, t]
+		"time":     return "%ss/%ss" % [p, t]
+		"games":    return "%s/%s parties" % [p, t]
+	return "%s/%s" % [p, t]
 
 func _build_row(mission: Dictionary) -> void:
 	var row := HBoxContainer.new()
@@ -148,7 +150,7 @@ func _build_row(mission: Dictionary) -> void:
 		row.add_child(claimed_label)
 	elif Settings.is_mission_complete(mission):
 		var btn := Button.new()
-		btn.text = "RÉCLAMER " + str(reward)
+		btn.text = "RÉCLAMER " + UIAnimations.format_number(reward)
 		btn.custom_minimum_size = Vector2(148.0, 48.0)
 		btn.pressed.connect(func() -> void:
 			Audio.play_ui_click()
@@ -164,34 +166,36 @@ func _build_row(mission: Dictionary) -> void:
 	_add_card(row)
 
 func _format_progress(mission: Dictionary, progress: int, target: int) -> String:
+	var p: String = UIAnimations.format_number(progress)
+	var t: String = UIAnimations.format_number(target)
 	match mission["type"]:
 		"campaign_level":
-			return "Niveau %d/%d" % [progress, target]
+			return "Niveau %s/%s" % [p, t]
 		"infinite_distance", "jetpack_distance", "distance", "dual_distance":
-			return "%d/%d m" % [progress, target]
+			return "%s/%s m" % [p, t]
 		"coins_lifetime", "coins_run":
-			return "%d/%d pièces" % [progress, target]
+			return "%s/%s pièces" % [p, t]
 		"obstacles_dodged", "obstacles_run":
-			return "%d/%d esquives" % [progress, target]
+			return "%s/%s esquives" % [p, t]
 		"no_wall_time":
-			return "%ds/%ds" % [progress, target]
+			return "%ss/%ss" % [p, t]
 		"powerups_used":
-			return "%d/%d power-ups" % [progress, target]
+			return "%s/%s power-ups" % [p, t]
 		"deaths":
-			return "%d/%d morts" % [progress, target]
+			return "%s/%s morts" % [p, t]
 		"total_games":
-			return "%d/%d parties" % [progress, target]
+			return "%s/%s parties" % [p, t]
 		"ascetic":
 			return "À accomplir"
 		"all_shop_skins", "owned_skins":
-			return "%d/%d skins" % [progress, target]
+			return "%s/%s skins" % [p, t]
 		"all_shop_trails":
-			return "%d/%d trails" % [progress, target]
+			return "%s/%s trails" % [p, t]
 		"all_shop_themes", "owned_themes":
-			return "%d/%d thèmes" % [progress, target]
+			return "%s/%s thèmes" % [p, t]
 		"trail_equipped":
 			return "Non équipé" if progress == 0 else "Équipé"
-	return "%d/%d" % [progress, target]
+	return "%s/%s" % [p, t]
 
 # Nom lisible du cosmétique récompense d'un jalon (ou "" si pas de récompense cosmétique).
 func _reward_cosmetic_name(mission: Dictionary) -> String:
