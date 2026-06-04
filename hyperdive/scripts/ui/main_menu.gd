@@ -68,7 +68,9 @@ func _set_mode_button(btn: Button, unlocked: bool, mode_name: String, condition:
 		btn.add_theme_font_size_override("font_size", 20)
 
 func update_stats() -> void:
-	%BestLabel.text = "Record : " + UIAnimations.format_number(Settings.best_distance) + " m"
+	# Deux records distincts : Classique (best_infinite_distance) et Jetpack (best_jetpack_distance).
+	%BestLabel.text = "Classique : " + UIAnimations.format_number(Settings.best_infinite_distance) + " m"
+	%JetpackLabel.text = "Jetpack : " + UIAnimations.format_number(Settings.best_jetpack_distance) + " m"
 	%CoinsLabel.text = "Pièces : " + UIAnimations.format_number(Settings.coins_total)
 
 func _on_campagne_pressed() -> void:

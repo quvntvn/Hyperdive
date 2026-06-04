@@ -76,27 +76,34 @@ theme_type_variation = &"Title"
 theme_override_font_sizes/font_size = 72
 
 [node name="Spacer1" type="Control" parent="MenuUI/Screen/Layout"]
-custom_minimum_size = Vector2(0, 12)
+custom_minimum_size = Vector2(0, 8)
 
 [node name="StatsContainer" type="VBoxContainer" parent="MenuUI/Screen/Layout"]
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="BestLabel" type="Label" parent="MenuUI/Screen/Layout/StatsContainer"]
 unique_name_in_owner = true
-text = "Meilleure distance: 0 m"
+text = "Classique : 0 m"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
+
+[node name="JetpackLabel" type="Label" parent="MenuUI/Screen/Layout/StatsContainer"]
+unique_name_in_owner = true
+text = "Jetpack : 0 m"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
 theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
 
 [node name="CoinsLabel" type="Label" parent="MenuUI/Screen/Layout/StatsContainer"]
 unique_name_in_owner = true
 text = "Pièces totales: 0"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 24
 theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
 
 [node name="Spacer2" type="Control" parent="MenuUI/Screen/Layout"]
-custom_minimum_size = Vector2(0, 12)
+custom_minimum_size = Vector2(0, 8)
 
 [node name="ButtonsContainer" type="VBoxContainer" parent="MenuUI/Screen/Layout"]
 theme_override_constants/separation = 10
