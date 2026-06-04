@@ -9,8 +9,8 @@ class_name CoopConfigScreen
 
 var _num_players: int = 2
 var _mode: String = "mix"                       # "mix" | "infinite" | "jetpack"
-var _rounds: int = 5
-var _names: PackedStringArray = ["", "", "", ""]
+var _rounds: int = 3
+var _names: PackedStringArray = ["", "", "", "", ""]
 
 var _form: VBoxContainer
 var _pseudo_box: VBoxContainer
@@ -28,8 +28,8 @@ func open() -> void:
 	# Reset aux valeurs par défaut à chaque ouverture (session fraîche).
 	_num_players = 2
 	_mode = "mix"
-	_rounds = 5
-	_names = ["", "", "", ""]
+	_rounds = 3
+	_names = ["", "", "", "", ""]
 	_summary.visible = false
 	_build_form()
 	visible = true
@@ -45,7 +45,7 @@ func _build_form() -> void:
 		child.queue_free()
 
 	_form.add_child(_section_header("JOUEURS"))
-	_form.add_child(_build_segmented([2, 3, 4], ["2", "3", "4"], _num_players,
+	_form.add_child(_build_segmented([2, 3, 4, 5], ["2", "3", "4", "5"], _num_players,
 		func(v: Variant) -> void:
 			_num_players = int(v)
 			_rebuild_pseudos()))

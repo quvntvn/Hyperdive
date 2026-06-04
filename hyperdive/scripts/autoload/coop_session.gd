@@ -11,23 +11,24 @@ class_name CoopSession
 # classement, final) ne font que lire/appeler cette API. Le routage entre scènes arrive au
 # commit 2 (quand les écrans de passation/classement existent).
 
-# Couleurs d'identité par joueur (palette stricte du jeu) :
-# J1 orange brûlé, J2 turquoise rétro, J3 jaune moutarde, J4 bleu nuit doux.
+# Couleurs d'identité par joueur (5 teintes bien distinctes) :
+# J1 orange, J2 turquoise, J3 jaune moutarde, J4 rose, J5 vert.
 const PLAYER_COLORS: Array[Color] = [
-	Color(0.914, 0.310, 0.216),  # J1 #E94F37
-	Color(0.235, 0.682, 0.639),  # J2 #3CAEA3
-	Color(0.949, 0.757, 0.306),  # J3 #F2C14E
-	Color(0.122, 0.188, 0.369),  # J4 #1F305E
+	Color(0.914, 0.310, 0.216),  # J1 #E94F37 orange brûlé
+	Color(0.235, 0.682, 0.639),  # J2 #3CAEA3 turquoise rétro
+	Color(0.949, 0.757, 0.306),  # J3 #F2C14E jaune moutarde
+	Color(0.925, 0.282, 0.600),  # J4 #EC4899 rose
+	Color(0.298, 0.686, 0.314),  # J5 #4CAF50 vert
 ]
 
 const MIN_PLAYERS: int = 2
-const MAX_PLAYERS: int = 4
+const MAX_PLAYERS: int = 5
 const MIN_ROUNDS: int = 1
 const MAX_ROUNDS: int = 10
 
 # Barème de points par PLACE (façon ranked / Mario Kart). Index 0 = 1re place.
-# Avec N joueurs on n'utilise que les N premières valeurs (à 2 j. : 10/6 ; à 3 : 10/6/3).
-const PLACE_POINTS: Array[int] = [10, 6, 3, 1]
+# Avec N joueurs on n'utilise que les N premières valeurs (à 2 j. : 10/7 ; à 3 : 10/7/5…).
+const PLACE_POINTS: Array[int] = [10, 7, 5, 3, 1]
 
 # États de routage renvoyés par advance_after_turn().
 enum { NEXT_PLAYER, ROUND_OVER }
@@ -43,7 +44,7 @@ const SCENE_MENU := "res://scenes/ui/main_menu.tscn"
 
 # === Config (figée au start_session) ===
 var num_players: int = 2
-var num_rounds: int = 5
+var num_rounds: int = 3
 var mode_choice: String = "mix"   # "mix" | "infinite" | "jetpack"
 
 # === Joueurs ===
@@ -108,7 +109,7 @@ func clear() -> void:
 	round_modes = []
 	player_names = []
 	num_players = 2
-	num_rounds = 5
+	num_rounds = 3
 	current_round = 0
 	current_player = 0
 
