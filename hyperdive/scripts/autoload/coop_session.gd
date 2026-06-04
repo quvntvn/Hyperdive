@@ -38,6 +38,7 @@ enum { NEXT_PLAYER, ROUND_OVER }
 const SCENE_MAIN_GAME := "res://scenes/game/main_game.tscn"
 const SCENE_PASSATION := "res://scenes/ui/coop_passation.tscn"
 const SCENE_ROUND_RESULT := "res://scenes/ui/coop_round_result.tscn"
+const SCENE_FINAL := "res://scenes/ui/coop_final.tscn"
 const SCENE_MENU := "res://scenes/ui/main_menu.tscn"
 
 # === Config (figée au start_session) ===
@@ -186,24 +187,19 @@ func end_turn(score: int) -> void:
 	else:
 		Transition.change_scene(SCENE_ROUND_RESULT)
 
-# Classement de manche CONTINUER : manche suivante (passation J1) ou fin de session.
-# PLACEHOLDER commit 3 pour la dernière manche (log + menu) — remplacé par l'écran final
-# au commit 4.
+# Classement de manche CONTINUER : manche suivante (passation J1) ou écran final si dernière.
 func continue_after_round() -> void:
 	if is_last_round():
-		_session_over_placeholder()
+		Transition.change_scene(SCENE_FINAL)
 	else:
 		start_next_round()
 		Transition.change_scene(SCENE_PASSATION)
 
-func _session_over_placeholder() -> void:
-	print("[coop] session terminée — classement général :")
-	for e in standings(num_rounds - 1):
-		print("  J%d %s : %d pts (best %d, %d manches gagnées)"
-			% [int(e["player"]) + 1, player_names[e["player"]], int(e["points"]),
-			   int(e["best_score"]), int(e["rounds_won"])])
-	clear()
-	Transition.change_scene(SCENE_MENU)
+# Écran final REJOUER : relance une session avec la MÊME config (mêmes joueurs/pseudos,
+# mode, nombre de manches) → en Mix les modes sont re-tirés. Puis on entre par la passation.
+func restart_same_config() -> void:
+	start_session(num_players, num_rounds, mode_choice, player_names.duplicate())
+	begin_session_flow()
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Scoring / classements (logique pure, sans UI)
