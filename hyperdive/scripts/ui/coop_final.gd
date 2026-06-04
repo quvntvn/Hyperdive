@@ -10,6 +10,8 @@ const TEXT_DIM := Color(0.80, 0.78, 0.72)
 const PODIUM_MAX_H := 250.0
 # Hauteurs des piliers par place (1er le plus haut).
 const PILLAR_H := {1: 160.0, 2: 115.0, 3: 80.0}
+# Couronne en icône (l'emoji 👑 ne rend pas sous Android).
+const CROWN_TEX: Texture2D = preload("res://assets/ui/crown_icon.svg")
 
 func _ready() -> void:
 	if not Coop.active:
@@ -67,9 +69,18 @@ func _podium_slot(s: Dictionary, place: int) -> Control:
 	slot.custom_minimum_size = Vector2(104, PODIUM_MAX_H)
 	slot.add_theme_constant_override("separation", 4)
 
-	var crown := _label("👑" if place == 1 else "", 26, Color.WHITE)
-	crown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	slot.add_child(crown)
+	# Couronne (icône) au-dessus du 1er ; spacer de même hauteur ailleurs → noms alignés.
+	if place == 1:
+		var crown := TextureRect.new()
+		crown.texture = CROWN_TEX
+		crown.custom_minimum_size = Vector2(0, 28)
+		crown.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		crown.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		slot.add_child(crown)
+	else:
+		var spacer := Control.new()
+		spacer.custom_minimum_size = Vector2(0, 28)
+		slot.add_child(spacer)
 	var name_lbl := _label(Coop.player_names[p], 19, col)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

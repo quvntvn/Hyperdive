@@ -15,6 +15,8 @@ var _pills: Dictionary = {}
 const COOP_GOLD := Color(0.949, 0.757, 0.306)
 const COOP_CREAM := Color(0.957, 0.914, 0.804)
 const COOP_OUTLINE := Color(0.04, 0.02, 0.01, 0.92)
+# Couronne en ICÔNE (l'emoji 👑 ne rend pas sous Android : Poppins n'a pas les emojis).
+const CROWN_TEX: Texture2D = preload("res://assets/ui/crown_icon.svg")
 
 var _coop_active: bool = false
 var _coop_box: VBoxContainer                 # conteneur des rangees (dans InfoBar/VBox)
@@ -118,9 +120,17 @@ func _make_coop_row(p: int) -> Dictionary:
 	root.add_theme_stylebox_override("panel", _coop_row_style(false))
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 6)
-	# Colonne de rang à gauche : 👑 pour le leader, chiffre sinon (rempli par _refresh_coop_ranks).
-	var rank := _coop_label("", 18, COOP_CREAM, 26.0)
-	rank.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	# Colonne de rang à gauche : icône couronne pour le leader, chiffre sinon (l'un OU l'autre
+	# visible, géré par _refresh_coop_ranks). Mêmes largeurs → le nom reste aligné.
+	var rank_crown := TextureRect.new()
+	rank_crown.texture = CROWN_TEX
+	rank_crown.custom_minimum_size = Vector2(26, 22)
+	rank_crown.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rank_crown.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	rank_crown.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	rank_crown.visible = false
+	var rank_num := _coop_label("", 18, COOP_CREAM, 26.0)
+	rank_num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var name_lbl := _coop_label(Coop.player_names[p], 20, col)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.clip_text = true
@@ -133,11 +143,12 @@ func _make_coop_row(p: int) -> Dictionary:
 		score_lbl.text = "0"
 	else:
 		score_lbl.text = "…"
-	hb.add_child(rank)
+	hb.add_child(rank_crown)
+	hb.add_child(rank_num)
 	hb.add_child(name_lbl)
 	hb.add_child(score_lbl)
 	root.add_child(hb)
-	return {"root": root, "name": name_lbl, "score": score_lbl, "rank": rank}
+	return {"root": root, "name": name_lbl, "score": score_lbl, "rank_num": rank_num, "rank_crown": rank_crown}
 
 func _coop_label(text: String, size: int, color: Color, min_w: float = 0.0) -> Label:
 	var lbl := Label.new()
@@ -225,7 +236,10 @@ func _refresh_coop_ranks() -> void:
 	for i in range(_coop_order.size()):
 		var p: int = _coop_order[i]
 		var is_leader: bool = (i == 0)
-		(_coop_rows[p]["rank"] as Label).text = "👑" if is_leader else str(i + 1)
+		(_coop_rows[p]["rank_crown"] as TextureRect).visible = is_leader
+		var num := _coop_rows[p]["rank_num"] as Label
+		num.visible = not is_leader
+		num.text = str(i + 1)
 		(_coop_rows[p]["root"] as PanelContainer).add_theme_stylebox_override("panel", _coop_row_style(is_leader))
 
 # Flash d'une rangée : petit "punch" d'échelle (lisible même sans HDR sur mobile).
