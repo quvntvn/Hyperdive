@@ -141,9 +141,9 @@ func _make_coop_row(p: int) -> Dictionary:
 		score_lbl.text = UIAnimations.format_number(int(_coop_final[p]))
 	elif p == _coop_cur:
 		score_lbl.text = "0"
-		# Score du joueur EN COURS → contour blanc pour le distinguer des autres.
+		# Score du joueur EN COURS → liseré blanc FIN pour le distinguer sans noyer les chiffres.
 		score_lbl.add_theme_color_override("font_outline_color", Color.WHITE)
-		score_lbl.add_theme_constant_override("outline_size", 6)
+		score_lbl.add_theme_constant_override("outline_size", 2)
 	else:
 		score_lbl.text = "…"
 	hb.add_child(rank_crown)
