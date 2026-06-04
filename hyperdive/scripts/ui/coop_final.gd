@@ -34,6 +34,9 @@ func _populate() -> void:
 	$Content/WinnerName.text = Coop.player_names[wp]
 	$Content/WinnerName.add_theme_color_override("font_color", wcol)
 	$Content/WinnerPoints.text = "%d points" % int(winner["points"])
+	# Score du vainqueur mis en avant par un contour blanc.
+	$Content/WinnerPoints.add_theme_color_override("font_outline_color", Color.WHITE)
+	$Content/WinnerPoints.add_theme_constant_override("outline_size", 6)
 
 	_build_podium(standings)
 
@@ -121,7 +124,11 @@ func _make_standing_row(rank: int, s: Dictionary) -> PanelContainer:
 	# en-tête du classement). Cohérent avec la couronne du leader (HUD + en-tête).
 	var won: int = int(s["rounds_won"])
 	row.add_child(_label("👑 %d" % won, 18, TEXT_GOLD if won > 0 else TEXT_DIM, 64.0))
-	row.add_child(_label("%d pts" % int(s["points"]), 22, TEXT_GOLD, 72))
+	var pts_lbl := _label("%d pts" % int(s["points"]), 22, TEXT_GOLD, 72)
+	if rank == 1:   # vainqueur : contour blanc pour le mettre en avant
+		pts_lbl.add_theme_color_override("font_outline_color", Color.WHITE)
+		pts_lbl.add_theme_constant_override("outline_size", 5)
+	row.add_child(pts_lbl)
 	card.add_child(row)
 	return card
 

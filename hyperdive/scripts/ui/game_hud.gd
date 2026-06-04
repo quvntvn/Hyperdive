@@ -117,7 +117,7 @@ func _build_coop_rows() -> void:
 func _make_coop_row(p: int) -> Dictionary:
 	var col: Color = Coop.player_color(p)
 	var root := PanelContainer.new()
-	root.add_theme_stylebox_override("panel", _coop_row_style(false))
+	root.add_theme_stylebox_override("panel", _coop_row_style())
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 6)
 	# Colonne de rang à gauche : icône couronne pour le leader, chiffre sinon (l'un OU l'autre
@@ -141,6 +141,9 @@ func _make_coop_row(p: int) -> Dictionary:
 		score_lbl.text = UIAnimations.format_number(int(_coop_final[p]))
 	elif p == _coop_cur:
 		score_lbl.text = "0"
+		# Score du joueur EN COURS → contour blanc pour le distinguer des autres.
+		score_lbl.add_theme_color_override("font_outline_color", Color.WHITE)
+		score_lbl.add_theme_constant_override("outline_size", 6)
 	else:
 		score_lbl.text = "…"
 	hb.add_child(rank_crown)
@@ -162,20 +165,16 @@ func _coop_label(text: String, size: int, color: Color, min_w: float = 0.0) -> L
 		lbl.custom_minimum_size = Vector2(min_w, 0)
 	return lbl
 
-# Style d'une rangée : transparent par défaut ; liseré + fond dorés quand le joueur est leader.
-func _coop_row_style(crowned: bool) -> StyleBoxFlat:
+# Style d'une rangée : fond transparent pour TOUTES (le leader se distingue uniquement par la
+# couronne devant son nom, plus de liseré ni de fond doré).
+func _coop_row_style() -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.set_corner_radius_all(10)
 	sb.content_margin_left = 8.0
 	sb.content_margin_right = 8.0
 	sb.content_margin_top = 2.0
 	sb.content_margin_bottom = 2.0
-	if crowned:
-		sb.bg_color = Color(COOP_GOLD.r, COOP_GOLD.g, COOP_GOLD.b, 0.18)
-		sb.set_border_width_all(2)
-		sb.border_color = COOP_GOLD
-	else:
-		sb.bg_color = Color(0.0, 0.0, 0.0, 0.0)
+	sb.bg_color = Color(0.0, 0.0, 0.0, 0.0)
 	return sb
 
 # Ordre d'affichage : joueurs AVEC un score (déjà passés + courant en live) triés décroissant
@@ -240,7 +239,6 @@ func _refresh_coop_ranks() -> void:
 		var num := _coop_rows[p]["rank_num"] as Label
 		num.visible = not is_leader
 		num.text = str(i + 1)
-		(_coop_rows[p]["root"] as PanelContainer).add_theme_stylebox_override("panel", _coop_row_style(is_leader))
 
 # Flash d'une rangée : petit "punch" d'échelle (lisible même sans HDR sur mobile).
 func _flash_coop_row(p: int) -> void:
