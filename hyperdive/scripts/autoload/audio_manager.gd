@@ -32,6 +32,9 @@ var _is_ducked: bool = false
 # PCM 16 bits, joués via le pool SFX normal. Un timbre distinct par type + le "shield break".
 var _powerup_sfx: Dictionary = {}
 var _shield_break_sfx: AudioStreamWAV
+# Coop : "tic" de dépassement (on double un joueur) + arpège de prise de tête (on devient leader).
+var _coop_overtake_sfx: AudioStreamWAV
+var _coop_lead_sfx: AudioStreamWAV
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -184,6 +187,10 @@ func _generate_powerup_sfx() -> void:
 	_powerup_sfx["boost"] = _make_sweep(0.35, 320.0, 1300.0, Wave.SAW, 0.005, 0.3, 0.0, 0.0, 0.0, 0.1, 0.5)
 	# Bouclier qui éclate : zap descendant + bruit → "verre qui casse", distinct du hit de mort.
 	_shield_break_sfx = _make_sweep(0.35, 1000.0, 180.0, Wave.SQUARE, 0.003, 0.32, 0.0, 0.0, 0.0, 0.3, 0.55)
+	# Coop — dépassement : "tic" court montant, sec et satisfaisant (on grimpe au classement).
+	_coop_overtake_sfx = _make_sweep(0.12, 620.0, 1040.0, Wave.TRI, 0.004, 0.10, 0.0, 0.0, 0.0, 0.0, 0.45)
+	# Coop — prise de tête : petit arpège montant triomphant (E5-A5-D6).
+	_coop_lead_sfx = _make_arp([659.0, 880.0, 1175.0], 0.07, Wave.TRI, 0.5)
 
 func play_powerup(type: String) -> void:
 	var s: AudioStream = _powerup_sfx.get(type, null)
@@ -192,6 +199,12 @@ func play_powerup(type: String) -> void:
 
 func play_shield_break() -> void:
 	_play_sfx(_shield_break_sfx)
+
+func play_coop_overtake() -> void:
+	_play_sfx(_coop_overtake_sfx)
+
+func play_coop_lead() -> void:
+	_play_sfx(_coop_lead_sfx)
 
 func _osc(phase: float, wave: int) -> float:
 	match wave:

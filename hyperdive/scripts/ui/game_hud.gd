@@ -11,6 +11,23 @@ var _campaign_mode: bool = false
 # Cle = type, valeur = { "root": PanelContainer, "bar": ProgressBar }.
 var _pills: Dictionary = {}
 
+# ── Classement live coop (en jeu) ─────────────────────────────────────────────
+const COOP_GOLD := Color(0.949, 0.757, 0.306)
+const COOP_CREAM := Color(0.957, 0.914, 0.804)
+const COOP_OUTLINE := Color(0.04, 0.02, 0.01, 0.92)
+
+var _coop_active: bool = false
+var _coop_box: VBoxContainer                 # conteneur des rangees (dans InfoBar/VBox)
+var _coop_rows: Dictionary = {}              # joueur -> { root, name, score, crown }
+var _coop_order: Array = []                  # ordre d'affichage courant (indices joueurs)
+var _coop_cur: int = 0                       # joueur courant (celui qui joue)
+var _coop_round: int = 0
+var _coop_first_player: bool = false         # current_player == 0 -> aucun effet (rien a battre)
+var _coop_done: Array = []                   # joueurs ayant deja joue cette manche (indices < cur)
+var _coop_final: Dictionary = {}             # joueur deja joue -> score final de la manche
+var _coop_passed: Dictionary = {}            # joueur deja DEPASSE ce tour (flash une seule fois)
+var _coop_crown_holder: int = -1             # joueur actuellement couronne (leader)
+
 # Couleurs par type (memes teintes que les power-up 3D).
 const PILL_COLORS: Dictionary = {
 	"shield": Color(0.235, 0.682, 0.639, 1.0),
@@ -59,12 +76,170 @@ func set_campaign_mode(enabled: bool) -> void:
 	# taille mini du conteneur se met à jour après le toggle de visibilité).
 	_resize_info_bar.call_deferred()
 
-# Coop : on garde l'affichage distance/altitude (mode classique/jetpack) mais on masque les
-# pièces (aucune pièce en coop). On NE touche PAS à _campaign_mode (sinon la distance n'est
-# plus mise à jour dans _process — elle attendrait update_campaign_time, jamais appelé en coop).
-func set_coins_hidden(hidden: bool) -> void:
-	$InfoBar/VBox/CoinCounter.visible = not hidden
+# Coop : remplace l'affichage solo (distance + pièces) par un CLASSEMENT LIVE — une rangée par
+# joueur, triée par score décroissant en temps réel. Le joueur courant voit son score monter et
+# sa position bouger ; les autres affichent leur score final (déjà joué) ou "..." (pas encore).
+func set_coop_mode() -> void:
+	_coop_active = true
+	_distance_label.visible = false
+	$InfoBar/VBox/CoinCounter.visible = false
+	# Élargir l'InfoBar : noms + scores demandent plus de largeur que le seul score solo.
+	($InfoBar as Panel).offset_left = -300.0
+
+	_coop_cur = Coop.current_player
+	_coop_round = Coop.current_round
+	_coop_first_player = (_coop_cur == 0)   # 1er à jouer cette manche → personne à battre
+	_coop_done = []
+	_coop_final = {}
+	_coop_passed = {}
+	_coop_crown_holder = -1
+	for p in range(Coop.num_players):
+		if p < _coop_cur:   # ordre de jeu = ordre d'index → joueurs avant le courant ont déjà joué
+			_coop_done.append(p)
+			_coop_final[p] = int(Coop.scores[p][_coop_round])
+
+	_build_coop_rows()
+	_coop_order = _compute_coop_order(0)
+	_apply_coop_order()
+	# Couronne de départ : le meilleur des joueurs déjà passés (silencieuse). Jamais pour le 1er.
+	if not _coop_first_player:
+		_set_coop_crown(_coop_order[0])
+		_coop_crown_holder = _coop_order[0]
 	_resize_info_bar.call_deferred()
+
+func _build_coop_rows() -> void:
+	_coop_box = VBoxContainer.new()
+	_coop_box.add_theme_constant_override("separation", 3)
+	$InfoBar/VBox.add_child(_coop_box)
+	_coop_rows = {}
+	for p in range(Coop.num_players):
+		var row := _make_coop_row(p)
+		_coop_box.add_child(row["root"])
+		_coop_rows[p] = row
+
+func _make_coop_row(p: int) -> Dictionary:
+	var col: Color = Coop.player_color(p)
+	var root := PanelContainer.new()
+	root.add_theme_stylebox_override("panel", _coop_row_style(false))
+	var hb := HBoxContainer.new()
+	hb.add_theme_constant_override("separation", 6)
+	var crown := _coop_label("", 18, Color.WHITE, 22.0)
+	var name_lbl := _coop_label(Coop.player_names[p], 20, col)
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_lbl.clip_text = true
+	var score_lbl := _coop_label("", 20, COOP_CREAM)
+	score_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	# Texte initial : joueurs déjà passés = score final ; pas encore joué = "..." ; courant = 0.
+	if p < _coop_cur:
+		score_lbl.text = UIAnimations.format_number(_coop_final[p])
+	elif p > _coop_cur:
+		score_lbl.text = "…"
+	else:
+		score_lbl.text = "0"
+	hb.add_child(crown)
+	hb.add_child(name_lbl)
+	hb.add_child(score_lbl)
+	root.add_child(hb)
+	return {"root": root, "name": name_lbl, "score": score_lbl, "crown": crown}
+
+func _coop_label(text: String, size: int, color: Color, min_w: float = 0.0) -> Label:
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.add_theme_font_size_override("font_size", size)
+	lbl.add_theme_color_override("font_color", color)
+	lbl.add_theme_color_override("font_outline_color", COOP_OUTLINE)
+	lbl.add_theme_constant_override("outline_size", 4)
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	if min_w > 0.0:
+		lbl.custom_minimum_size = Vector2(min_w, 0)
+	return lbl
+
+# Style d'une rangée : transparent par défaut ; liseré + fond dorés quand le joueur est leader.
+func _coop_row_style(crowned: bool) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.set_corner_radius_all(10)
+	sb.content_margin_left = 8.0
+	sb.content_margin_right = 8.0
+	sb.content_margin_top = 2.0
+	sb.content_margin_bottom = 2.0
+	if crowned:
+		sb.bg_color = Color(COOP_GOLD.r, COOP_GOLD.g, COOP_GOLD.b, 0.18)
+		sb.set_border_width_all(2)
+		sb.border_color = COOP_GOLD
+	else:
+		sb.bg_color = Color(0.0, 0.0, 0.0, 0.0)
+	return sb
+
+# Ordre d'affichage : joueurs AVEC un score (déjà passés + courant en live) triés décroissant
+# (égalité → le joueur courant devant), puis joueurs PAS ENCORE passés (en bas, ordre d'index).
+func _compute_coop_order(live: int) -> Array:
+	var scored: Array = []
+	for d in _coop_done:
+		scored.append([_coop_final[d], d, false])
+	scored.append([live, _coop_cur, true])
+	scored.sort_custom(func(a: Array, b: Array) -> bool:
+		if a[0] != b[0]:
+			return a[0] > b[0]
+		if a[2] != b[2]:
+			return a[2]            # à score égal, le joueur courant passe devant
+		return a[1] < b[1])
+	var order: Array = []
+	for e in scored:
+		order.append(e[1])
+	for p in range(Coop.num_players):
+		if p > _coop_cur:
+			order.append(p)
+	return order
+
+func _apply_coop_order() -> void:
+	for i in range(_coop_order.size()):
+		_coop_box.move_child(_coop_rows[_coop_order[i]]["root"], i)
+
+func _update_coop_ranking() -> void:
+	var live: int = int(abs(_player.global_position.y))
+	(_coop_rows[_coop_cur]["score"] as Label).text = UIAnimations.format_number(live)
+
+	# Effets seulement à partir du 2e joueur (le 1er n'a personne à dépasser).
+	if not _coop_first_player:
+		# Dépassement : à chaque joueur déjà passé que l'on franchit (une fois), flash + son + vibration.
+		for d in _coop_done:
+			if not _coop_passed.has(d) and live > _coop_final[d]:
+				_coop_passed[d] = true
+				Audio.play_coop_overtake()
+				Settings.vibrate(30)
+				_flash_coop_row(_coop_cur)
+				_flash_coop_row(d)
+
+	var order: Array = _compute_coop_order(live)
+	if order != _coop_order:
+		_coop_order = order
+		_apply_coop_order()
+
+	# Couronne = leader (tête du classement). Quand le COURANT prend la tête → son + flash + couronne.
+	if not _coop_first_player:
+		var leader: int = order[0]
+		if leader != _coop_crown_holder:
+			_set_coop_crown(leader)
+			if leader == _coop_cur:
+				Audio.play_coop_lead()
+				Settings.vibrate(30)
+				_flash_coop_row(_coop_cur)
+			_coop_crown_holder = leader
+
+# Pose la couronne (liseré doré + 👑) sur le joueur p, la retire des autres.
+func _set_coop_crown(p: int) -> void:
+	for pp in _coop_rows:
+		var on: bool = (pp == p)
+		(_coop_rows[pp]["root"] as PanelContainer).add_theme_stylebox_override("panel", _coop_row_style(on))
+		(_coop_rows[pp]["crown"] as Label).text = "👑" if on else ""
+
+# Flash d'une rangée : petit "punch" d'échelle (lisible même sans HDR sur mobile).
+func _flash_coop_row(p: int) -> void:
+	var root := _coop_rows[p]["root"] as Control
+	root.pivot_offset = root.size / 2.0
+	root.scale = Vector2(1.12, 1.12)
+	var t := root.create_tween()
+	t.tween_property(root, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func update_campaign_time(seconds: float) -> void:
 	_distance_label.text = str(ceili(seconds)) + "s"
@@ -72,7 +247,9 @@ func update_campaign_time(seconds: float) -> void:
 func _process(_delta: float) -> void:
 	if _player == null:
 		return
-	if not _campaign_mode:
+	if _coop_active:
+		_update_coop_ranking()
+	elif not _campaign_mode:
 		_distance_label.text = UIAnimations.format_number(int(abs(_player.global_position.y))) + " m"
 	_update_powerup_indicator()
 

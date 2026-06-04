@@ -16,7 +16,7 @@ func _ready() -> void:
 	if Coop.active:
 		$CoinSpawner.set_process(false)
 		($PowerupSpawner as PowerupSpawner).set_campaign_mode(true)
-		($GameHUD as GameHUD).set_coins_hidden(true)
+		($GameHUD as GameHUD).set_coop_mode()   # classement live à la place de l'affichage solo
 		return
 	if Settings.active_mode != "campaign":
 		return
