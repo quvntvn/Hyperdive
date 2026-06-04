@@ -70,6 +70,7 @@ var tiebreak_mode: String = "infinite"  # mode tiré pour ce round final
 var tiebreak_winner: int = -1           # vainqueur départagé (-1 tant que non résolu)
 var tiebreak_orig_leaders: Array = []   # ex-æquo 1re place INITIAUX (pour le classement final)
 var tiebreak_last_scores: Dictionary = {}  # scores du DERNIER round final résolutif
+var tiebreak_bonus: Dictionary = {}     # joueur -> points bonus (+1 au vainqueur du départage)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Cycle de vie de session
@@ -135,6 +136,7 @@ func _reset_tiebreak() -> void:
 	tiebreak_winner = -1
 	tiebreak_orig_leaders = []
 	tiebreak_last_scores = {}
+	tiebreak_bonus = {}
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Accès au tour courant
@@ -345,6 +347,10 @@ func _resolve_tiebreak() -> void:
 	if winners.size() == 1:
 		tiebreak_winner = winners[0]
 		tiebreak_last_scores = tiebreak_scores.duplicate()
+		# +1 point bonus au vainqueur du départage → il passe officiellement devant les ex-æquo
+		# au classement de points (plus d'égalité affichée à la 1re place). Va au vainqueur FINAL
+		# si plusieurs rounds finals se sont enchaînés (récompense le départage tranché).
+		tiebreak_bonus[tiebreak_winner] = 1
 		tiebreak_active = false
 		Transition.change_scene(SCENE_FINAL)
 	else:
@@ -441,8 +447,9 @@ func standings(last_round: int) -> Array:
 	var entries: Array = []
 	for p in range(num_players):
 		entries.append({
+			# +bonus = +1 au vainqueur d'un round final de départage (vide hors départage).
 			"player": p,
-			"points": points_through(p, last_round),
+			"points": points_through(p, last_round) + int(tiebreak_bonus.get(p, 0)),
 			"best_score": _best_single_score(p, last_round),
 			"rounds_won": _rounds_won(p, last_round),
 		})
