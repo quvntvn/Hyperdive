@@ -26,7 +26,6 @@ var _coop_first_player: bool = false         # current_player == 0 -> aucun effe
 var _coop_done: Array = []                   # joueurs ayant deja joue cette manche (indices < cur)
 var _coop_final: Dictionary = {}             # joueur deja joue -> score final de la manche
 var _coop_passed: Dictionary = {}            # joueur deja DEPASSE ce tour (flash une seule fois)
-var _coop_crown_holder: int = -1             # joueur actuellement couronne (leader)
 
 # Couleurs par type (memes teintes que les power-up 3D).
 const PILL_COLORS: Dictionary = {
@@ -92,7 +91,6 @@ func set_coop_mode() -> void:
 	_coop_done = []
 	_coop_final = {}
 	_coop_passed = {}
-	_coop_crown_holder = -1
 	for p in range(Coop.num_players):
 		if p < _coop_cur:   # ordre de jeu = ordre d'index → joueurs avant le courant ont déjà joué
 			_coop_done.append(p)
@@ -101,10 +99,7 @@ func set_coop_mode() -> void:
 	_build_coop_rows()
 	_coop_order = _compute_coop_order(0)
 	_apply_coop_order()
-	# Couronne de départ : le meilleur des joueurs déjà passés (silencieuse). Jamais pour le 1er.
-	if not _coop_first_player:
-		_set_coop_crown(_coop_order[0])
-		_coop_crown_holder = _coop_order[0]
+	_refresh_coop_ranks()   # rangs initiaux (couronne au meilleur déjà passé, silencieuse)
 	_resize_info_bar.call_deferred()
 
 func _build_coop_rows() -> void:
@@ -123,7 +118,9 @@ func _make_coop_row(p: int) -> Dictionary:
 	root.add_theme_stylebox_override("panel", _coop_row_style(false))
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 6)
-	var crown := _coop_label("", 18, Color.WHITE, 22.0)
+	# Colonne de rang à gauche : 👑 pour le leader, chiffre sinon (rempli par _refresh_coop_ranks).
+	var rank := _coop_label("", 18, COOP_CREAM, 26.0)
+	rank.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var name_lbl := _coop_label(Coop.player_names[p], 20, col)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.clip_text = true
@@ -136,11 +133,11 @@ func _make_coop_row(p: int) -> Dictionary:
 		score_lbl.text = "…"
 	else:
 		score_lbl.text = "0"
-	hb.add_child(crown)
+	hb.add_child(rank)
 	hb.add_child(name_lbl)
 	hb.add_child(score_lbl)
 	root.add_child(hb)
-	return {"root": root, "name": name_lbl, "score": score_lbl, "crown": crown}
+	return {"root": root, "name": name_lbl, "score": score_lbl, "rank": rank}
 
 func _coop_label(text: String, size: int, color: Color, min_w: float = 0.0) -> Label:
 	var lbl := Label.new()
@@ -212,26 +209,25 @@ func _update_coop_ranking() -> void:
 
 	var order: Array = _compute_coop_order(live)
 	if order != _coop_order:
+		var prev_leader: int = _coop_order[0] if not _coop_order.is_empty() else -1
 		_coop_order = order
 		_apply_coop_order()
+		_refresh_coop_ranks()   # rangs (couronne/chiffres) + liseré doré suivent le nouvel ordre
+		# Prise de tête par le COURANT (transition) → son + flash. Jamais pour le 1er joueur.
+		if not _coop_first_player and order[0] == _coop_cur and prev_leader != _coop_cur:
+			Audio.play_coop_lead()
+			Settings.vibrate(30)
+			_flash_coop_row(_coop_cur)
 
-	# Couronne = leader (tête du classement). Quand le COURANT prend la tête → son + flash + couronne.
-	if not _coop_first_player:
-		var leader: int = order[0]
-		if leader != _coop_crown_holder:
-			_set_coop_crown(leader)
-			if leader == _coop_cur:
-				Audio.play_coop_lead()
-				Settings.vibrate(30)
-				_flash_coop_row(_coop_cur)
-			_coop_crown_holder = leader
-
-# Pose la couronne (liseré doré + 👑) sur le joueur p, la retire des autres.
-func _set_coop_crown(p: int) -> void:
-	for pp in _coop_rows:
-		var on: bool = (pp == p)
-		(_coop_rows[pp]["root"] as PanelContainer).add_theme_stylebox_override("panel", _coop_row_style(on))
-		(_coop_rows[pp]["crown"] as Label).text = "👑" if on else ""
+# Rang à gauche de chaque rangée selon l'ordre courant : 👑 pour le leader (rang 1 — sauf le
+# 1er joueur de la manche, qui n'a personne à battre → chiffre), chiffre sinon. Liseré doré sur
+# le seul leader. Unifie rang + couronne (pas de doublon de couronne sur la ligne).
+func _refresh_coop_ranks() -> void:
+	for i in range(_coop_order.size()):
+		var p: int = _coop_order[i]
+		var is_leader: bool = (i == 0 and not _coop_first_player)
+		(_coop_rows[p]["rank"] as Label).text = "👑" if is_leader else str(i + 1)
+		(_coop_rows[p]["root"] as PanelContainer).add_theme_stylebox_override("panel", _coop_row_style(is_leader))
 
 # Flash d'une rangée : petit "punch" d'échelle (lisible même sans HDR sur mobile).
 func _flash_coop_row(p: int) -> void:
