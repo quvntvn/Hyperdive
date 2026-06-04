@@ -106,7 +106,10 @@ func _make_standing_row(rank: int, s: Dictionary) -> PanelContainer:
 	var name_lbl := _label(Coop.player_names[p], 22, col)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(name_lbl)
-	row.add_child(_label("%d ✓" % int(s["rounds_won"]), 18, TEXT_DIM, 48))
+	# Manches gagnées (1res places) : couronne + nombre. Doré si >0, grisé si 0 (légende en
+	# en-tête du classement). Cohérent avec la couronne du leader (HUD + en-tête).
+	var won: int = int(s["rounds_won"])
+	row.add_child(_label("👑 %d" % won, 18, TEXT_GOLD if won > 0 else TEXT_DIM, 64.0))
 	row.add_child(_label("%d pts" % int(s["points"]), 22, TEXT_GOLD, 72))
 	card.add_child(row)
 	return card
