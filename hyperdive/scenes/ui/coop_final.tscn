@@ -45,12 +45,6 @@ custom_minimum_size = Vector2(0, 250)
 alignment = 1
 theme_override_constants/separation = 12
 
-[node name="LegendLabel" type="Label" parent="Content"]
-text = "👑 = manches gagnées"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 15
-theme_override_colors/font_color = Color(0.8, 0.78, 0.72, 1)
-
 [node name="ScrollContainer" type="ScrollContainer" parent="Content"]
 size_flags_vertical = 3
 

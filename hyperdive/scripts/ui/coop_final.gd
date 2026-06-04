@@ -104,7 +104,8 @@ func _podium_slot(s: Dictionary, place: int) -> Control:
 	slot.add_child(pillar)
 	return slot
 
-# Classement général : [rang] [pastille] [nom]  [manches gagnées]  [total pts].
+# Classement général : [rang] [pastille] [nom]  [total pts]. (manches gagnées non affichées —
+# reste un critère interne de départage.)
 func _make_standing_row(rank: int, s: Dictionary) -> PanelContainer:
 	var p: int = int(s["player"])
 	var col: Color = Coop.player_color(p)
@@ -120,10 +121,6 @@ func _make_standing_row(rank: int, s: Dictionary) -> PanelContainer:
 	var name_lbl := _label(Coop.player_names[p], 22, col)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(name_lbl)
-	# Manches gagnées (1res places) : couronne + nombre. Doré si >0, grisé si 0 (légende en
-	# en-tête du classement). Cohérent avec la couronne du leader (HUD + en-tête).
-	var won: int = int(s["rounds_won"])
-	row.add_child(_label("👑 %d" % won, 18, TEXT_GOLD if won > 0 else TEXT_DIM, 64.0))
 	var pts_lbl := _label("%d pts" % int(s["points"]), 22, TEXT_GOLD, 72)
 	if rank == 1:   # vainqueur : contour blanc pour le mettre en avant
 		pts_lbl.add_theme_color_override("font_outline_color", Color.WHITE)
