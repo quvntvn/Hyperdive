@@ -62,9 +62,9 @@ anchor_bottom = 1.0
 offset_left = 40.0
 offset_top = 60.0
 offset_right = -40.0
-offset_bottom = -110.0
+offset_bottom = -50.0
 alignment = 1
-theme_override_constants/separation = 32
+theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="MenuUI/Screen/Layout"]
 unique_name_in_owner = true
@@ -76,7 +76,7 @@ theme_type_variation = &"Title"
 theme_override_font_sizes/font_size = 72
 
 [node name="Spacer1" type="Control" parent="MenuUI/Screen/Layout"]
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 12)
 
 [node name="StatsContainer" type="VBoxContainer" parent="MenuUI/Screen/Layout"]
 theme_override_constants/separation = 8
@@ -96,21 +96,21 @@ theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
 
 [node name="Spacer2" type="Control" parent="MenuUI/Screen/Layout"]
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 12)
 
 [node name="ButtonsContainer" type="VBoxContainer" parent="MenuUI/Screen/Layout"]
-theme_override_constants/separation = 16
+theme_override_constants/separation = 10
 
 [node name="CampagneButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 80)
+custom_minimum_size = Vector2(300, 72)
 size_flags_horizontal = 4
 text = "NIVEAU"
 theme_override_font_sizes/font_size = 36
 
 [node name="RecordButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 80)
+custom_minimum_size = Vector2(300, 72)
 size_flags_horizontal = 4
 text = "CLASSIQUE"
 clip_text = false
@@ -119,7 +119,7 @@ theme_override_font_sizes/font_size = 32
 
 [node name="JetpackButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 80)
+custom_minimum_size = Vector2(300, 72)
 size_flags_horizontal = 4
 text = "JETPACK"
 clip_text = false
