@@ -1,9 +1,10 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="MainMenuScript"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_screen.tscn" id="SettingsScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/shop_screen.tscn" id="ShopScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/missions_screen.tscn" id="MissionsScene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/coop_config_screen.tscn" id="CoopConfigScene"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/corridor_walls.tscn" id="CorridorWallsScene"]
 [ext_resource type="PackedScene" path="res://scenes/effects/post_process.tscn" id="PostProcessScene"]
 [ext_resource type="Script" path="res://scripts/ui/menu_camera.gd" id="MenuCameraScript"]
@@ -125,11 +126,18 @@ clip_text = false
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 32
 
+[node name="CoopButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 72)
+size_flags_horizontal = 4
+text = "COOP"
+theme_override_font_sizes/font_size = 30
+
 [node name="ShopButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 56)
 size_flags_horizontal = 4
-text = "SHOP"
+text = "COSMÉTIQUE"
 theme_override_font_sizes/font_size = 24
 
 [node name="DefisButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
@@ -159,3 +167,5 @@ stretch_mode = 5
 [node name="SettingsScreen" parent="." instance=ExtResource("SettingsScene")]
 
 [node name="MissionsScreen" parent="." instance=ExtResource("MissionsScene")]
+
+[node name="CoopConfigScreen" parent="." instance=ExtResource("CoopConfigScene")]

@@ -1,0 +1,63 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/coop_config_screen.gd" id="CoopConfigScript"]
+[ext_resource type="Script" path="res://scripts/ui/glass_blur.gd" id="GlassBlurScript"]
+
+[node name="CoopConfigScreen" type="CanvasLayer"]
+layer = 7
+visible = false
+process_mode = 3
+script = ExtResource("CoopConfigScript")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("GlassBlurScript")
+gui_corner_radius = 0.0
+
+[node name="Tint" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.06, 0.05, 0.1, 0.45)
+
+[node name="Content" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 60.0
+offset_right = -24.0
+offset_bottom = -40.0
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="Content"]
+text = "COOP"
+horizontal_alignment = 1
+theme_type_variation = &"Title"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Content"]
+size_flags_vertical = 3
+
+[node name="Form" type="VBoxContainer" parent="Content/ScrollContainer"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="SummaryLabel" type="Label" parent="Content"]
+visible = false
+horizontal_alignment = 1
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.235, 0.682, 0.639, 1)
+
+[node name="ButtonsRow" type="HBoxContainer" parent="Content"]
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="StartButton" type="Button" parent="Content/ButtonsRow"]
+custom_minimum_size = Vector2(200, 64)
+text = "DÉMARRER"
+theme_override_font_sizes/font_size = 26
+
+[node name="MenuButton" type="Button" parent="Content/ButtonsRow"]
+custom_minimum_size = Vector2(160, 64)
+text = "RETOUR"
+theme_override_font_sizes/font_size = 22

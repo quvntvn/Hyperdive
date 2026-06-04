@@ -5,6 +5,7 @@ func _ready() -> void:
 	%CampagneButton.pressed.connect(_on_campagne_pressed)
 	%RecordButton.pressed.connect(_on_record_pressed)
 	%JetpackButton.pressed.connect(_on_jetpack_pressed)
+	%CoopButton.pressed.connect(_on_coop_pressed)
 	%ShopButton.pressed.connect(_on_shop_pressed)
 	%DefisButton.pressed.connect(_on_defis_pressed)
 	%SettingsGearButton.pressed.connect(_on_reglages_pressed)
@@ -84,6 +85,12 @@ func _on_jetpack_pressed() -> void:
 	Audio.play_ui_click()
 	Settings.active_mode = "jetpack"
 	Transition.change_scene("res://scenes/game/main_game.tscn")
+
+func _on_coop_pressed() -> void:
+	Audio.play_ui_click()
+	var coop := get_tree().get_first_node_in_group("coop_config_screen")
+	if coop:
+		coop.open()
 
 func _on_shop_pressed() -> void:
 	Audio.play_ui_click()
