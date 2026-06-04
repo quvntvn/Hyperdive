@@ -7,7 +7,11 @@ shader_type canvas_item;
 // par pixel écran), donc UN SEUL ShaderMaterial partagé suffit pour tous les boutons,
 // quelle que soit leur taille — pas besoin d'uniform de taille par instance.
 
-uniform float corner_radius : hint_range(0.0, 60.0) = 20.0; // doit matcher le thème
+// Rayon d'arrondi exprimé en FRACTION du petit côté de l'élément (échelle-indépendant).
+// Le shader le multiplie par la taille RÉELLE en px écran (rect_px, déduit de fwidth) → le
+// masque épouse EXACTEMENT l'arrondi de l'élément quelle que soit l'échelle du canvas (mobile),
+// sans dépendre du transform canvas (qui causait des coins doublés/décalés).
+uniform float corner_ratio : hint_range(0.0, 0.5) = 0.0;
 uniform float blur_radius : hint_range(0.0, 40.0) = 16.0;   // RAYON du disque de flou en px
                                                            // (reach max des taps). Augmenter =
                                                            // flou plus large, même nb de taps.
@@ -32,7 +36,9 @@ void fragment() {
 	// Taille du rect en pixels, déduite de la dérivée d'UV (1 / variation par pixel).
 	vec2 rect_px = 1.0 / fwidth(UV);
 	vec2 p = (UV - 0.5) * rect_px;
-	float d = rounded_box(p, rect_px * 0.5, corner_radius);
+	// Rayon en px écran = fraction × petit côté réel → suit exactement l'arrondi de l'élément.
+	float r = corner_ratio * min(rect_px.x, rect_px.y);
+	float d = rounded_box(p, rect_px * 0.5, r);
 	// Masque coins arrondis (antialiasé sur ~1.5px).
 	float mask = 1.0 - smoothstep(-1.5, 1.5, d);
 	if (mask < 0.004) {
