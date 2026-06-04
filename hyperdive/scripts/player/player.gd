@@ -432,6 +432,9 @@ func _on_body_entered(body: Node3D) -> void:
 		has_shield = false
 		_remove_shield_aura()
 		_shield_shatter()   # eclatement turquoise = SAUVEGARDE (jamais rouge), pas une mort
+		# Détruit AUSSI l'obstacle percuté : sinon il reste là et tue le joueur une fraction de
+		# seconde après l'éclatement (re-collision injuste). Par-élément pour les zones rares.
+		_destroy_obstacle_shield(body)
 		return
 	_flash_hit()   # flash blanc "mortel" seulement quand on meurt vraiment
 	_is_dead = true
@@ -1027,6 +1030,37 @@ func _obstacle_color(body: Node) -> Color:
 	if body is ObstacleBase and (body as ObstacleBase).zone_length > 0.0:
 		return Color(0.239, 0.173, 0.118, 1.0)
 	return Color(0.914, 0.310, 0.216, 1.0)
+
+# Destruction d'un obstacle quand le BOUCLIER absorbe le choc (partout : solo + coop). Même
+# rendu que la pulvérisation boost (burst coloré). body_entered ne fournit pas l'index de
+# forme → pour une zone rare on retire l'ÉLÉMENT le plus proche du joueur (celui qu'on percute),
+# pas toute la zone (la zone survit et despawn normalement, comptée une fois). Obstacle standard
+# = retiré en entier et compté comme esquivé (cohérent avec le boost).
+func _destroy_obstacle_shield(body: Node) -> void:
+	if body == null or not (body is Node3D):
+		return
+	var is_zone: bool = body is ObstacleBase and (body as ObstacleBase).zone_length > 0.0
+	if is_zone:
+		var col: Node3D = _nearest_zone_element(body)
+		if col != null:
+			_spawn_pulverize_burst(col.global_position, _obstacle_color(body))
+			_remove_zone_element(body, col)
+		return
+	_spawn_pulverize_burst((body as Node3D).global_position, _obstacle_color(body))
+	Settings.register_obstacle_dodged()
+	(body as Node3D).queue_free()
+
+# Élément (CollisionShape3D) d'une zone rare le plus proche du joueur = celui qu'on percute.
+func _nearest_zone_element(body: Node) -> Node3D:
+	var best: Node3D = null
+	var best_d: float = INF
+	for child in body.get_children():
+		if child is CollisionShape3D:
+			var d: float = global_position.distance_to((child as CollisionShape3D).global_position)
+			if d < best_d:
+				best_d = d
+				best = child as Node3D
+	return best
 
 func _spawn_pulverize_burst(pos: Vector3, color: Color) -> void:
 	var burst := GPUParticles3D.new()
