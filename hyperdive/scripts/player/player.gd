@@ -83,12 +83,22 @@ func _ready() -> void:
 	# Pulverisation en boost : signal PAR FORME touchee → gere le par-element des zones rares
 	# (on ne detruit que ce qu'on percute reellement, le reste de la zone survit).
 	body_shape_entered.connect(_on_body_shape_entered)
-	_apply_skin(Settings.equipped_skin)
-	Settings.equipped_skin_changed.connect(_apply_skin)
+	# Coop : la couleur du corps est forcée à la couleur d'identité du joueur courant (pas le
+	# skin équipé du profil) ; le trail est désactivé (l'identité passe par la couleur du corps).
+	# Sinon : skin + trail du profil, comme en solo.
+	if Coop.active:
+		_apply_coop_color(Coop.current_color())
+	else:
+		_apply_skin(Settings.equipped_skin)
+		Settings.equipped_skin_changed.connect(_apply_skin)
 	_update_body_color()
 	_setup_fall_trail()
-	_apply_trail()
-	Settings.equipped_trail_changed.connect(func(_id: String) -> void: _apply_trail())
+	if Coop.active:
+		if _trail_node:
+			_trail_node.emitting = false
+	else:
+		_apply_trail()
+		Settings.equipped_trail_changed.connect(func(_id: String) -> void: _apply_trail())
 
 func _setup_fall_trail() -> void:
 	var trail := GPUParticles3D.new()
@@ -327,6 +337,15 @@ func _apply_skin(skin_id: String) -> void:
 		return
 	_style_body_material(mat, skin)
 
+# Coop : matériau plat à la couleur d'identité du joueur (ignore le skin du profil). On pose
+# _base_skin_color → le ragdoll et _update_body_color héritent automatiquement de la couleur.
+func _apply_coop_color(color: Color) -> void:
+	_base_skin_color = color
+	var mat := $Character/Torso.material_override as StandardMaterial3D
+	if mat == null:
+		return
+	_style_body_material(mat, {"color": color})
+
 # Applique TOUTES les propriétés du matériau (pas que l'albedo) selon le skin : metallic,
 # roughness, anisotropie, émission. Centralisé pour que le ragdoll hérite du même rendu que
 # le perso vivant (un or métallique reste métallique à la mort, un skin plat reste plat).
@@ -457,7 +476,9 @@ func _trigger_ragdoll() -> void:
 	# roughness, anisotropie, émission, albedo — pas juste la couleur. Sinon un or/acier
 	# métallique redevenait jaune/gris plat à la mort. On duplique le matériau par partie
 	# (sinon toutes partageraient la ressource du .tscn) pour ne pas polluer d'autres ragdolls.
-	var skin: Dictionary = Catalog.get_skin_by_id(Settings.equipped_skin)
+	# Coop : le ragdoll sort à la couleur d'identité du joueur (matériau plat), pas le skin
+	# du profil. Sinon : matériau complet du skin équipé (métal/or/émission préservés).
+	var skin: Dictionary = {"color": Coop.current_color()} if Coop.active else Catalog.get_skin_by_id(Settings.equipped_skin)
 	for part: Node in rag.get_children():
 		if part is RigidBody3D:
 			var mi: MeshInstance3D = part.get_node_or_null("MeshInstance3D")
@@ -486,6 +507,13 @@ func _trigger_ragdoll() -> void:
 	await get_tree().create_timer(1.2).timeout
 
 	var distance: int = int(abs(global_position.y))
+	# COOP : la mort = fin du tour. On enregistre le score et on route vers le joueur/écran
+	# suivant — AUCUNE stat perso (pas de record, pas de mort comptée, pas de finalize), et
+	# PAS d'écran de game over solo. Le solo (Coop.active=false) garde son flux inchangé.
+	if Coop.active:
+		Audio.play_game_over()
+		Coop.end_turn(distance)
+		return
 	Settings.update_best_distance(distance)
 	Settings.daily_distance += distance
 	Settings.daily_time += int(_run_time)

@@ -59,6 +59,13 @@ func set_campaign_mode(enabled: bool) -> void:
 	# taille mini du conteneur se met à jour après le toggle de visibilité).
 	_resize_info_bar.call_deferred()
 
+# Coop : on garde l'affichage distance/altitude (mode classique/jetpack) mais on masque les
+# pièces (aucune pièce en coop). On NE touche PAS à _campaign_mode (sinon la distance n'est
+# plus mise à jour dans _process — elle attendrait update_campaign_time, jamais appelé en coop).
+func set_coins_hidden(hidden: bool) -> void:
+	$InfoBar/VBox/CoinCounter.visible = not hidden
+	_resize_info_bar.call_deferred()
+
 func update_campaign_time(seconds: float) -> void:
 	_distance_label.text = str(ceili(seconds)) + "s"
 

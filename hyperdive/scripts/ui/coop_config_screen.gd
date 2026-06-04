@@ -175,19 +175,9 @@ func _on_start_pressed() -> void:
 	for i in range(_num_players):
 		names.append(_names[i])
 	Coop.start_session(_num_players, _rounds, _mode, names)
-	_show_summary()
-
-# COMMIT 1 : résumé visible (testable mobile). Remplacé par la navigation vers la passation
-# au commit 2.
-func _show_summary() -> void:
-	var modes: Array = []
-	for m in Coop.round_modes:
-		modes.append(Coop.mode_label(m))
-	var txt: String = "Session prête : %d joueurs · %d manches\n" % [Coop.num_players, Coop.num_rounds]
-	txt += "Manches : " + ", ".join(modes) + "\n"
-	txt += "Joueurs : " + ", ".join(Coop.player_names)
-	_summary.text = txt
-	_summary.visible = true
+	visible = false
+	# Entrée dans le flux coop : passation du 1er joueur (puis manche au clic PRÊT).
+	Coop.begin_session_flow()
 
 func _on_menu_pressed() -> void:
 	Audio.play_ui_click()

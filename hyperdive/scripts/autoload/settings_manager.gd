@@ -163,7 +163,11 @@ func update_best_distance(distance: int) -> void:
 # === Hooks de stats pour les défis (un seul point d'appel chacun) ===
 
 # Début de partie (appelé depuis player._ready). Incrémente parties + remet les compteurs de run.
+# COOP : court-circuité — aucune stat perso (parties, esquives…) ne bouge. run_active reste
+# false → register_obstacle_dodged() devient un no-op de lui-même. Solo intouché.
 func register_run_start() -> void:
+	if Coop.active:
+		return
 	reset_run_stats()
 	total_games += 1
 	daily_games += 1
@@ -185,7 +189,10 @@ func register_obstacle_dodged() -> void:
 	# Pas de save ici (trop fréquent) : persisté au finalize_run de fin de partie.
 
 # Type de power-up ramassé. On mémorise l'ensemble des types vus (défi "utilise les 4").
+# COOP : court-circuité (les power-up coop ne valident pas les défis solo).
 func register_powerup_used(ptype: String) -> void:
+	if Coop.active:
+		return
 	if ptype in powerups_used:
 		return
 	powerups_used.append(ptype)

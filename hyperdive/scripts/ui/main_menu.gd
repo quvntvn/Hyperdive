@@ -2,6 +2,9 @@ extends Node3D
 class_name MainMenu
 
 func _ready() -> void:
+	# Garde-fou : atterrir au menu = toute session coop est terminée/abandonnée. On coupe
+	# Coop.active ici (point unique) → un lancement solo ensuite n'hérite jamais du contexte coop.
+	Coop.clear()
 	%CampagneButton.pressed.connect(_on_campagne_pressed)
 	%RecordButton.pressed.connect(_on_record_pressed)
 	%JetpackButton.pressed.connect(_on_jetpack_pressed)

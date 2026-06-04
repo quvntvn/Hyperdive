@@ -1,0 +1,76 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/coop_passation.gd" id="PassationScript"]
+
+[node name="CoopPassation" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("PassationScript")
+
+[node name="BG" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.122, 0.188, 0.369, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Card" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(420, 0)
+
+[node name="Margin" type="MarginContainer" parent="Center/Card"]
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 36
+
+[node name="VBox" type="VBoxContainer" parent="Center/Card/Margin"]
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="RoundLabel" type="Label" parent="Center/Card/Margin/VBox"]
+text = "MANCHE 1 / 5"
+horizontal_alignment = 1
+theme_type_variation = &"Subtitle"
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
+
+[node name="ModeLabel" type="Label" parent="Center/Card/Margin/VBox"]
+text = "CLASSIQUE"
+horizontal_alignment = 1
+theme_type_variation = &"Title"
+theme_override_font_sizes/font_size = 40
+
+[node name="Sep" type="HSeparator" parent="Center/Card/Margin/VBox"]
+
+[node name="TurnLabel" type="Label" parent="Center/Card/Margin/VBox"]
+text = "AU TOUR DE"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
+
+[node name="NameLabel" type="Label" parent="Center/Card/Margin/VBox"]
+text = "Joueur 1"
+horizontal_alignment = 1
+clip_text = false
+autowrap_mode = 0
+theme_override_font_sizes/font_size = 54
+
+[node name="ColorBar" type="ColorRect" parent="Center/Card/Margin/VBox"]
+custom_minimum_size = Vector2(0, 10)
+color = Color(0.914, 0.310, 0.216, 1)
+
+[node name="ReadyButton" type="Button" parent="."]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -140.0
+offset_right = 140.0
+offset_bottom = -56.0
+text = "PRÊT"
+theme_override_font_sizes/font_size = 34

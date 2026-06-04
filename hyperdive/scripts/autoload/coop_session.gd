@@ -32,6 +32,13 @@ const PLACE_POINTS: Array[int] = [10, 6, 3, 1]
 # États de routage renvoyés par advance_after_turn().
 enum { NEXT_PLAYER, ROUND_OVER }
 
+# Chemins de scènes du flux coop (toutes les transitions passent par cet autoload → un seul
+# endroit qui connaît les scènes). Le classement de manche / l'écran final arrivent aux
+# commits 3-4 ; d'ici là ROUND_OVER retombe sur un placeholder (retour menu + log).
+const SCENE_MAIN_GAME := "res://scenes/game/main_game.tscn"
+const SCENE_PASSATION := "res://scenes/ui/coop_passation.tscn"
+const SCENE_MENU := "res://scenes/ui/main_menu.tscn"
+
 # === Config (figée au start_session) ===
 var num_players: int = 2
 var num_rounds: int = 5
@@ -153,6 +160,42 @@ func is_last_round() -> bool:
 func start_next_round() -> void:
 	current_round += 1
 	current_player = 0
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Routage entre scènes (toutes les transitions du flux coop passent par ici)
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Config terminé : on entre dans le flux par la passation du 1er joueur.
+func begin_session_flow() -> void:
+	Transition.change_scene(SCENE_PASSATION)
+
+# Passation PRÊT : on pose le mode de la manche (le gameplay solo le lit tel quel) et on
+# lance la partie. C'est la SEULE chose qui distingue le mode au niveau du player.
+func go_to_turn() -> void:
+	Settings.active_mode = current_mode()
+	Transition.change_scene(SCENE_MAIN_GAME)
+
+# Fin d'un tour (appelé depuis l'interception de la mort dans player.gd). Enregistre le
+# score puis route : joueur suivant → passation ; manche finie → classement (placeholder
+# commit 2 en attendant le vrai écran de classement au commit 3).
+func end_turn(score: int) -> void:
+	record_turn(score)
+	var step: int = advance_after_turn()
+	if step == NEXT_PLAYER:
+		Transition.change_scene(SCENE_PASSATION)
+	else:
+		_round_over_placeholder()
+
+# PLACEHOLDER commit 2 : log du classement de la manche + retour menu. Remplacé au commit 3
+# (écran de classement) puis 4 (boucle de manches + écran final).
+func _round_over_placeholder() -> void:
+	print("[coop] manche %d terminée — classement :" % (current_round + 1))
+	for e in round_ranking(current_round):
+		print("  J%d %s : %d → place %d (+%d pts)"
+			% [int(e["player"]) + 1, player_names[e["player"]], int(e["score"]),
+			   int(e["place"]) + 1, int(e["points"])])
+	clear()
+	Transition.change_scene(SCENE_MENU)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Scoring / classements (logique pure, sans UI)
