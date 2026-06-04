@@ -22,7 +22,6 @@ var _coop_rows: Dictionary = {}              # joueur -> { root, name, score, cr
 var _coop_order: Array = []                  # ordre d'affichage courant (indices joueurs)
 var _coop_cur: int = 0                       # joueur courant (celui qui joue)
 var _coop_round: int = 0
-var _coop_first_player: bool = false         # current_player == 0 -> aucun effet (rien a battre)
 var _coop_done: Array = []                   # joueurs ayant deja joue cette manche (indices < cur)
 var _coop_final: Dictionary = {}             # joueur deja joue -> score final de la manche
 var _coop_passed: Dictionary = {}            # joueur deja DEPASSE ce tour (flash une seule fois)
@@ -87,7 +86,6 @@ func set_coop_mode() -> void:
 
 	_coop_cur = Coop.current_player
 	_coop_round = Coop.current_round
-	_coop_first_player = (_coop_cur == 0)   # 1er à jouer cette manche → personne à battre
 	_coop_done = []
 	_coop_final = {}
 	_coop_passed = {}
@@ -196,16 +194,16 @@ func _update_coop_ranking() -> void:
 	var live: int = int(abs(_player.global_position.y))
 	(_coop_rows[_coop_cur]["score"] as Label).text = UIAnimations.format_number(live)
 
-	# Effets seulement à partir du 2e joueur (le 1er n'a personne à dépasser).
-	if not _coop_first_player:
-		# Dépassement : à chaque joueur déjà passé que l'on franchit (une fois), flash + son + vibration.
-		for d in _coop_done:
-			if not _coop_passed.has(d) and live > _coop_final[d]:
-				_coop_passed[d] = true
-				Audio.play_coop_overtake()
-				Settings.vibrate(30)
-				_flash_coop_row(_coop_cur)
-				_flash_coop_row(d)
+	# Dépassement : à chaque joueur déjà passé que l'on franchit (une fois), flash + son + vibration.
+	# _coop_done est vide pour le 1er joueur d'une manche → aucun dépassement (rien à dépasser),
+	# mais la couronne du rang 1 s'affiche quand même (gérée par _refresh_coop_ranks).
+	for d in _coop_done:
+		if not _coop_passed.has(d) and live > _coop_final[d]:
+			_coop_passed[d] = true
+			Audio.play_coop_overtake()
+			Settings.vibrate(30)
+			_flash_coop_row(_coop_cur)
+			_flash_coop_row(d)
 
 	var order: Array = _compute_coop_order(live)
 	if order != _coop_order:
@@ -213,19 +211,19 @@ func _update_coop_ranking() -> void:
 		_coop_order = order
 		_apply_coop_order()
 		_refresh_coop_ranks()   # rangs (couronne/chiffres) + liseré doré suivent le nouvel ordre
-		# Prise de tête par le COURANT (transition) → son + flash. Jamais pour le 1er joueur.
-		if not _coop_first_player and order[0] == _coop_cur and prev_leader != _coop_cur:
+		# Prise de tête par le COURANT (transition) → son + flash.
+		if order[0] == _coop_cur and prev_leader != _coop_cur:
 			Audio.play_coop_lead()
 			Settings.vibrate(30)
 			_flash_coop_row(_coop_cur)
 
-# Rang à gauche de chaque rangée selon l'ordre courant : 👑 pour le leader (rang 1 — sauf le
-# 1er joueur de la manche, qui n'a personne à battre → chiffre), chiffre sinon. Liseré doré sur
-# le seul leader. Unifie rang + couronne (pas de doublon de couronne sur la ligne).
+# Rang à gauche de chaque rangée selon l'ordre courant : 👑 pour le leader (rang 1, pour TOUS
+# y compris le 1er joueur de la manche), chiffre sinon. Liseré doré sur le seul leader. Unifie
+# rang + couronne (pas de doublon de couronne sur la ligne).
 func _refresh_coop_ranks() -> void:
 	for i in range(_coop_order.size()):
 		var p: int = _coop_order[i]
-		var is_leader: bool = (i == 0 and not _coop_first_player)
+		var is_leader: bool = (i == 0)
 		(_coop_rows[p]["rank"] as Label).text = "👑" if is_leader else str(i + 1)
 		(_coop_rows[p]["root"] as PanelContainer).add_theme_stylebox_override("panel", _coop_row_style(is_leader))
 
