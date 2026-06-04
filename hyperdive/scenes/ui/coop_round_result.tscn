@@ -1,0 +1,51 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/coop_round_result.gd" id="RoundResultScript"]
+
+[node name="CoopRoundResult" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("RoundResultScript")
+
+[node name="BG" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.122, 0.188, 0.369, 1)
+
+[node name="Content" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 56.0
+offset_right = -24.0
+offset_bottom = -36.0
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="Content"]
+text = "MANCHE 1 / 5"
+horizontal_alignment = 1
+theme_type_variation = &"Title"
+
+[node name="ModeLabel" type="Label" parent="Content"]
+text = "CLASSIQUE"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Content"]
+size_flags_vertical = 3
+
+[node name="RowsBox" type="VBoxContainer" parent="Content/ScrollContainer"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="StandingsBox" type="VBoxContainer" parent="Content"]
+theme_override_constants/separation = 8
+
+[node name="ContinueButton" type="Button" parent="Content"]
+custom_minimum_size = Vector2(260, 68)
+size_flags_horizontal = 4
+text = "CONTINUER"
+theme_override_font_sizes/font_size = 28

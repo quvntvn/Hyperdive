@@ -37,6 +37,7 @@ enum { NEXT_PLAYER, ROUND_OVER }
 # commits 3-4 ; d'ici là ROUND_OVER retombe sur un placeholder (retour menu + log).
 const SCENE_MAIN_GAME := "res://scenes/game/main_game.tscn"
 const SCENE_PASSATION := "res://scenes/ui/coop_passation.tscn"
+const SCENE_ROUND_RESULT := "res://scenes/ui/coop_round_result.tscn"
 const SCENE_MENU := "res://scenes/ui/main_menu.tscn"
 
 # === Config (figée au start_session) ===
@@ -176,24 +177,31 @@ func go_to_turn() -> void:
 	Transition.change_scene(SCENE_MAIN_GAME)
 
 # Fin d'un tour (appelé depuis l'interception de la mort dans player.gd). Enregistre le
-# score puis route : joueur suivant → passation ; manche finie → classement (placeholder
-# commit 2 en attendant le vrai écran de classement au commit 3).
+# score puis route : joueur suivant → passation ; manche finie → classement de la manche.
 func end_turn(score: int) -> void:
 	record_turn(score)
 	var step: int = advance_after_turn()
 	if step == NEXT_PLAYER:
 		Transition.change_scene(SCENE_PASSATION)
 	else:
-		_round_over_placeholder()
+		Transition.change_scene(SCENE_ROUND_RESULT)
 
-# PLACEHOLDER commit 2 : log du classement de la manche + retour menu. Remplacé au commit 3
-# (écran de classement) puis 4 (boucle de manches + écran final).
-func _round_over_placeholder() -> void:
-	print("[coop] manche %d terminée — classement :" % (current_round + 1))
-	for e in round_ranking(current_round):
-		print("  J%d %s : %d → place %d (+%d pts)"
-			% [int(e["player"]) + 1, player_names[e["player"]], int(e["score"]),
-			   int(e["place"]) + 1, int(e["points"])])
+# Classement de manche CONTINUER : manche suivante (passation J1) ou fin de session.
+# PLACEHOLDER commit 3 pour la dernière manche (log + menu) — remplacé par l'écran final
+# au commit 4.
+func continue_after_round() -> void:
+	if is_last_round():
+		_session_over_placeholder()
+	else:
+		start_next_round()
+		Transition.change_scene(SCENE_PASSATION)
+
+func _session_over_placeholder() -> void:
+	print("[coop] session terminée — classement général :")
+	for e in standings(num_rounds - 1):
+		print("  J%d %s : %d pts (best %d, %d manches gagnées)"
+			% [int(e["player"]) + 1, player_names[e["player"]], int(e["points"]),
+			   int(e["best_score"]), int(e["rounds_won"])])
 	clear()
 	Transition.change_scene(SCENE_MENU)
 
