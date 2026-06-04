@@ -23,7 +23,8 @@ func _ready() -> void:
 	UIAnimations.wire_buttons(self)
 
 func _populate() -> void:
-	var standings: Array = Coop.standings(Coop.num_rounds - 1)
+	# final_standings : si départage, le vainqueur passe en tête (sinon classement par points).
+	var standings: Array = Coop.final_standings()
 	# Vainqueur (1er du classement général).
 	var winner: Dictionary = standings[0]
 	var wp: int = int(winner["player"])

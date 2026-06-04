@@ -39,6 +39,7 @@ enum { NEXT_PLAYER, ROUND_OVER }
 const SCENE_MAIN_GAME := "res://scenes/game/main_game.tscn"
 const SCENE_PASSATION := "res://scenes/ui/coop_passation.tscn"
 const SCENE_ROUND_RESULT := "res://scenes/ui/coop_round_result.tscn"
+const SCENE_TIEBREAK := "res://scenes/ui/coop_tiebreak.tscn"
 const SCENE_FINAL := "res://scenes/ui/coop_final.tscn"
 const SCENE_MENU := "res://scenes/ui/main_menu.tscn"
 
@@ -59,6 +60,16 @@ var round_modes: Array[String] = []
 var current_round: int = 0    # 0-based
 var current_player: int = 0   # 0-based
 var active: bool = false       # garde-fou global du contexte coop
+
+# === Round final de départage (tiebreak) — déclenché si égalité de points à la 1re place ===
+var tiebreak_active: bool = false       # surcouche : un round joué seulement par les ex-æquo
+var tiebreak_players: Array = []        # contenders du round final COURANT
+var tiebreak_scores: Dictionary = {}    # joueur -> score du round final courant
+var tiebreak_cur_idx: int = 0           # index dans tiebreak_players du joueur qui joue
+var tiebreak_mode: String = "infinite"  # mode tiré pour ce round final
+var tiebreak_winner: int = -1           # vainqueur départagé (-1 tant que non résolu)
+var tiebreak_orig_leaders: Array = []   # ex-æquo 1re place INITIAUX (pour le classement final)
+var tiebreak_last_scores: Dictionary = {}  # scores du DERNIER round final résolutif
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Cycle de vie de session
@@ -92,6 +103,7 @@ func start_session(p_num_players: int, p_num_rounds: int, p_mode: String, p_name
 
 	current_round = 0
 	current_player = 0
+	_reset_tiebreak()
 	active = true
 	print("[coop] start: %d joueurs, %d manches, mode=%s, modes=%s, noms=%s"
 		% [num_players, num_rounds, mode_choice, str(round_modes), str(player_names)])
@@ -112,6 +124,17 @@ func clear() -> void:
 	num_rounds = 3
 	current_round = 0
 	current_player = 0
+	_reset_tiebreak()
+
+func _reset_tiebreak() -> void:
+	tiebreak_active = false
+	tiebreak_players = []
+	tiebreak_scores = {}
+	tiebreak_cur_idx = 0
+	tiebreak_mode = "infinite"
+	tiebreak_winner = -1
+	tiebreak_orig_leaders = []
+	tiebreak_last_scores = {}
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Accès au tour courant
@@ -136,6 +159,62 @@ func round_label() -> String:
 
 func mode_label(mode: String) -> String:
 	return "JETPACK" if mode == "jetpack" else "CLASSIQUE"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Contexte du TOUR courant — abstrait "manche normale" vs "round final de départage".
+# La passation, le HUD live et l'interception de la mort lisent CE contexte → un seul code
+# pour les deux cas. En tiebreak, seuls les ex-æquo (tiebreak_players) sont concernés.
+# ──────────────────────────────────────────────────────────────────────────────
+
+func turn_current_player() -> int:
+	return tiebreak_players[tiebreak_cur_idx] if tiebreak_active else current_player
+
+func turn_mode() -> String:
+	return tiebreak_mode if tiebreak_active else current_mode()
+
+func turn_color() -> Color:
+	return player_color(turn_current_player())
+
+func turn_name() -> String:
+	return player_names[turn_current_player()]
+
+func turn_round_label() -> String:
+	return "ROUND FINAL" if tiebreak_active else round_label()
+
+# Joueurs concernés par ce tour-round (tous, ou seulement les ex-æquo en tiebreak).
+func turn_players() -> Array:
+	if tiebreak_active:
+		return tiebreak_players.duplicate()
+	var a: Array = []
+	for i in range(num_players):
+		a.append(i)
+	return a
+
+# Score d'un joueur pour CE tour-round (manche courante, ou round final).
+func turn_score(p: int) -> int:
+	return int(tiebreak_scores.get(p, 0)) if tiebreak_active else int(scores[p][current_round])
+
+# Le joueur p (≠ courant) a-t-il déjà joué ce tour-round ? (ordre de jeu = ordre d'index)
+func turn_has_played(p: int) -> bool:
+	if tiebreak_active:
+		return tiebreak_scores.has(p)
+	return p < current_player
+
+func turn_done_players() -> Array:
+	var cur: int = turn_current_player()
+	var out: Array = []
+	for p in turn_players():
+		if p != cur and turn_has_played(p):
+			out.append(p)
+	return out
+
+func turn_pending_players() -> Array:
+	var cur: int = turn_current_player()
+	var out: Array = []
+	for p in turn_players():
+		if p != cur and not turn_has_played(p):
+			out.append(p)
+	return out
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Enregistrement d'un tour + avance des curseurs
@@ -175,12 +254,15 @@ func begin_session_flow() -> void:
 # Passation PRÊT : on pose le mode de la manche (le gameplay solo le lit tel quel) et on
 # lance la partie. C'est la SEULE chose qui distingue le mode au niveau du player.
 func go_to_turn() -> void:
-	Settings.active_mode = current_mode()
+	Settings.active_mode = turn_mode()   # normal : mode de la manche ; tiebreak : mode tiré
 	Transition.change_scene(SCENE_MAIN_GAME)
 
-# Fin d'un tour (appelé depuis l'interception de la mort dans player.gd). Enregistre le
-# score puis route : joueur suivant → passation ; manche finie → classement de la manche.
+# Fin d'un tour (appelé depuis l'interception de la mort dans player.gd). En tiebreak, route
+# vers le départage ; sinon : joueur suivant → passation, ou manche finie → classement.
 func end_turn(score: int) -> void:
+	if tiebreak_active:
+		_tiebreak_record_and_advance(score)
+		return
 	record_turn(score)
 	var step: int = advance_after_turn()
 	if step == NEXT_PLAYER:
@@ -188,10 +270,11 @@ func end_turn(score: int) -> void:
 	else:
 		Transition.change_scene(SCENE_ROUND_RESULT)
 
-# Classement de manche CONTINUER : manche suivante (passation J1) ou écran final si dernière.
+# Classement de manche CONTINUER : manche suivante (passation J1), ou fin de session →
+# départage (si égalité de points à la 1re place) ou écran final.
 func continue_after_round() -> void:
 	if is_last_round():
-		Transition.change_scene(SCENE_FINAL)
+		_finish_or_tiebreak()
 	else:
 		start_next_round()
 		Transition.change_scene(SCENE_PASSATION)
@@ -201,6 +284,98 @@ func continue_after_round() -> void:
 func restart_same_config() -> void:
 	start_session(num_players, num_rounds, mode_choice, player_names.duplicate())
 	begin_session_flow()
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Round final de départage (tiebreak)
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Fin de la dernière manche : s'il y a égalité de POINTS à la 1re place → round final entre
+# ces ex-æquo ; sinon → écran final directement.
+func _finish_or_tiebreak() -> void:
+	var leaders: Array = _first_place_leaders()
+	if leaders.size() > 1:
+		tiebreak_orig_leaders = leaders.duplicate()
+		_start_tiebreak(leaders)
+	else:
+		Transition.change_scene(SCENE_FINAL)
+
+# Joueurs partageant le maximum de points (candidats au départage de la 1re place).
+func _first_place_leaders() -> Array:
+	var st: Array = standings(num_rounds - 1)
+	var max_pts: int = int(st[0]["points"])
+	var leaders: Array = []
+	for e in st:
+		if int(e["points"]) == max_pts:
+			leaders.append(int(e["player"]))
+	return leaders
+
+# Lance (ou relance après re-égalité) un round final entre `players` : mode tiré aléatoirement,
+# scores remis à zéro, annonce "ÉGALITÉ ! ROUND FINAL" avant la passation.
+func _start_tiebreak(players: Array) -> void:
+	tiebreak_active = true
+	tiebreak_players = players.duplicate()
+	tiebreak_scores = {}
+	tiebreak_cur_idx = 0
+	tiebreak_mode = "jetpack" if randi() % 2 == 0 else "infinite"
+	print("[coop] ÉGALITÉ 1re place — round final entre %s, mode=%s" % [str(tiebreak_players), tiebreak_mode])
+	Transition.change_scene(SCENE_TIEBREAK)
+
+# Annonce "ROUND FINAL" → entrée dans la passation du 1er ex-æquo.
+func begin_tiebreak_turn() -> void:
+	Transition.change_scene(SCENE_PASSATION)
+
+func _tiebreak_record_and_advance(score: int) -> void:
+	tiebreak_scores[tiebreak_players[tiebreak_cur_idx]] = score
+	tiebreak_cur_idx += 1
+	if tiebreak_cur_idx < tiebreak_players.size():
+		Transition.change_scene(SCENE_PASSATION)   # ex-æquo suivant
+	else:
+		_resolve_tiebreak()
+
+# Compare les scores du round final : un seul meilleur → vainqueur (écran final) ; re-égalité
+# → nouveau round final entre les nouveaux ex-æquo (boucle jusqu'à départage).
+func _resolve_tiebreak() -> void:
+	var best: int = -1
+	for p in tiebreak_players:
+		best = maxi(best, int(tiebreak_scores[p]))
+	var winners: Array = []
+	for p in tiebreak_players:
+		if int(tiebreak_scores[p]) == best:
+			winners.append(p)
+	if winners.size() == 1:
+		tiebreak_winner = winners[0]
+		tiebreak_last_scores = tiebreak_scores.duplicate()
+		tiebreak_active = false
+		Transition.change_scene(SCENE_FINAL)
+	else:
+		_start_tiebreak(winners)   # re-égalité → on relance entre les ex-æquo restants
+
+# Classement final affiché : si départage, le vainqueur passe en tête de son groupe d'ex-æquo
+# (puis les autres ex-æquo selon le dernier round final) ; le reste suit le classement points.
+func final_standings() -> Array:
+	var st: Array = standings(num_rounds - 1)
+	if tiebreak_winner < 0:
+		return st
+	var leaders: Array = []
+	var rest: Array = []
+	for e in st:
+		if int(e["player"]) in tiebreak_orig_leaders:
+			leaders.append(e)
+		else:
+			rest.append(e)
+	leaders.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var pa: int = int(a["player"])
+		var pb: int = int(b["player"])
+		if pa == tiebreak_winner:
+			return true
+		if pb == tiebreak_winner:
+			return false
+		var sa: int = int(tiebreak_last_scores.get(pa, 0))
+		var sb: int = int(tiebreak_last_scores.get(pb, 0))
+		if sa != sb:
+			return sa > sb
+		return pa < pb)
+	return leaders + rest
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Scoring / classements (logique pure, sans UI)

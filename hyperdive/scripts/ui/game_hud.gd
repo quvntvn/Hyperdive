@@ -21,9 +21,10 @@ var _coop_box: VBoxContainer                 # conteneur des rangees (dans InfoB
 var _coop_rows: Dictionary = {}              # joueur -> { root, name, score, crown }
 var _coop_order: Array = []                  # ordre d'affichage courant (indices joueurs)
 var _coop_cur: int = 0                       # joueur courant (celui qui joue)
-var _coop_round: int = 0
-var _coop_done: Array = []                   # joueurs ayant deja joue cette manche (indices < cur)
-var _coop_final: Dictionary = {}             # joueur deja joue -> score final de la manche
+var _coop_players: Array = []                # joueurs concernes par ce tour (tous, ou ex-aequo en tiebreak)
+var _coop_done: Array = []                   # joueurs ayant deja joue ce tour-round
+var _coop_pending: Array = []                # joueurs pas encore joues ce tour-round ("...")
+var _coop_final: Dictionary = {}             # joueur deja joue -> son score de ce tour-round
 var _coop_passed: Dictionary = {}            # joueur deja DEPASSE ce tour (flash une seule fois)
 
 # Couleurs par type (memes teintes que les power-up 3D).
@@ -75,8 +76,10 @@ func set_campaign_mode(enabled: bool) -> void:
 	_resize_info_bar.call_deferred()
 
 # Coop : remplace l'affichage solo (distance + pièces) par un CLASSEMENT LIVE — une rangée par
-# joueur, triée par score décroissant en temps réel. Le joueur courant voit son score monter et
-# sa position bouger ; les autres affichent leur score final (déjà joué) ou "..." (pas encore).
+# joueur concerné, triée par score décroissant en temps réel. Le joueur courant voit son score
+# monter et sa position bouger ; les autres affichent leur score (déjà joué) ou "…" (pas encore).
+# Lit le CONTEXTE DE TOUR de Coop → marche en manche normale ET en round final (tiebreak : seuls
+# les ex-æquo apparaissent).
 func set_coop_mode() -> void:
 	_coop_active = true
 	_distance_label.visible = false
@@ -84,15 +87,14 @@ func set_coop_mode() -> void:
 	# Élargir l'InfoBar : noms + scores demandent plus de largeur que le seul score solo.
 	($InfoBar as Panel).offset_left = -300.0
 
-	_coop_cur = Coop.current_player
-	_coop_round = Coop.current_round
-	_coop_done = []
+	_coop_cur = Coop.turn_current_player()
+	_coop_players = Coop.turn_players()
+	_coop_done = Coop.turn_done_players()
+	_coop_pending = Coop.turn_pending_players()
 	_coop_final = {}
+	for p in _coop_done:
+		_coop_final[p] = Coop.turn_score(p)
 	_coop_passed = {}
-	for p in range(Coop.num_players):
-		if p < _coop_cur:   # ordre de jeu = ordre d'index → joueurs avant le courant ont déjà joué
-			_coop_done.append(p)
-			_coop_final[p] = int(Coop.scores[p][_coop_round])
 
 	_build_coop_rows()
 	_coop_order = _compute_coop_order(0)
@@ -105,7 +107,7 @@ func _build_coop_rows() -> void:
 	_coop_box.add_theme_constant_override("separation", 3)
 	$InfoBar/VBox.add_child(_coop_box)
 	_coop_rows = {}
-	for p in range(Coop.num_players):
+	for p in _coop_players:
 		var row := _make_coop_row(p)
 		_coop_box.add_child(row["root"])
 		_coop_rows[p] = row
@@ -124,13 +126,13 @@ func _make_coop_row(p: int) -> Dictionary:
 	name_lbl.clip_text = true
 	var score_lbl := _coop_label("", 20, COOP_CREAM)
 	score_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	# Texte initial : joueurs déjà passés = score final ; pas encore joué = "..." ; courant = 0.
-	if p < _coop_cur:
-		score_lbl.text = UIAnimations.format_number(_coop_final[p])
-	elif p > _coop_cur:
-		score_lbl.text = "…"
-	else:
+	# Texte initial : déjà joué = son score ; pas encore joué = "…" ; courant = 0 (montera en live).
+	if p in _coop_done:
+		score_lbl.text = UIAnimations.format_number(int(_coop_final[p]))
+	elif p == _coop_cur:
 		score_lbl.text = "0"
+	else:
+		score_lbl.text = "…"
 	hb.add_child(rank)
 	hb.add_child(name_lbl)
 	hb.add_child(score_lbl)
@@ -181,9 +183,8 @@ func _compute_coop_order(live: int) -> Array:
 	var order: Array = []
 	for e in scored:
 		order.append(e[1])
-	for p in range(Coop.num_players):
-		if p > _coop_cur:
-			order.append(p)
+	for p in _coop_pending:   # pas encore joués → en bas, sans score
+		order.append(p)
 	return order
 
 func _apply_coop_order() -> void:

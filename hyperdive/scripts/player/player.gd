@@ -29,6 +29,9 @@ const SPEED_RAMP_FACTOR: float = 1.1    # +10 % cumulatif par palier
 # Coop : rampe dédiée plus agressive (+5 % tous les 150 m) → manches courtes et nerveuses.
 const SPEED_RAMP_STEP_COOP: float = 150.0
 const SPEED_RAMP_FACTOR_COOP: float = 1.05
+# Round final de départage : encore plus agressif (+10 % tous les 100 m) → mort subite rapide.
+const SPEED_RAMP_STEP_TIEBREAK: float = 100.0
+const SPEED_RAMP_FACTOR_TIEBREAK: float = 1.10
 const SPEED_RAMP_RATE: float = MAX_FALL_SPEED * 0.10 / 10.0  # ≈ 0.18 m/s² → +10 % en ~10 s
 
 var _is_touching: bool = false
@@ -90,7 +93,7 @@ func _ready() -> void:
 	# skin équipé du profil) ; le trail est désactivé (l'identité passe par la couleur du corps).
 	# Sinon : skin + trail du profil, comme en solo.
 	if Coop.active:
-		_apply_coop_color(Coop.current_color())
+		_apply_coop_color(Coop.turn_color())
 	else:
 		_apply_skin(Settings.equipped_skin)
 		Settings.equipped_skin_changed.connect(_apply_skin)
@@ -484,7 +487,7 @@ func _trigger_ragdoll() -> void:
 	# (sinon toutes partageraient la ressource du .tscn) pour ne pas polluer d'autres ragdolls.
 	# Coop : le ragdoll sort à la couleur d'identité du joueur (matériau plat), pas le skin
 	# du profil. Sinon : matériau complet du skin équipé (métal/or/émission préservés).
-	var skin: Dictionary = {"color": Coop.current_color()} if Coop.active else Catalog.get_skin_by_id(Settings.equipped_skin)
+	var skin: Dictionary = {"color": Coop.turn_color()} if Coop.active else Catalog.get_skin_by_id(Settings.equipped_skin)
 	for part: Node in rag.get_children():
 		if part is RigidBody3D:
 			var mi: MeshInstance3D = part.get_node_or_null("MeshInstance3D")
@@ -772,7 +775,10 @@ func _physics_process(delta: float) -> void:
 		# agressif, manches nerveuses). SOLO : inchangé (+10 %/1000 m chute, +10 %/500 m jetpack).
 		var step_dist: float
 		var factor: float
-		if Coop.active:
+		if Coop.active and Coop.tiebreak_active:
+			step_dist = SPEED_RAMP_STEP_TIEBREAK
+			factor = SPEED_RAMP_FACTOR_TIEBREAK
+		elif Coop.active:
 			step_dist = SPEED_RAMP_STEP_COOP
 			factor = SPEED_RAMP_FACTOR_COOP
 		else:

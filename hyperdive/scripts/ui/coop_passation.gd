@@ -22,12 +22,11 @@ func _ready() -> void:
 	UIAnimations.pop_in($Center/Card)
 
 func _populate() -> void:
-	var mode: String = Coop.current_mode()
 	var vb := $Center/Card/Margin/VBox
-	vb.get_node("RoundLabel").text = Coop.round_label()
-	vb.get_node("ModeLabel").text = Coop.mode_label(mode)
-	vb.get_node("NameLabel").text = Coop.current_name()
-	var col: Color = Coop.current_color()
+	vb.get_node("RoundLabel").text = Coop.turn_round_label()
+	vb.get_node("ModeLabel").text = Coop.mode_label(Coop.turn_mode())
+	vb.get_node("NameLabel").text = Coop.turn_name()
+	var col: Color = Coop.turn_color()
 	vb.get_node("NameLabel").add_theme_color_override("font_color", col)
 	(vb.get_node("ColorBar") as ColorRect).color = col
 
