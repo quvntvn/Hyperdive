@@ -1,6 +1,10 @@
 extends CanvasLayer
 class_name ShopScreen
 
+# Icône cadenas pour les cosmétiques de défi verrouillés. SVG (PAS d'emoji 🔒 : les emojis
+# ne rendent pas sous Android avec Poppins → bouton vide), même approche que crown_icon.svg.
+const LOCK_TEX: Texture2D = preload("res://assets/ui/lock_icon.svg")
+
 var _coins_label: Label
 var _item_list: VBoxContainer
 var _skins_btn: Button
@@ -88,6 +92,21 @@ func _unlock_condition(reward_key: String, item_id: String) -> String:
 func _dim(c: Color) -> Color:
 	return Color(c.r * 0.30, c.g * 0.30, c.b * 0.30, c.a)
 
+# Cadenas centré dans le bouton d'un exclusif verrouillé (icône SVG, pas d'emoji).
+# Le bouton reste désactivé ; le TextureRect ignore la souris (le bouton gère l'état).
+func _add_lock_icon(btn: Button) -> void:
+	var lock := TextureRect.new()
+	lock.texture = LOCK_TEX
+	lock.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	lock.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lock.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	lock.offset_left = 10.0
+	lock.offset_top = 10.0
+	lock.offset_right = -10.0
+	lock.offset_bottom = -10.0
+	btn.add_child(lock)
+
 # Configure le label de prix/condition : condition de défi si verrouillé, sinon le prix.
 func _set_price_label(label: Label, locked: bool, condition: String, price: int) -> void:
 	if locked:
@@ -122,8 +141,8 @@ func _refresh_skins() -> void:
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(110.0, 48.0)
 		if locked:
-			btn.text = "🔒"
 			btn.disabled = true
+			_add_lock_icon(btn)
 		elif skin_id == Settings.equipped_skin:
 			btn.text = "ÉQUIPÉ"
 			btn.disabled = true
@@ -178,8 +197,8 @@ func _refresh_trails() -> void:
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(110.0, 48.0)
 		if locked:
-			btn.text = "🔒"
 			btn.disabled = true
+			_add_lock_icon(btn)
 		elif trail_id == Settings.equipped_trail:
 			btn.text = "ÉQUIPÉ"
 			btn.disabled = true
@@ -231,8 +250,8 @@ func _refresh_themes() -> void:
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(110.0, 48.0)
 		if locked:
-			btn.text = "🔒"
 			btn.disabled = true
+			_add_lock_icon(btn)
 		elif theme_id == Settings.equipped_theme:
 			btn.text = "ÉQUIPÉ"
 			btn.disabled = true
