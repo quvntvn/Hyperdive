@@ -9,7 +9,7 @@ content_margin_left = 22.0
 content_margin_top = 14.0
 content_margin_right = 22.0
 content_margin_bottom = 14.0
-bg_color = Color(0.1, 0.1, 0.14, 0.2)
+bg_color = Color(0.06, 0.07, 0.11, 0.3)
 border_width_top = 1
 border_color = Color(1, 1, 1, 0.1)
 corner_radius_top_left = 20
@@ -22,9 +22,9 @@ content_margin_left = 22.0
 content_margin_top = 14.0
 content_margin_right = 22.0
 content_margin_bottom = 14.0
-bg_color = Color(0.82, 0.86, 0.95, 0.2)
+bg_color = Color(0.07, 0.1, 0.18, 0.52)
 border_width_top = 1
-border_color = Color(1, 1, 1, 0.18)
+border_color = Color(1, 1, 1, 0.24)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
@@ -35,9 +35,9 @@ content_margin_left = 22.0
 content_margin_top = 14.0
 content_margin_right = 22.0
 content_margin_bottom = 14.0
-bg_color = Color(0.88, 0.91, 0.98, 0.26)
+bg_color = Color(0.11, 0.15, 0.24, 0.6)
 border_width_top = 1
-border_color = Color(1, 1, 1, 0.26)
+border_color = Color(1, 1, 1, 0.3)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
@@ -48,9 +48,9 @@ content_margin_left = 22.0
 content_margin_top = 14.0
 content_margin_right = 22.0
 content_margin_bottom = 14.0
-bg_color = Color(0.82, 0.86, 0.95, 0.18)
+bg_color = Color(0.07, 0.1, 0.18, 0.52)
 border_width_top = 1
-border_color = Color(1, 1, 1, 0.18)
+border_color = Color(1, 1, 1, 0.22)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
@@ -61,9 +61,9 @@ content_margin_left = 22.0
 content_margin_top = 14.0
 content_margin_right = 22.0
 content_margin_bottom = 14.0
-bg_color = Color(0.7, 0.74, 0.85, 0.3)
+bg_color = Color(0.05, 0.07, 0.13, 0.68)
 border_width_top = 1
-border_color = Color(1, 1, 1, 0.12)
+border_color = Color(1, 1, 1, 0.16)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
@@ -90,6 +90,33 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
+[sub_resource type="StyleBoxFlat" id="SliderFill"]
+content_margin_top = 3.0
+content_margin_bottom = 3.0
+bg_color = Color(0.235, 0.682, 0.639, 0.9)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="SliderFillHi"]
+content_margin_top = 3.0
+content_margin_bottom = 3.0
+bg_color = Color(0.32, 0.78, 0.73, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="SliderTrack"]
+content_margin_top = 3.0
+content_margin_bottom = 3.0
+bg_color = Color(0.957, 0.914, 0.804, 0.18)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [sub_resource type="StyleBoxFlat" id="PanelStyle"]
 content_margin_left = 22.0
 content_margin_top = 22.0
@@ -104,33 +131,6 @@ corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
 [sub_resource type="StyleBoxEmpty" id="EmptyStyle"]
-
-[sub_resource type="StyleBoxFlat" id="SliderTrack"]
-bg_color = Color(0.957, 0.914, 0.804, 0.18)
-content_margin_top = 3.0
-content_margin_bottom = 3.0
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-
-[sub_resource type="StyleBoxFlat" id="SliderFill"]
-bg_color = Color(0.235, 0.682, 0.639, 0.9)
-content_margin_top = 3.0
-content_margin_bottom = 3.0
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-
-[sub_resource type="StyleBoxFlat" id="SliderFillHi"]
-bg_color = Color(0.32, 0.78, 0.73, 1)
-content_margin_top = 3.0
-content_margin_bottom = 3.0
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
 
 [resource]
 default_font = ExtResource("FontRegular")
@@ -151,9 +151,9 @@ HScrollBar/styles/grabber = SubResource("ScrollGrabber")
 HScrollBar/styles/grabber_highlight = SubResource("ScrollGrabberHover")
 HScrollBar/styles/grabber_pressed = SubResource("ScrollGrabberHover")
 HScrollBar/styles/scroll = SubResource("ScrollBg")
-HSlider/styles/slider = SubResource("SliderTrack")
 HSlider/styles/grabber_area = SubResource("SliderFill")
 HSlider/styles/grabber_area_highlight = SubResource("SliderFillHi")
+HSlider/styles/slider = SubResource("SliderTrack")
 Label/colors/font_color = Color(0.957, 0.914, 0.804, 1)
 Label/colors/font_outline_color = Color(0.06, 0.04, 0.02, 0.88)
 Label/constants/outline_size = 4

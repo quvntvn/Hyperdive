@@ -12,7 +12,7 @@ shader_type canvas_item;
 // masque épouse EXACTEMENT l'arrondi de l'élément quelle que soit l'échelle du canvas (mobile),
 // sans dépendre du transform canvas (qui causait des coins doublés/décalés).
 uniform float corner_ratio : hint_range(0.0, 0.5) = 0.0;
-uniform float blur_radius : hint_range(0.0, 40.0) = 16.0;   // RAYON du disque de flou en px
+uniform float blur_radius : hint_range(0.0, 40.0) = 24.0;   // RAYON du disque de flou en px
                                                            // (reach max des taps). Augmenter =
                                                            // flou plus large, même nb de taps.
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
