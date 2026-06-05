@@ -12,6 +12,8 @@ func _ready() -> void:
 	%VibrationCheck.toggled.connect(Settings.set_vibration_enabled)
 	%CloseButton.pressed.connect(close)
 	UIAnimations.wire_buttons(self)
+	# Panneau en verre translucide (plus de fond bleu opaque) → laisse voir le décor flouté derrière.
+	UIAnimations.make_glass_panel($SettingsPanel)
 
 func _refresh_values() -> void:
 	%MasterSlider.set_value_no_signal(Settings.master_volume)

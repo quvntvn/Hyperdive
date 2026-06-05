@@ -9,6 +9,8 @@ func _ready() -> void:
 	$GameOverPanel/Layout/ButtonsContainer/ShopButton.pressed.connect(_on_shop_pressed)
 	$GameOverPanel/Layout/ButtonsContainer/MenuButton.pressed.connect(_on_menu_pressed)
 	UIAnimations.wire_buttons(self)
+	# Panneau en verre translucide (plus de fond bleu opaque) → laisse voir le jeu flouté derrière.
+	UIAnimations.make_glass_panel($GameOverPanel)
 	var screens := get_tree().get_nodes_in_group("shop_screen")
 	if screens.size() > 0:
 		shop_screen = screens[0]

@@ -51,6 +51,29 @@ static func glass_card_style() -> StyleBoxFlat:
 		_card_style = sb
 	return _card_style
 
+# Style "panneau verre" pour les modales plein panneau (réglages/pause/game over/fin niveau).
+# Translucide + arête claire en haut, PAS de fond opaque : posé sur le backdrop-blur plein écran
+# de l'écran, on devine le décor flouté derrière → cohérent avec les cartes du shop/défis.
+# (Le thème global garde son Panel opaque pour le HUD/cartes coop ; override ciblé seulement.)
+static var _panel_style: StyleBoxFlat = null
+
+static func glass_panel_style() -> StyleBoxFlat:
+	if _panel_style == null:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.82, 0.86, 0.95, 0.16)
+		sb.set_corner_radius_all(int(GlassBlur.DEFAULT_RADIUS))
+		sb.set_border_width_all(0)
+		sb.border_width_top = 1
+		sb.border_color = Color(1.0, 1.0, 1.0, 0.18)
+		_panel_style = sb
+	return _panel_style
+
+# Transforme un Panel modal en "panneau verre" : stylebox translucide + backdrop-blur derrière
+# (frosté, lisible). À appeler une fois dans le _ready de l'écran. Mutualisé entre les 4 écrans.
+static func make_glass_panel(panel: Control) -> void:
+	panel.add_theme_stylebox_override("panel", glass_panel_style())
+	GlassBlur.add_behind(panel)
+
 static func wire_button(btn: BaseButton) -> void:
 	btn.button_down.connect(func() -> void:
 		Settings.vibrate(20)   # petit "tic" haptique au clic (centralisé → tous les boutons)

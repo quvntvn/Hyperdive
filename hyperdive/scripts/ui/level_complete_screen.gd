@@ -9,6 +9,8 @@ func _ready() -> void:
 	$Content/Layout/ButtonsContainer/NextButton.pressed.connect(_on_next_pressed)
 	$Content/Layout/ButtonsContainer/MenuButton.pressed.connect(_on_menu_pressed)
 	UIAnimations.wire_buttons(self)
+	# Panneau en verre translucide (plus de fond bleu opaque) → laisse voir le jeu flouté derrière.
+	UIAnimations.make_glass_panel($Content)
 
 # completed_level / reward sont capturés AVANT complete_current_level() (qui incrémente
 # campaign_level et crédite les pièces) pour afficher le niveau réussi et le gain exact.

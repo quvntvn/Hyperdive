@@ -8,6 +8,8 @@ func _ready() -> void:
 	%ReglagesButton.pressed.connect(_on_reglages_pressed)
 	%MenuButton.pressed.connect(_on_menu_pressed)
 	UIAnimations.wire_buttons(self)
+	# Panneau en verre translucide (plus de fond bleu opaque) → laisse voir le jeu flouté derrière.
+	UIAnimations.make_glass_panel($PausePanel)
 
 func open() -> void:
 	visible = true
