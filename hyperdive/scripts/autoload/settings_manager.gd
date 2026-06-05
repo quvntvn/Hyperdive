@@ -138,7 +138,8 @@ func add_coin() -> void:
 	daily_coins += 1
 	update_daily_progress()
 	coin_collected.emit(coins_total)
-	save_settings()
+	# Pas de save ici (trop fréquent : 1 écriture disque par pièce = micro-freeze mobile).
+	# Les pièces s'accumulent en mémoire et sont persistées au finalize_run de fin de partie.
 
 func reset_run_stats() -> void:
 	coins_this_run = 0
