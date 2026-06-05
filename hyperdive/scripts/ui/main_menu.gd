@@ -17,6 +17,14 @@ func _ready() -> void:
 	# Ville lointaine ancrée à la caméra du menu (même logique qu'en jeu, thème appliqué).
 	CitySkyline.attach_to($PreviewCamera)
 
+	# Quand un écran s'ouvre PAR-DESSUS le menu (réglages/défis/cosmétique/coop), on masque
+	# les ÉLÉMENTS d'UI du menu (titre, stats, boutons, engrenage) pour qu'ils ne transparaissent
+	# plus derrière le flou de l'écran. On GARDE le décor 3D (ville défilante) : il vit dans le
+	# monde Node3D, pas dans MenuUI → le backdrop de l'écran continue de le flouter joliment.
+	# Piloté par visibility_changed (un seul point de vérité, gère ouverture ET fermeture).
+	for screen: CanvasLayer in [$ShopScreen, $SettingsScreen, $MissionsScreen, $CoopConfigScreen]:
+		screen.visibility_changed.connect(_sync_menu_ui_visibility)
+
 	# Le bouton campagne affiche le niveau de progression courant et le lance DIRECTEMENT
 	# (plus d'écran intermédiaire). Relu à chaque _ready → reflète la progression au retour.
 	%CampagneButton.text = "NIVEAU " + UIAnimations.format_number(Settings.campaign_level)
@@ -66,6 +74,16 @@ func _set_mode_button(btn: Button, unlocked: bool, mode_name: String, condition:
 	else:
 		btn.text = mode_name + " 🔒\n" + condition
 		btn.add_theme_font_size_override("font_size", 20)
+
+# Cache l'UI du menu (MenuUI : titre, stats, boutons, engrenage) dès qu'un écran est ouvert ;
+# la réaffiche quand ils sont tous fermés. Le décor 3D reste visible (hors MenuUI).
+func _sync_menu_ui_visibility() -> void:
+	var any_open: bool = false
+	for screen: CanvasLayer in [$ShopScreen, $SettingsScreen, $MissionsScreen, $CoopConfigScreen]:
+		if screen.visible:
+			any_open = true
+			break
+	$MenuUI.visible = not any_open
 
 func update_stats() -> void:
 	# Deux records distincts : Classique (best_infinite_distance) et Jetpack (best_jetpack_distance).
