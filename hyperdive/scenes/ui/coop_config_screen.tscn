@@ -30,7 +30,7 @@ offset_bottom = -40.0
 theme_override_constants/separation = 16
 
 [node name="TitleLabel" type="Label" parent="Content"]
-text = "COOP"
+text = "TOURNOI"
 horizontal_alignment = 1
 theme_type_variation = &"Title"
 
