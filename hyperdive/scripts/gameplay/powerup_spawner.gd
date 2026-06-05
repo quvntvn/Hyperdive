@@ -12,6 +12,9 @@ const CORRIDOR_HALF_WIDTH: float = 4.0
 const DESPAWN_BEHIND: float = 15.0
 const TYPES: Array[String] = ["shield", "slowmo", "magnet", "boost"]
 const TYPES_CAMPAIGN: Array[String] = ["shield", "slowmo", "boost"]
+# Tirage PONDÉRÉ (avant : équiprobable). Le boost sort un peu plus souvent que les autres :
+# en classique 12/39 ≈ 31 % (était 25 %), les autres ≈ 23 % chacun.
+const WEIGHTS: Dictionary = {"shield": 9, "slowmo": 9, "magnet": 9, "boost": 12}
 
 var _next_spawn_y: float = 0.0
 var _campaign_mode: bool = false
@@ -44,10 +47,22 @@ func _process(_delta: float) -> void:
 func _spawn_at(y: float) -> void:
 	var pool: Array[String] = TYPES_CAMPAIGN if _campaign_mode else TYPES
 	var pu: Powerup = powerup_scene.instantiate()
-	pu.type = pool[randi() % pool.size()]
+	pu.type = _pick_type(pool)
 	get_parent().add_child(pu)
 	pu.global_position = Vector3(
 		randf_range(-CORRIDOR_HALF_WIDTH, CORRIDOR_HALF_WIDTH),
 		y,
 		0.0
 	)
+
+# Tirage pondéré : somme des poids du pool, on tire dans [0,total) et on défausse poids par poids.
+func _pick_type(pool: Array[String]) -> String:
+	var total: int = 0
+	for t: String in pool:
+		total += int(WEIGHTS.get(t, 1))
+	var r: int = randi() % total
+	for t: String in pool:
+		r -= int(WEIGHTS.get(t, 1))
+		if r < 0:
+			return t
+	return pool[0]
