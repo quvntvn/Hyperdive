@@ -35,9 +35,11 @@ const PILL_COLORS: Dictionary = {
 	"boost": Color(0.914, 0.310, 0.216, 1.0),
 	"slowmo": Color(0.612, 0.796, 0.906, 1.0),
 	"magnet": Color(0.949, 0.757, 0.306, 1.0),
+	"megaboost": Color(0.69, 0.149, 1.0, 1.0),   # magenta/violet #B026FF
 }
 const PILL_NAMES: Dictionary = {
 	"shield": "BOUCLIER", "boost": "BOOST", "slowmo": "RALENTI", "magnet": "AIMANT",
+	"megaboost": "MÉGA-BOOST",
 }
 
 func _ready() -> void:
@@ -263,7 +265,7 @@ func _process(_delta: float) -> void:
 # Construit les 4 pastilles (cachees par defaut). Ordre d'empilement bas-gauche.
 func _build_powerup_pills() -> void:
 	var container := $PowerupIndicator as VBoxContainer
-	for type: String in ["shield", "boost", "slowmo", "magnet"]:
+	for type: String in ["shield", "boost", "megaboost", "slowmo", "magnet"]:
 		var timed: bool = type != "shield"   # le bouclier n'a pas de timer
 		var pill := _make_pill(PILL_COLORS[type], PILL_NAMES[type], timed)
 		container.add_child(pill["root"])
@@ -307,7 +309,11 @@ func _make_pill(color: Color, text: String, timed: bool) -> Dictionary:
 
 func _update_powerup_indicator() -> void:
 	_set_pill("shield", _player.has_shield, 1.0)
-	_set_pill("boost", _player.boost_timer > 0.0, _player.boost_timer / PlayerController.BOOST_DURATION)
+	# Boost et méga-boost partagent boost_timer ; boost_is_mega choisit quelle pastille afficher
+	# (chacune avec sa durée max → barre correcte) pour distinguer l'orange du magenta.
+	var mega: bool = _player.boost_is_mega
+	_set_pill("boost", _player.boost_timer > 0.0 and not mega, _player.boost_timer / PlayerController.BOOST_DURATION)
+	_set_pill("megaboost", _player.boost_timer > 0.0 and mega, _player.boost_timer / PlayerController.MEGA_BOOST_DURATION)
 	_set_pill("slowmo", _player.slowmo_timer > 0.0, _player.slowmo_timer / PlayerController.SLOWMO_DURATION)
 	_set_pill("magnet", _player.magnet_timer > 0.0, _player.magnet_timer / PlayerController.MAGNET_DURATION)
 

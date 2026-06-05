@@ -10,11 +10,12 @@ const SPAWN_INTERVAL_MAX: float = 600.0
 const SPAWN_AHEAD: float = 60.0
 const CORRIDOR_HALF_WIDTH: float = 4.0
 const DESPAWN_BEHIND: float = 15.0
-const TYPES: Array[String] = ["shield", "slowmo", "magnet", "boost"]
-const TYPES_CAMPAIGN: Array[String] = ["shield", "slowmo", "boost"]
-# Tirage PONDÉRÉ (avant : équiprobable). Le boost sort un peu plus souvent que les autres :
-# en classique 12/39 ≈ 31 % (était 25 %), les autres ≈ 23 % chacun.
-const WEIGHTS: Dictionary = {"shield": 9, "slowmo": 9, "magnet": 9, "boost": 12}
+const TYPES: Array[String] = ["shield", "slowmo", "magnet", "boost", "megaboost"]
+const TYPES_CAMPAIGN: Array[String] = ["shield", "slowmo", "boost", "megaboost"]
+# Tirage PONDÉRÉ (avant : équiprobable). Le boost sort un peu plus souvent que les autres,
+# le méga-boost est un JACKPOT très rare : en classique boost 12/40 = 30 %, méga-boost
+# 1/40 = 2,5 %, les autres ≈ 22,5 % chacun.
+const WEIGHTS: Dictionary = {"shield": 9, "slowmo": 9, "magnet": 9, "boost": 12, "megaboost": 1}
 
 var _next_spawn_y: float = 0.0
 var _campaign_mode: bool = false

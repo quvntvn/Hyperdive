@@ -12,6 +12,7 @@ var _slowmo_amount: float = 0.0
 var _speed_mat: ShaderMaterial
 var _speed_tween: Tween
 var _speed_amount: float = 0.0
+var _speed_intensity: float = 0.7   # multiplicateur de force (boost = 0.7, méga-boost = 1.0)
 
 func _ready() -> void:
 	add_to_group("post_process")
@@ -56,7 +57,10 @@ func _apply_slowmo(x: float) -> void:
 	_shader_mat.set_shader_parameter("tint_color", Color(0.7, 0.8, 1.0, x * 0.25))
 
 # Boost : lignes de vitesse radiales sur les bords. Transition douce en entrée/sortie.
-func set_speed_lines(active: bool) -> void:
+func set_speed_lines(active: bool, color: Color = Color(0.914, 0.310, 0.216, 1.0), intensity: float = 0.7) -> void:
+	if active and _speed_mat != null:
+		_speed_mat.set_shader_parameter("line_color", color)
+		_speed_intensity = intensity
 	var target: float = 1.0 if active else 0.0
 	if _speed_tween != null and _speed_tween.is_valid():
 		_speed_tween.kill()
@@ -66,4 +70,4 @@ func set_speed_lines(active: bool) -> void:
 func _apply_speed_lines(x: float) -> void:
 	_speed_amount = x
 	if _speed_mat != null:
-		_speed_mat.set_shader_parameter("strength", x * 0.7)
+		_speed_mat.set_shader_parameter("strength", x * _speed_intensity)

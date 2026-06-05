@@ -12,6 +12,7 @@ const COLORS: Dictionary = {
 	"slowmo": Color(0.122, 0.188, 0.369, 1.0),   # bleu nuit #1F305E
 	"magnet": Color(0.949, 0.757, 0.306, 1.0),   # jaune moutarde #F2C14E
 	"boost": Color(0.914, 0.310, 0.216, 1.0),    # orange #E94F37
+	"megaboost": Color(0.69, 0.149, 1.0, 1.0),   # magenta/violet #B026FF (jackpot rare)
 }
 const CREAM: Color = Color(0.957, 0.914, 0.804, 1.0)   # crème #F4E9CD (accents lisibles)
 
@@ -127,8 +128,8 @@ func _build_mesh() -> void:
 			tip.height = 0.05
 			_add_mi(tip, Vector3(-0.15, -0.15, 0.0), Vector3.ZERO, CREAM)
 			_add_mi(tip, Vector3(0.15, -0.15, 0.0), Vector3.ZERO, CREAM)
-		"boost":
-			# Flèche/fusée orange orientée verticalement.
+		"boost", "megaboost":
+			# Flèche/fusée orientée verticalement (orange = boost, magenta = méga-boost).
 			var cone := CylinderMesh.new()
 			cone.top_radius = 0.26
 			cone.bottom_radius = 0.0
@@ -141,9 +142,11 @@ func _build_mesh() -> void:
 			_add_mi(tail, Vector3(0.0, 0.225, 0.0))
 
 func _add_halo() -> void:
+	# Méga-boost : halo PLUS GROS et PLUS lumineux → on voit tout de suite que c'est le rare.
+	var mega: bool = type == "megaboost"
 	var torus := TorusMesh.new()
-	torus.inner_radius = 0.42
-	torus.outer_radius = 0.52
+	torus.inner_radius = 0.54 if mega else 0.42
+	torus.outer_radius = 0.70 if mega else 0.52
 	torus.rings = 16
 	torus.ring_segments = 8
 	var mi := MeshInstance3D.new()
@@ -156,7 +159,7 @@ func _add_halo() -> void:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.emission_enabled = true
 	mat.emission = c
-	mat.emission_energy_multiplier = 3.5
+	mat.emission_energy_multiplier = 5.0 if mega else 3.5
 	mi.material_override = mat
 	_visual.add_child(mi)
 	_halo_mi = mi
@@ -190,8 +193,9 @@ func _on_body_entered(body: Node3D) -> void:
 # l'objet + burst de particules renforcé. Le moment de récompense doit claquer.
 func _juicy_pickup() -> void:
 	var c: Color = COLORS.get(type, Color.WHITE)
-	Audio.play_powerup(type)
-	Settings.vibrate(40 if type == "boost" else 35)
+	# Le méga-boost réutilise le son du boost (pas de SFX dédié). Vibration plus marquée (jackpot).
+	Audio.play_powerup("boost" if type == "megaboost" else type)
+	Settings.vibrate(70 if type == "megaboost" else (40 if type == "boost" else 35))
 	var pp := get_tree().get_first_node_in_group("post_process")
 	if pp != null and pp.has_method("flash"):
 		pp.flash(c)
@@ -207,18 +211,19 @@ func _juicy_pickup() -> void:
 	tw.tween_callback(queue_free)
 
 func _spawn_burst() -> void:
+	var mega: bool = type == "megaboost"
 	var burst := GPUParticles3D.new()
 	burst.one_shot = true
 	burst.explosiveness = 1.0
-	burst.amount = 28
-	burst.lifetime = 0.55
+	burst.amount = 60 if mega else 28        # méga-boost : burst de ramassage bien plus dense
+	burst.lifetime = 0.7 if mega else 0.55
 	burst.emitting = true
 
 	var mat := ParticleProcessMaterial.new()
 	mat.direction = Vector3(0.0, 1.0, 0.0)
 	mat.spread = 90.0
-	mat.initial_velocity_min = 4.0
-	mat.initial_velocity_max = 8.0
+	mat.initial_velocity_min = 5.0 if mega else 4.0
+	mat.initial_velocity_max = 12.0 if mega else 8.0
 	mat.gravity = Vector3(0.0, -3.0, 0.0)
 	mat.scale_min = 0.12
 	mat.scale_max = 0.28

@@ -22,7 +22,10 @@ const MAGNET_DURATION: float = 8.0    # le plus long (effet passif utilitaire), 
 const MAGNET_RADIUS: float = 10.0
 const MAGNET_LERP_SPEED: float = 8.0
 const BOOST_DURATION: float = 4.0     # allonge (etait 2.0) pour pulveriser plusieurs obstacles
+const MEGA_BOOST_DURATION: float = 8.0   # méga-boost : 2× le boost normal (jackpot rare)
 const BOOST_SPEED_FACTOR: float = 2.5
+const BOOST_COLOR: Color = Color(0.914, 0.310, 0.216, 1.0)    # orange #E94F37
+const MEGA_BOOST_COLOR: Color = Color(0.69, 0.149, 1.0, 1.0)  # magenta/violet #B026FF
 const SPEED_RAMP_STEP: float = 1000.0        # tous les 1000 m en infini
 const SPEED_RAMP_STEP_JETPACK: float = 500.0   # tous les 500 m en jetpack
 const SPEED_RAMP_FACTOR: float = 1.1    # +10 % cumulatif par palier
@@ -58,6 +61,7 @@ var has_shield: bool = false
 var slowmo_timer: float = 0.0
 var magnet_timer: float = 0.0
 var _boost_active: bool = false
+var boost_is_mega: bool = false       # le boost actif est-il un méga-boost (durée/couleur/FX 2×) ? (lu par le HUD)
 var boost_timer: float = 0.0
 var _boost_trail: GPUParticles3D
 var _boost_aura: MeshInstance3D
@@ -602,10 +606,18 @@ func collect_powerup(powerup_type: String) -> void:
 			magnet_timer = MAGNET_DURATION
 			_show_magnet_aura()
 		"boost":
-			_boost_active = true
-			boost_timer = BOOST_DURATION
-			_start_boost_trail()
-			_start_boost_fx()
+			_activate_boost(false)
+		"megaboost":
+			_activate_boost(true)
+
+# Boost ET méga-boost partagent la même mécanique (invincibilité + pulvérisation via _boost_active) :
+# seuls la durée, la couleur et l'intensité des FX changent → un seul point de logique, pas de doublon.
+func _activate_boost(mega: bool) -> void:
+	_boost_active = true
+	boost_is_mega = mega
+	boost_timer = MEGA_BOOST_DURATION if mega else BOOST_DURATION
+	_start_boost_trail(mega)
+	_start_boost_fx(mega)
 
 func _show_shield_aura() -> void:
 	if _shield_aura != null:
@@ -814,6 +826,7 @@ func _process(delta: float) -> void:
 		boost_timer = maxf(boost_timer - delta, 0.0)
 		if boost_timer == 0.0:
 			_boost_active = false
+			boost_is_mega = false
 			_stop_boost_trail()
 			_stop_boost_fx()
 	if slowmo_timer > 0.0:
@@ -864,35 +877,41 @@ func _apply_jetpack_sway(node: Node3D, delta: float, base: Vector3, t: float, la
 	var target: Vector3 = base + Vector3(s * x_amp, 0.0, s * z_amp + lateral * lat_z)
 	node.rotation_degrees = node.rotation_degrees.lerp(target, delta * 8.0)
 
-func _start_boost_trail() -> void:
+func _start_boost_trail(mega: bool = false) -> void:
 	if _boost_trail != null:
 		return
 	var trail := GPUParticles3D.new()
 	trail.one_shot = false
-	trail.amount = 90
-	trail.lifetime = 0.3
+	trail.amount = 150 if mega else 90        # méga-boost : traînée bien plus dense
+	trail.lifetime = 0.35 if mega else 0.3
 	trail.local_coords = false
 	trail.emitting = true
 	var mat := ParticleProcessMaterial.new()
 	mat.direction = Vector3(0.0, 1.0, 0.0)
-	mat.spread = 14.0
-	mat.initial_velocity_min = 10.0
-	mat.initial_velocity_max = 20.0
+	mat.spread = 18.0 if mega else 14.0
+	mat.initial_velocity_min = 12.0 if mega else 10.0
+	mat.initial_velocity_max = 24.0 if mega else 20.0
 	mat.gravity = Vector3.ZERO
-	mat.scale_min = 0.1
-	mat.scale_max = 0.24
-	# Degrade jaune moutarde -> orange -> transparent (flamme).
+	mat.scale_min = 0.12 if mega else 0.1
+	mat.scale_max = 0.34 if mega else 0.24
 	var grad := Gradient.new()
-	grad.set_color(0, Color(0.949, 0.757, 0.306, 1.0))   # jaune #F2C14E
-	grad.set_color(1, Color(0.914, 0.310, 0.216, 0.0))   # orange #E94F37 -> fondu
-	grad.add_point(0.5, Color(0.914, 0.310, 0.216, 1.0))
+	if mega:
+		# Dégradé magenta clair -> violet -> transparent (flamme jackpot, plus grosse/colorée).
+		grad.set_color(0, Color(1.0, 0.55, 1.0, 1.0))
+		grad.add_point(0.5, MEGA_BOOST_COLOR)
+		grad.set_color(1, Color(MEGA_BOOST_COLOR.r, MEGA_BOOST_COLOR.g, MEGA_BOOST_COLOR.b, 0.0))
+	else:
+		# Degrade jaune moutarde -> orange -> transparent (flamme).
+		grad.set_color(0, Color(0.949, 0.757, 0.306, 1.0))   # jaune #F2C14E
+		grad.add_point(0.5, Color(0.914, 0.310, 0.216, 1.0))
+		grad.set_color(1, Color(0.914, 0.310, 0.216, 0.0))   # orange #E94F37 -> fondu
 	var ramp := GradientTexture1D.new()
 	ramp.gradient = grad
 	mat.color_ramp = ramp
 	trail.process_material = mat
 	var sphere := SphereMesh.new()
-	sphere.radius = 0.05
-	sphere.height = 0.10
+	sphere.radius = 0.07 if mega else 0.05
+	sphere.height = 0.14 if mega else 0.10
 	trail.draw_pass_1 = sphere
 	add_child(trail)
 	_boost_trail = trail
@@ -906,12 +925,15 @@ func _stop_boost_trail() -> void:
 	get_tree().create_timer(0.4).timeout.connect(old_trail.queue_free)
 
 # ── Boost : effets ecran + aura d'immunite + punch camera ────────────────────────────────
-func _start_boost_fx() -> void:
-	_show_boost_aura()
+func _start_boost_fx(mega: bool = false) -> void:
+	_show_boost_aura(mega)
 	var pp := get_tree().get_first_node_in_group("post_process")
 	if pp != null and pp.has_method("set_speed_lines"):
-		pp.set_speed_lines(true)
-	_shake_camera(0.25)   # "punch" au declenchement
+		if mega:
+			pp.set_speed_lines(true, MEGA_BOOST_COLOR, 1.0)   # lignes magenta plus denses/intenses
+		else:
+			pp.set_speed_lines(true, BOOST_COLOR, 0.7)
+	_shake_camera(0.45 if mega else 0.25)   # "punch" au declenchement (plus fort en méga)
 
 func _stop_boost_fx() -> void:
 	_remove_boost_aura()
@@ -922,21 +944,22 @@ func _stop_boost_fx() -> void:
 # Aura d'IMMUNITE visible (blanc-orange) : meme bulle Fresnel que le bouclier mais orange →
 # le joueur SAIT qu'il est invincible et fonce (sinon il freine par reflexe). Distincte du
 # bouclier (turquoise) par la couleur.
-func _show_boost_aura() -> void:
+func _show_boost_aura(mega: bool = false) -> void:
 	if _boost_aura != null:
 		return
 	_boost_aura = MeshInstance3D.new()
 	var sphere := SphereMesh.new()
-	sphere.radius = 1.0
-	sphere.height = 2.0
+	sphere.radius = 1.15 if mega else 1.0
+	sphere.height = 2.3 if mega else 2.0
 	sphere.radial_segments = 24
 	sphere.rings = 12
 	_boost_aura.mesh = sphere
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://assets/shaders/shield_bubble.gdshader")
-	mat.set_shader_parameter("bubble_color", Color(1.0, 0.55, 0.3, 1.0))   # blanc-orange chaud
-	mat.set_shader_parameter("rim_power", 2.0)
-	mat.set_shader_parameter("pulse", 1.1)
+	# Méga : aura magenta éclatante + rim plus large (rim_power plus bas). Normal : blanc-orange chaud.
+	mat.set_shader_parameter("bubble_color", Color(0.85, 0.35, 1.0, 1.0) if mega else Color(1.0, 0.55, 0.3, 1.0))
+	mat.set_shader_parameter("rim_power", 1.5 if mega else 2.0)
+	mat.set_shader_parameter("pulse", 1.4 if mega else 1.1)
 	_boost_aura.material_override = mat
 	add_child(_boost_aura)
 
@@ -1008,11 +1031,11 @@ func _pulverize_contact(body: Node, body_shape_index: int) -> void:
 	var is_zone: bool = body is ObstacleBase and (body as ObstacleBase).zone_length > 0.0
 	var col: Node3D = _get_collision_node(body, body_shape_index)
 	var pos: Vector3 = col.global_position if col != null else (body as Node3D).global_position
-	_spawn_pulverize_burst(pos, _obstacle_color(body))
+	_spawn_pulverize_burst(pos, _obstacle_color(body), boost_is_mega)
 	# Feedback son/shake/vibration limite (anti-spam quand on traverse une zone a 4 elements).
 	if _pulverize_sfx_cd <= 0.0:
 		Audio.play_hit()
-		_shake_camera(0.12)
+		_shake_camera(0.18 if boost_is_mega else 0.12)
 		Settings.vibrate(25)
 		_pulverize_sfx_cd = 0.08
 	if is_zone:
@@ -1078,25 +1101,26 @@ func _nearest_zone_element(body: Node) -> Node3D:
 				best = child as Node3D
 	return best
 
-func _spawn_pulverize_burst(pos: Vector3, color: Color) -> void:
+func _spawn_pulverize_burst(pos: Vector3, color: Color, mega: bool = false) -> void:
 	var burst := GPUParticles3D.new()
 	burst.one_shot = true
 	burst.explosiveness = 1.0
-	burst.amount = 18
-	burst.lifetime = 0.45
+	burst.amount = 38 if mega else 18        # méga-boost : pulvérisation bien plus spectaculaire
+	burst.lifetime = 0.55 if mega else 0.45
 	burst.emitting = true
 	var mat := ParticleProcessMaterial.new()
 	mat.direction = Vector3(0.0, 1.0, 0.0)
 	mat.spread = 180.0
-	mat.initial_velocity_min = 5.0
-	mat.initial_velocity_max = 11.0
+	mat.initial_velocity_min = 6.0 if mega else 5.0
+	mat.initial_velocity_max = 14.0 if mega else 11.0
 	mat.gravity = Vector3(0.0, -6.0, 0.0)
 	mat.scale_min = 0.1
-	mat.scale_max = 0.25
-	mat.color = color
+	mat.scale_max = 0.32 if mega else 0.25
+	# Méga : éclats teintés magenta (mix couleur obstacle → magenta) pour le côté jackpot.
+	mat.color = color.lerp(MEGA_BOOST_COLOR, 0.6) if mega else color
 	burst.process_material = mat
 	var shard := BoxMesh.new()
-	shard.size = Vector3(0.14, 0.14, 0.14)
+	shard.size = (Vector3.ONE * 0.18) if mega else Vector3(0.14, 0.14, 0.14)
 	burst.draw_pass_1 = shard
 	get_tree().current_scene.add_child(burst)
 	burst.global_position = pos
