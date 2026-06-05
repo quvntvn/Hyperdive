@@ -38,7 +38,9 @@ static var _card_style: StyleBoxFlat = null
 static func glass_card_style() -> StyleBoxFlat:
 	if _card_style == null:
 		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0.82, 0.86, 0.95, 0.14)
+		# Verre bleu nuit MODÉRÉMENT sombre (présence/contraste), mais moins dense que les
+		# boutons → les boutons clairs ressortent par-dessus. Reste translucide (devine le flou).
+		sb.bg_color = Color(0.13, 0.17, 0.27, 0.36)
 		sb.set_corner_radius_all(int(GlassBlur.DEFAULT_RADIUS))
 		# Pas de contour complet : seulement un reflet de verre discret en haut.
 		sb.set_border_width_all(0)
@@ -60,7 +62,9 @@ static var _panel_style: StyleBoxFlat = null
 static func glass_panel_style() -> StyleBoxFlat:
 	if _panel_style == null:
 		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0.82, 0.86, 0.95, 0.16)
+		# Verre bleu nuit MODÉRÉMENT sombre : un peu plus dense que les cartes d'items, mais
+		# toujours moins sombre que les boutons → les boutons clairs ressortent dessus.
+		sb.bg_color = Color(0.13, 0.17, 0.27, 0.4)
 		sb.set_corner_radius_all(int(GlassBlur.DEFAULT_RADIUS))
 		sb.set_border_width_all(0)
 		sb.border_width_top = 1
