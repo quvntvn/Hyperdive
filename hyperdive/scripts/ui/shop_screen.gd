@@ -94,17 +94,25 @@ func _dim(c: Color) -> Color:
 
 # Cadenas centré dans le bouton d'un exclusif verrouillé (icône SVG, pas d'emoji).
 # Le bouton reste désactivé ; le TextureRect ignore la souris (le bouton gère l'état).
+const LOCK_SIZE := 32.0   # taille FIXE du cadenas, identique sur toutes les lignes
+
 func _add_lock_icon(btn: Button) -> void:
 	var lock := TextureRect.new()
 	lock.texture = LOCK_TEX
-	lock.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	# Taille FIXE : on NE laisse PAS le cadenas s'étirer avec le bouton (sinon flou + taille variable).
+	lock.expand_mode = TextureRect.EXPAND_KEEP_SIZE
 	lock.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	lock.custom_minimum_size = Vector2(LOCK_SIZE, LOCK_SIZE)
 	lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	lock.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	lock.offset_left = 10.0
-	lock.offset_top = 10.0
-	lock.offset_right = -10.0
-	lock.offset_bottom = -10.0
+	# Centré dans le bouton : ancres au centre (0.5) + offsets ±moitié -> taille fixe garantie.
+	lock.anchor_left = 0.5
+	lock.anchor_top = 0.5
+	lock.anchor_right = 0.5
+	lock.anchor_bottom = 0.5
+	lock.offset_left = -LOCK_SIZE * 0.5
+	lock.offset_top = -LOCK_SIZE * 0.5
+	lock.offset_right = LOCK_SIZE * 0.5
+	lock.offset_bottom = LOCK_SIZE * 0.5
 	btn.add_child(lock)
 
 # Configure le label de prix/condition : condition de défi si verrouillé, sinon le prix.
