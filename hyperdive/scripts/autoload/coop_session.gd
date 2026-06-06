@@ -58,8 +58,15 @@ var round_modes: Array[String] = []
 
 # === Curseurs (machine à états pass-and-play) ===
 var current_round: int = 0    # 0-based
-var current_player: int = 0   # 0-based
+var current_player: int = 0   # 0-based (joueur qui joue MAINTENANT = play_order[order_idx])
 var active: bool = false       # garde-fou global du contexte coop
+
+# === Ordre de jeu (mélangé à CHAQUE manche) ===
+# play_order = ordre de passation (indices joueurs) tiré au hasard au début de chaque manche ;
+# order_idx = position du joueur courant dans cet ordre. Le scoring reste basé sur les scores
+# (l'ordre ne change pas qui gagne), seul l'ordre dans lequel on se passe le téléphone change.
+var play_order: Array = []
+var order_idx: int = 0
 
 # === Round final de départage (tiebreak) — déclenché si égalité de points à la 1re place ===
 var tiebreak_active: bool = false       # surcouche : un round joué seulement par les ex-æquo
@@ -103,11 +110,23 @@ func start_session(p_num_players: int, p_num_rounds: int, p_mode: String, p_name
 		round_modes.append(_roll_round_mode())
 
 	current_round = 0
-	current_player = 0
+	_shuffle_round_order()   # ordre de jeu aléatoire pour la 1re manche
 	_reset_tiebreak()
 	active = true
 	print("[coop] start: %d joueurs, %d manches, mode=%s, modes=%s, noms=%s"
 		% [num_players, num_rounds, mode_choice, str(round_modes), str(player_names)])
+
+# Tire un ORDRE DE JEU aléatoire pour la manche courante et place le curseur sur le 1er joueur.
+# Appelé au début de CHAQUE manche (start_session pour la 1re, start_next_round pour les suivantes)
+# → un round peut être J3→J1→J2, le suivant J2→J3→J1, etc.
+func _shuffle_round_order() -> void:
+	play_order = []
+	for i in range(num_players):
+		play_order.append(i)
+	play_order.shuffle()
+	order_idx = 0
+	current_player = play_order[0]
+	print("[coop] ordre manche %d : %s" % [current_round + 1, str(play_order)])
 
 func _roll_round_mode() -> String:
 	match mode_choice:
@@ -125,6 +144,8 @@ func clear() -> void:
 	num_rounds = 3
 	current_round = 0
 	current_player = 0
+	play_order = []
+	order_idx = 0
 	_reset_tiebreak()
 
 func _reset_tiebreak() -> void:
@@ -196,11 +217,11 @@ func turn_players() -> Array:
 func turn_score(p: int) -> int:
 	return int(tiebreak_scores.get(p, 0)) if tiebreak_active else int(scores[p][current_round])
 
-# Le joueur p (≠ courant) a-t-il déjà joué ce tour-round ? (ordre de jeu = ordre d'index)
+# Le joueur p (≠ courant) a-t-il déjà joué ce tour-round ? (position dans l'ordre tiré < curseur)
 func turn_has_played(p: int) -> bool:
 	if tiebreak_active:
 		return tiebreak_scores.has(p)
-	return p < current_player
+	return play_order.find(p) < order_idx
 
 func turn_done_players() -> Array:
 	var cur: int = turn_current_player()
@@ -232,8 +253,9 @@ func record_turn(score: int) -> void:
 # Au ROUND_OVER, current_player reste sur le dernier joueur (sans importance, on lit toute
 # la manche au classement). Le passage à la manche suivante se fait via start_next_round().
 func advance_after_turn() -> int:
-	if current_player + 1 < num_players:
-		current_player += 1
+	if order_idx + 1 < num_players:
+		order_idx += 1
+		current_player = play_order[order_idx]   # joueur suivant SELON l'ordre tiré
 		return NEXT_PLAYER
 	return ROUND_OVER
 
@@ -243,7 +265,7 @@ func is_last_round() -> bool:
 # Appelé depuis l'écran de classement de manche (CONTINUER) quand ce n'est PAS la dernière.
 func start_next_round() -> void:
 	current_round += 1
-	current_player = 0
+	_shuffle_round_order()   # nouvel ordre de jeu aléatoire pour cette manche
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Routage entre scènes (toutes les transitions du flux coop passent par ici)
@@ -316,6 +338,7 @@ func _first_place_leaders() -> Array:
 func _start_tiebreak(players: Array) -> void:
 	tiebreak_active = true
 	tiebreak_players = players.duplicate()
+	tiebreak_players.shuffle()   # ordre de jeu aléatoire AUSSI entre les ex-æquo du round final
 	tiebreak_scores = {}
 	tiebreak_cur_idx = 0
 	tiebreak_mode = "jetpack" if randi() % 2 == 0 else "infinite"
