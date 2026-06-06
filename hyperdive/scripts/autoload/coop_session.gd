@@ -79,6 +79,13 @@ var tiebreak_orig_leaders: Array = []   # ex-æquo 1re place INITIAUX (pour le c
 var tiebreak_last_scores: Dictionary = {}  # scores du DERNIER round final résolutif
 var tiebreak_bonus: Dictionary = {}     # joueur -> points bonus (+1 au vainqueur du départage)
 
+# === Bonus "meilleur score du tournoi" (+1 au(x) joueur(s) au plus haut score d'une manche) ===
+# Calculé une seule fois à la fin de la dernière manche, AVANT la détection du départage.
+# Distinct du bonus de départage → les deux peuvent se cumuler (+2 max sur un joueur).
+var best_score_bonus: Dictionary = {}   # joueur -> +1 si meilleur score du tournoi
+var tournament_best_score: int = 0      # le plus haut score individuel, tous joueurs/manches
+var tournament_best_players: Array = [] # auteur(s) de ce meilleur score (ex-æquo → tous)
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Cycle de vie de session
 # ──────────────────────────────────────────────────────────────────────────────
@@ -158,6 +165,9 @@ func _reset_tiebreak() -> void:
 	tiebreak_orig_leaders = []
 	tiebreak_last_scores = {}
 	tiebreak_bonus = {}
+	best_score_bonus = {}
+	tournament_best_score = 0
+	tournament_best_players = []
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Accès au tour courant
@@ -321,12 +331,34 @@ func restart_same_config() -> void:
 # Fin de la dernière manche : s'il y a égalité de POINTS à la 1re place → round final entre
 # ces ex-æquo ; sinon → écran final directement.
 func _finish_or_tiebreak() -> void:
+	# 1) Bonus meilleur score du tournoi (+1) AVANT toute détection de départage : il fait partie
+	#    des points "normaux" et peut donc changer qui est 1er (et donc s'il y a égalité à départager).
+	_award_best_score_bonus()
+	# 2) Le départage tranche ce qui reste à égalité APRÈS ce bonus.
 	var leaders: Array = _first_place_leaders()
 	if leaders.size() > 1:
 		tiebreak_orig_leaders = leaders.duplicate()
 		_start_tiebreak(leaders)
 	else:
 		Transition.change_scene(SCENE_FINAL)
+
+# Récompense le(s) joueur(s) au plus haut score individuel du tournoi (toutes manches confondues)
+# d'un +1 point. Égalité exacte → tous le reçoivent (cohérent avec le scoring ex-æquo). Fixe une
+# fois la dernière manche jouée ; appelé une seule fois (depuis _finish_or_tiebreak).
+func _award_best_score_bonus() -> void:
+	best_score_bonus = {}
+	tournament_best_players = []
+	var last: int = num_rounds - 1
+	var best: int = 0
+	for p in range(num_players):
+		best = maxi(best, _best_single_score(p, last))
+	tournament_best_score = best
+	if best <= 0:
+		return   # personne n'a marqué (ne devrait pas arriver) → pas de bonus
+	for p in range(num_players):
+		if _best_single_score(p, last) == best:
+			tournament_best_players.append(p)
+			best_score_bonus[p] = 1
 
 # Joueurs partageant le maximum de points (candidats au départage de la 1re place).
 func _first_place_leaders() -> Array:
@@ -475,9 +507,10 @@ func standings(last_round: int) -> Array:
 	var entries: Array = []
 	for p in range(num_players):
 		entries.append({
-			# +bonus = +1 au vainqueur d'un round final de départage (vide hors départage).
+			# +bonus = +1 meilleur score du tournoi (best_score_bonus) ET/OU +1 vainqueur du
+			# départage (tiebreak_bonus). Les deux sont distincts et cumulables. Vides hors fin.
 			"player": p,
-			"points": points_through(p, last_round) + int(tiebreak_bonus.get(p, 0)),
+			"points": points_through(p, last_round) + int(best_score_bonus.get(p, 0)) + int(tiebreak_bonus.get(p, 0)),
 			"best_score": _best_single_score(p, last_round),
 			"rounds_won": _rounds_won(p, last_round),
 		})

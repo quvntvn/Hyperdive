@@ -38,6 +38,7 @@ func _populate() -> void:
 	$Content/WinnerPoints.add_theme_color_override("font_outline_color", Color.WHITE)
 	$Content/WinnerPoints.add_theme_constant_override("outline_size", 2)
 
+	_populate_best_score()
 	_build_podium(standings)
 
 	var box := $Content/ScrollContainer/StandingsBox as VBoxContainer
@@ -47,6 +48,26 @@ func _populate() -> void:
 	for s in standings:
 		box.add_child(_make_standing_row(rank, s))
 		rank += 1
+
+# Mise en avant honorifique : le(s) joueur(s) au meilleur score du tournoi (+1 point bonus
+# déjà appliqué dans les standings). Plusieurs ex-æquo → noms joints. Couleur du joueur si seul.
+func _populate_best_score() -> void:
+	var lbl := $Content/BestScoreLabel as Label
+	var players: Array = Coop.tournament_best_players
+	if players.is_empty():
+		lbl.visible = false
+		return
+	var score_txt: String = UIAnimations.format_number(Coop.tournament_best_score)
+	if players.size() == 1:
+		var p: int = int(players[0])
+		lbl.text = "★ Meilleur score du tournoi : %s — %s m  (+1)" % [Coop.player_names[p], score_txt]
+		lbl.add_theme_color_override("font_color", Coop.player_color(p))
+	else:
+		var names: Array = []
+		for p in players:
+			names.append(Coop.player_names[int(p)])
+		lbl.text = "★ Meilleur score du tournoi : %s — %s m  (+1 chacun)" % [", ".join(names), score_txt]
+		lbl.add_theme_color_override("font_color", TEXT_GOLD)
 
 # Podium : 2e à gauche, 1er au centre (plus haut), 3e à droite. Piliers alignés en bas.
 # Robuste à 2 joueurs (pas de 3e pilier) comme à 4 (4e relégué au classement dessous).
