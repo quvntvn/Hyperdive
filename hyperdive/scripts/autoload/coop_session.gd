@@ -183,6 +183,11 @@ func round_label() -> String:
 func mode_label(mode: String) -> String:
 	return "JETPACK" if mode == "jetpack" else "CLASSIQUE"
 
+# Record PERSO du mode (référence d'affichage uniquement — le tournoi ne modifie JAMAIS
+# les stats perso, gatées par active). Sert à comparer "quelqu'un l'a-t-il battu ce round ?".
+func mode_personal_record(mode: String) -> int:
+	return Settings.best_jetpack_distance if mode == "jetpack" else Settings.best_infinite_distance
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Contexte du TOUR courant — abstrait "manche normale" vs "round final de départage".
 # La passation, le HUD live et l'interception de la mort lisent CE contexte → un seul code
