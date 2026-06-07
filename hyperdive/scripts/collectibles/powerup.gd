@@ -210,15 +210,17 @@ func _juicy_pickup() -> void:
 	tw.parallel().tween_property(_visual, "position:y", _visual.position.y + 0.4, 0.12)
 	tw.tween_callback(queue_free)
 
-func _spawn_burst() -> void:
-	var mega: bool = type == "megaboost"
-	var burst := GPUParticles3D.new()
-	burst.one_shot = true
-	burst.explosiveness = 1.0
-	burst.amount = 60 if mega else 28        # méga-boost : burst de ramassage bien plus dense
-	burst.lifetime = 0.7 if mega else 0.55
-	burst.emitting = true
+# Ressources du burst PARTAGÉES par type (créées une seule fois) — même fix que les pièces.
+# Avant, chaque ramassage allouait un ParticleProcessMaterial + SphereMesh neufs →
+# recompilation du shader de particules = micro-freeze. Mises en commun, le shader se
+# compile une fois par type puis plus aucune allocation lourde au ramassage.
+static var _burst_mat_by_type: Dictionary = {}
+static var _burst_mesh: SphereMesh
 
+static func _get_burst_mat(t: String) -> ParticleProcessMaterial:
+	if _burst_mat_by_type.has(t):
+		return _burst_mat_by_type[t]
+	var mega: bool = t == "megaboost"
 	var mat := ParticleProcessMaterial.new()
 	mat.direction = Vector3(0.0, 1.0, 0.0)
 	mat.spread = 90.0
@@ -227,15 +229,30 @@ func _spawn_burst() -> void:
 	mat.gravity = Vector3(0.0, -3.0, 0.0)
 	mat.scale_min = 0.12
 	mat.scale_max = 0.28
-	mat.color = COLORS.get(type, Color.WHITE)
-	burst.process_material = mat
+	mat.color = COLORS.get(t, Color.WHITE)
+	_burst_mat_by_type[t] = mat
+	return mat
 
+static func _get_burst_mesh() -> SphereMesh:
+	if _burst_mesh != null:
+		return _burst_mesh
 	var sphere := SphereMesh.new()
 	sphere.radius = 0.08
 	sphere.height = 0.16
-	burst.draw_pass_1 = sphere
+	_burst_mesh = sphere
+	return _burst_mesh
 
+func _spawn_burst() -> void:
+	var mega: bool = type == "megaboost"
+	var burst := GPUParticles3D.new()
+	burst.one_shot = true
+	burst.explosiveness = 1.0
+	burst.amount = 60 if mega else 28        # méga-boost : burst de ramassage bien plus dense
+	burst.lifetime = 0.7 if mega else 0.55
+	burst.process_material = _get_burst_mat(type)   # ressources partagées (pas de nouvelle alloc)
+	burst.draw_pass_1 = _get_burst_mesh()
 	var scene_root := get_tree().current_scene
 	scene_root.add_child(burst)
 	burst.global_position = global_position
+	burst.emitting = true
 	get_tree().create_timer(0.8).timeout.connect(burst.queue_free)

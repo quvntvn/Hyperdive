@@ -198,7 +198,8 @@ func register_powerup_used(ptype: String) -> void:
 		return
 	powerups_used.append(ptype)
 	print("[stats] powerup used: %s (types=%d/4)" % [ptype, powerups_used.size()])
-	save_settings()
+	# Pas de save ici (écriture disque en plein gameplay = micro-freeze, comme l'ancien
+	# add_coin). powerups_used est persisté au finalize_run de fin de partie.
 
 func register_death() -> void:
 	total_deaths += 1
