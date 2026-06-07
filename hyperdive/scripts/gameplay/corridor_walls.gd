@@ -86,48 +86,9 @@ func _process(_delta: float) -> void:
 	_apply_cycle(phase, true)
 
 func _create_ambient_fx() -> void:
-	# loop_cells > 0 = instance du MENU (piste qui boucle). En jeu loop_cells == 0.
-	# Motes flottantes : seulement EN JEU. Au menu la piste reste propre.
-	if not _is_menu:
-		_create_dust_motes()
+	# Motes de poussière du couloir RETIRÉES (elles flottaient autour du joueur et
+	# parasitaient le ciel). Étoiles du ciel (cycle jour/nuit) + nuages jetpack conservés.
 	_create_soft_clouds()
-
-func _create_dust_motes() -> void:
-	var p := GPUParticles3D.new()
-	p.amount = 75
-	p.lifetime = 10.0
-	p.one_shot = false
-	p.explosiveness = 0.0
-	p.randomness = 1.0
-	# local_coords = true : motes simulent en espace local des murs (qui suivent le joueur).
-	# Leur dérive locale lente vers le haut compense la descente du parent →
-	# en espace monde les motes semblent flotter sur place pendant la chute.
-	p.local_coords = true
-	p.emitting = true
-
-	var mat := ParticleProcessMaterial.new()
-	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	mat.emission_box_extents = Vector3(3.5, 10.0, 2.5)
-	mat.direction = Vector3(0.0, 1.0, 0.0)
-	mat.spread = 180.0
-	mat.initial_velocity_min = 0.04
-	mat.initial_velocity_max = 0.16
-	mat.gravity = Vector3.ZERO
-	mat.scale_min = 0.15
-	mat.scale_max = 0.40
-	mat.color = Color(0.957, 0.914, 0.804, 0.28)
-	p.process_material = mat
-
-	var sphere := SphereMesh.new()
-	sphere.radius = 0.10
-	sphere.height = 0.20
-	var smat := StandardMaterial3D.new()  # ASCII uniquement — pas de caractères cyrilliques
-	smat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	smat.vertex_color_use_as_albedo = true
-	smat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	sphere.surface_set_material(0, smat)
-	p.draw_pass_1 = sphere
-	add_child(p)
 
 # Nuages : UNIQUEMENT en mode jetpack (plus de nuages en chute campagne/infini ni au
 # menu). Placés en FOND latéral GAUCHE, derrière le mur gauche (x très négatif, reculés
