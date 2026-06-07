@@ -17,7 +17,7 @@ var _is_menu: bool = false
 #   - luminosité MULTIPLICATIVE (garde la teinte → le thème reste reconnaissable)
 #   - teinte d'heure du jour en LERP léger (force 0 le jour → thème pur de jour).
 # Tout = lerp de couleurs/uniforms (quasi gratuit), réécriture gatée par delta de phase.
-const CYCLE_DISTANCE: float = 2500.0
+const CYCLE_DISTANCE: float = 3750.0   # cycle 1,5× plus lent (était 2500) → on profite mieux de chaque ambiance
 
 # Keyframes aux phases 0.00=jour, 0.25=crépuscule, 0.50=nuit, 0.75=aube (boucle).
 var _k_bright: Array[float] = [1.00, 0.72, 0.40, 0.74]   # luminosité (plancher 0.40 = lisible)
