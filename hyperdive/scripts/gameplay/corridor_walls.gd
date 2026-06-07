@@ -46,7 +46,7 @@ var _world_env: WorldEnvironment
 var _sky_mat: ProceduralSkyMaterial
 var _skyline_mat: ShaderMaterial
 var _dir_light: DirectionalLight3D
-var _star_mat: ShaderMaterial
+var _star_mat: StandardMaterial3D   # matériau des étoiles ; on module son alpha selon le cycle
 var _lights_cached: bool = false
 var _last_phase: float = -1.0   # force la 1re application
 
@@ -68,7 +68,7 @@ func _ready() -> void:
 	_create_ambient_fx()
 	# Champ d'étoiles : seulement EN JEU (pas au menu). Visible la nuit (alpha = cycle).
 	if not _is_menu:
-		_create_star_dome()
+		_create_star_field()
 
 func _process(_delta: float) -> void:
 	if target == null:
@@ -251,7 +251,7 @@ func _apply_cycle(phase: float, do_skyline: bool) -> void:
 
 	# Étoiles (alpha additif → apparaissent la nuit, invisibles le jour).
 	if _star_mat != null:
-		_star_mat.set_shader_parameter("star_alpha", star)
+		_star_mat.albedo_color.a = star
 
 # couleur base × luminosité (garde la teinte) puis lerp léger vers la teinte d'heure.
 # Alpha forcé à 1 (Color*float multiplie aussi l'alpha → sinon ciel/murs translucides).
@@ -296,52 +296,51 @@ func _resolve_skyline() -> void:
 				_base_fog = _skyline_mat.get_shader_parameter("fog_color")
 			return
 
-# Dôme d'étoiles : grande sphère (caméra au centre) vue de l'intérieur, additive, derrière
-# la géométrie proche mais devant le ciel. Alpha piloté par le cycle (0 jour → 1 nuit).
-func _create_star_dome() -> void:
+# Champ d'ÉTOILES FIXES : GPUParticles3D ancrées à la caméra, réparties sur une sphère
+# lointaine (rayon 90), VÉLOCITÉ ZÉRO (elles ne dérivent pas → vraies étoiles immobiles),
+# très petites. Émises toutes d'un coup (explosiveness 1) avec une durée de vie quasi
+# infinie → permanentes. Leur opacité (alpha du matériau) est pilotée par le cycle :
+# 0 le jour (ciel propre) → monte la nuit. Additif → léger glow d'étoile.
+func _create_star_field() -> void:
 	var cam := get_parent().get_node_or_null("Camera3D") as Camera3D
 	if cam == null:
 		return
-	var dome := MeshInstance3D.new()
-	dome.name = "StarDome"
+	var p := GPUParticles3D.new()
+	p.name = "StarField"
+	p.amount = 170
+	p.lifetime = 1000.0          # quasi infini → étoiles permanentes
+	p.one_shot = false
+	p.explosiveness = 1.0        # toutes émises d'un coup au départ (puis statiques)
+	p.randomness = 0.0
+	p.local_coords = true        # fixes par rapport à la caméra (aucune dérive monde)
+	p.fixed_fps = 2              # statiques → pas besoin de simuler souvent
+	p.draw_order = GPUParticles3D.DRAW_ORDER_INDEX
+	p.emitting = true
+
+	var mat := ParticleProcessMaterial.new()
+	# Réparties sur la SURFACE d'une sphère lointaine → distance uniforme = petites étoiles nettes.
+	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE_SURFACE
+	mat.emission_sphere_radius = 90.0
+	mat.direction = Vector3.ZERO
+	mat.initial_velocity_min = 0.0   # ÉTOILES FIXES : aucune vélocité
+	mat.initial_velocity_max = 0.0
+	mat.gravity = Vector3.ZERO
+	mat.scale_min = 0.30
+	mat.scale_max = 0.70
+	p.process_material = mat
+
 	var sphere := SphereMesh.new()
-	sphere.radius = 400.0
-	sphere.height = 800.0
-	sphere.radial_segments = 24
-	sphere.rings = 16
-	dome.mesh = sphere
-	_star_mat = ShaderMaterial.new()
-	_star_mat.shader = _make_star_shader()
-	_star_mat.set_shader_parameter("star_alpha", 0.0)
-	dome.material_override = _star_mat
-	# Pas d'ombres ni d'occlusion parasites depuis une sphère géante.
-	dome.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	cam.add_child(dome)
-	dome.position = Vector3.ZERO
-
-static func _make_star_shader() -> Shader:
-	var sh := Shader.new()
-	sh.code = """
-shader_type spatial;
-render_mode unshaded, cull_front, depth_draw_never, blend_add, shadows_disabled;
-
-uniform float star_alpha : hint_range(0.0, 1.0) = 0.0;
-
-float hash(vec2 p) {
-	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-}
-
-void fragment() {
-	// Grille de cellules sur l'UV de la sphère ; ~1.5% des cellules portent une étoile.
-	vec2 g = UV * vec2(220.0, 110.0);
-	vec2 cell = floor(g);
-	vec2 f = fract(g) - 0.5;
-	float is_star = step(0.985, hash(cell));
-	float d = length(f);
-	float dot_ = smoothstep(0.14, 0.0, d) * is_star;
-	float twinkle = 0.6 + 0.4 * hash(cell + 3.7);
-	ALBEDO = vec3(1.0, 0.97, 0.9);
-	ALPHA = dot_ * twinkle * star_alpha;
-}
-"""
-	return sh
+	sphere.radius = 0.5
+	sphere.height = 1.0
+	sphere.radial_segments = 6
+	sphere.rings = 3
+	_star_mat = StandardMaterial3D.new()
+	_star_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_star_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_star_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD   # léger glow d'étoile
+	# alpha 0 = invisible le jour ; le cycle remonte l'alpha la nuit.
+	_star_mat.albedo_color = Color(1.0, 0.97, 0.9, 0.0)
+	sphere.surface_set_material(0, _star_mat)
+	p.draw_pass_1 = sphere
+	cam.add_child(p)
+	p.position = Vector3.ZERO
