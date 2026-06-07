@@ -23,6 +23,7 @@ const MAGNET_RADIUS: float = 10.0
 const MAGNET_LERP_SPEED: float = 8.0
 const BOOST_DURATION: float = 4.0     # allonge (etait 2.0) pour pulveriser plusieurs obstacles
 const MEGA_BOOST_DURATION: float = 8.0   # méga-boost : 2× le boost normal (jackpot rare)
+const BOOST_GRACE_DURATION: float = 0.5  # filet de sécurité : invincibilité APRÈS le boost (évite la mort injuste à la reprise)
 const BOOST_SPEED_FACTOR: float = 2.5
 const BOOST_COLOR: Color = Color(0.914, 0.310, 0.216, 1.0)    # orange #E94F37
 const MEGA_BOOST_COLOR: Color = Color(0.69, 0.149, 1.0, 1.0)  # magenta/violet #B026FF
@@ -63,6 +64,7 @@ var magnet_timer: float = 0.0
 var _boost_active: bool = false
 var boost_is_mega: bool = false       # le boost actif est-il un méga-boost (durée/couleur/FX 2×) ? (lu par le HUD)
 var boost_timer: float = 0.0
+var _boost_grace_timer: float = 0.0   # décompte du filet d'invincibilité post-boost
 var _boost_trail: GPUParticles3D
 var _boost_aura: MeshInstance3D
 var _magnet_aura: Node3D
@@ -431,7 +433,9 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	if not body.is_in_group("obstacles"):
 		return
-	if _boost_active:
+	# Boost OU filet de grâce post-boost : invincible. La pulvérisation de l'obstacle est
+	# gérée par _on_body_shape_entered (même chemin que le boost) → pas de mort, pas de re-collision.
+	if _is_invincible():
 		return
 	# Choc sur un obstacle : impact commun (son + shake + recul), puis bouclier OU mort.
 	Audio.play_hit()
@@ -451,7 +455,7 @@ func _on_body_entered(body: Node3D) -> void:
 	_trigger_ragdoll()
 
 func _trigger_ragdoll() -> void:
-	if _boost_active:
+	if _is_invincible():
 		return
 	Settings.vibrate(120)   # impact haptique marqué qui accompagne le ragdoll (mort satisfaisante)
 	var death_vel := linear_velocity
@@ -828,7 +832,19 @@ func _process(delta: float) -> void:
 			_boost_active = false
 			boost_is_mega = false
 			_stop_boost_trail()
-			_stop_boost_fx()
+			# Filet de sécurité : 0,5s d'invincibilité APRÈS le boost (évite la mort injuste
+			# quand la vitesse redevient normale juste devant un obstacle). Pendant la grâce,
+			# les obstacles touchés sont pulvérisés comme en boost (via _on_body_shape_entered).
+			_boost_grace_timer = BOOST_GRACE_DURATION
+			# Coupe les lignes de vitesse, mais GARDE l'aura en l'estompant sur la grâce
+			# (signal visuel que l'immunité est encore active un court instant).
+			var pp := get_tree().get_first_node_in_group("post_process")
+			if pp != null and pp.has_method("set_speed_lines"):
+				pp.set_speed_lines(false)
+			_fade_boost_aura(BOOST_GRACE_DURATION)
+	# Décompte du filet d'invincibilité post-boost (l'aura s'estompe en parallèle).
+	if _boost_grace_timer > 0.0:
+		_boost_grace_timer = maxf(_boost_grace_timer - delta, 0.0)
 	if slowmo_timer > 0.0:
 		slowmo_timer = maxf(slowmo_timer - delta, 0.0)
 		if slowmo_timer == 0.0:
@@ -969,6 +985,32 @@ func _remove_boost_aura() -> void:
 	_boost_aura.queue_free()
 	_boost_aura = null
 
+# Invincible = pendant le boost OU le court filet de grâce qui le suit. Source unique lue
+# par les chemins de collision (body_entered, body_shape_entered, _trigger_ragdoll).
+func _is_invincible() -> bool:
+	return _boost_active or _boost_grace_timer > 0.0
+
+# Estompe l'aura de boost sur la durée de la grâce (pulse → 0 fait tomber glow + alpha dans
+# le shader), puis la libère. On détache _boost_aura tout de suite : un nouveau boost pendant
+# la grâce recréera une aura propre sans toucher celle qui s'efface.
+func _fade_boost_aura(duration: float) -> void:
+	if _boost_aura == null:
+		return
+	var aura := _boost_aura
+	_boost_aura = null
+	var mat := aura.material_override as ShaderMaterial
+	if mat == null:
+		aura.queue_free()
+		return
+	var start_pulse: float = mat.get_shader_parameter("pulse")
+	var tw := create_tween()
+	tw.tween_method(Callable(self, "_set_boost_aura_pulse").bind(aura), start_pulse, 0.0, duration)
+	tw.tween_callback(aura.queue_free)
+
+func _set_boost_aura_pulse(v: float, aura: MeshInstance3D) -> void:
+	if is_instance_valid(aura) and aura.material_override is ShaderMaterial:
+		(aura.material_override as ShaderMaterial).set_shader_parameter("pulse", v)
+
 # ── Aimant : champ magnetique visible (anneaux qui emanent) ───────────────────────────────
 func _show_magnet_aura() -> void:
 	if _magnet_aura != null:
@@ -1021,7 +1063,8 @@ func _emit_magnet_rings(delta: float) -> void:
 # comme s'il avait ete depasse. Les ZONES rares ne sont PAS comptees par element : la zone
 # (corps StaticBody) survit videe de ses elements et est comptee une fois a son despawn.
 func _on_body_shape_entered(_body_rid: RID, body: Node, body_shape_index: int, _local_shape_index: int) -> void:
-	if not _boost_active or _is_dead or _level_completed:
+	# Actif pendant le boost ET le filet de grâce post-boost → pulvérise l'obstacle touché.
+	if not _is_invincible() or _is_dead or _level_completed:
 		return
 	if body == null or not body.is_in_group("obstacles"):
 		return
