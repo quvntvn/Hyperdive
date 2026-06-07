@@ -8,10 +8,52 @@ class_name CorridorWalls
 @export var loop_cells: float = 0.0
 
 var _wall_material: ShaderMaterial
+var _is_menu: bool = false
+
+# --- CYCLE JOUR/NUIT CONTINU (piloté par la DISTANCE, pas le temps) ---------------
+# Un cycle complet jour→crépuscule→nuit→aube→jour tous les CYCLE_DISTANCE mètres.
+# Nuit (phase 0.5) atteinte à 1250m → jalon « aller loin ».
+# Le cycle MODULE le thème équipé, il ne le remplace pas :
+#   - luminosité MULTIPLICATIVE (garde la teinte → le thème reste reconnaissable)
+#   - teinte d'heure du jour en LERP léger (force 0 le jour → thème pur de jour).
+# Tout = lerp de couleurs/uniforms (quasi gratuit), réécriture gatée par delta de phase.
+const CYCLE_DISTANCE: float = 2500.0
+
+# Keyframes aux phases 0.00=jour, 0.25=crépuscule, 0.50=nuit, 0.75=aube (boucle).
+var _k_bright: Array[float] = [1.00, 0.72, 0.40, 0.74]   # luminosité (plancher 0.40 = lisible)
+var _k_light: Array[float]  = [1.00, 0.80, 0.58, 0.80]   # énergie lumières (jamais 0)
+var _k_star: Array[float]   = [0.00, 0.15, 1.00, 0.15]   # opacité du champ d'étoiles
+var _k_tstr: Array[float]   = [0.00, 0.30, 0.35, 0.25]   # force de la teinte d'heure
+var _k_tint: Array[Color] = [
+	Color(0.96, 0.94, 0.88),   # jour : crème (force 0 → inutilisé)
+	Color(0.93, 0.42, 0.22),   # crépuscule : orange brûlé
+	Color(0.07, 0.10, 0.26),   # nuit : bleu nuit profond
+	Color(0.95, 0.62, 0.62),   # aube : rosé
+]
+
+# Bases cachées du thème (jamais relues depuis les matériaux → pas de corruption).
+var _base_wall: Color = Color.WHITE
+var _base_sky_top: Color = Color.WHITE
+var _base_sky_horizon: Color = Color.WHITE
+var _base_ground_bottom: Color = Color.WHITE
+var _base_ground_horizon: Color = Color.WHITE
+var _base_facade: Color = Color.WHITE
+var _base_fog: Color = Color.WHITE
+var _base_ambient: float = 0.3
+var _base_dir_energy: float = 1.5
+
+var _world_env: WorldEnvironment
+var _sky_mat: ProceduralSkyMaterial
+var _skyline_mat: ShaderMaterial
+var _dir_light: DirectionalLight3D
+var _star_mat: ShaderMaterial
+var _lights_cached: bool = false
+var _last_phase: float = -1.0   # force la 1re application
 
 func _ready() -> void:
 	if target == null and not target_path.is_empty():
 		target = get_node_or_null(target_path)
+	_is_menu = loop_cells > 0.0
 	var left_mesh := $LeftWall/MeshInstance3D as MeshInstance3D
 	var right_mesh := $RightWall/MeshInstance3D as MeshInstance3D
 	_wall_material = (left_mesh.material_override as ShaderMaterial).duplicate() as ShaderMaterial
@@ -24,17 +66,29 @@ func _ready() -> void:
 	_apply_theme()
 	Settings.equipped_theme_changed.connect(func(_id: String) -> void: _apply_theme())
 	_create_ambient_fx()
+	# Champ d'étoiles : seulement EN JEU (pas au menu). Visible la nuit (alpha = cycle).
+	if not _is_menu:
+		_create_star_dome()
 
 func _process(_delta: float) -> void:
 	if target == null:
 		return
 	global_position.y = target.global_position.y
+	if _is_menu:
+		return
+	# Phase du cycle pilotée par la distance/altitude parcourue.
+	var phase: float = fposmod(absf(target.global_position.y) / CYCLE_DISTANCE, 1.0)
+	# Gate : ne réécrit le ciel/le décor que si la phase a bougé sensiblement
+	# (évite de redéclencher la radiance du ciel à chaque frame). ~5-10 maj/s suffisent.
+	if absf(phase - _last_phase) < 0.0015:
+		return
+	_last_phase = phase
+	_apply_cycle(phase, true)
 
 func _create_ambient_fx() -> void:
 	# loop_cells > 0 = instance du MENU (piste qui boucle). En jeu loop_cells == 0.
-	var is_menu: bool = loop_cells > 0.0
 	# Motes flottantes : seulement EN JEU. Au menu la piste reste propre.
-	if not is_menu:
+	if not _is_menu:
 		_create_dust_motes()
 	_create_soft_clouds()
 
@@ -79,8 +133,7 @@ func _create_dust_motes() -> void:
 # menu). Placés en FOND latéral GAUCHE, derrière le mur gauche (x très négatif, reculés
 # en z) → ils lisent comme des nuages lointains à gauche, pas au milieu de la piste.
 func _create_soft_clouds() -> void:
-	var is_menu: bool = loop_cells > 0.0
-	if is_menu or Settings.active_mode != "jetpack":
+	if _is_menu or Settings.active_mode != "jetpack":
 		return
 
 	var p := GPUParticles3D.new()
@@ -120,37 +173,175 @@ func _create_soft_clouds() -> void:
 	add_child(p)
 
 
+# Met en CACHE les couleurs base du thème, puis applique une fois (phase neutre = jour
+# pur). Le cycle (en jeu) re-module ces bases chaque frame. Au menu, cet appel suffit
+# (pas de cycle → look statique du thème).
 func _apply_theme() -> void:
 	var theme: Dictionary = Catalog.get_theme(Settings.equipped_theme)
 	# Décor en retrait : on assombrit la couleur des murs (×0.8) pour creuser le
 	# contraste avec les éléments de gameplay, sans la rendre laide.
-	var base_wall: Color = theme["wall_color"]
-	var dimmed_wall: Color = base_wall * 0.8
-	_wall_material.set_shader_parameter("wall_color", dimmed_wall)
+	_base_wall = (theme["wall_color"] as Color) * 0.8
+	_base_wall.a = 1.0
+	# line_color N'EST PAS modulée par le cycle (lisibilité du couloir, même de nuit).
 	_wall_material.set_shader_parameter("line_color", theme["line_color"])
-	print("[Thème] Équipé='", Settings.equipped_theme,
-		  "'  wall_color base=", base_wall, " → assombrie ×0.8=", dimmed_wall,
-		  "  shader lu=", _wall_material.get_shader_parameter("wall_color"))
-	var world_env: WorldEnvironment = get_parent().get_node_or_null("WorldEnvironment") as WorldEnvironment
-	if world_env == null:
-		push_warning("[Thème] WorldEnvironment introuvable depuis parent '", get_parent().name, "'")
+
+	_world_env = get_parent().get_node_or_null("WorldEnvironment") as WorldEnvironment
+	if _world_env != null and _world_env.environment != null and _world_env.environment.sky != null:
+		_sky_mat = _world_env.environment.sky.sky_material as ProceduralSkyMaterial
+	if _sky_mat != null:
+		var top: Color = theme["sky_top"]
+		# Jetpack : caméra inclinée vers le HAUT → on éclaircit le sommet du dôme vers la
+		# teinte d'horizon (claire) pour que le ciel couvre tout le haut de l'écran.
+		if Settings.active_mode == "jetpack" and target != null:
+			top = (theme["sky_top"] as Color).lerp(theme["sky_horizon"], 0.6)
+		_base_sky_top = top
+		_base_sky_horizon = theme["sky_horizon"]
+		# ground_bottom = couleur visible dans l'ouverture du couloir quand on regarde
+		# vers le bas (PAS le wall_color du shader).
+		_base_ground_bottom = theme["wall_color"]
+		_base_ground_horizon = theme["sky_horizon"]
+
+	# Énergies de base des lumières (cachées une seule fois).
+	if not _lights_cached:
+		_lights_cached = true
+		_dir_light = get_parent().get_node_or_null("DirectionalLight3D") as DirectionalLight3D
+		if _dir_light != null:
+			_base_dir_energy = _dir_light.light_energy
+		if _world_env != null and _world_env.environment != null:
+			_base_ambient = _world_env.environment.ambient_light_energy
+
+	# Application immédiate (phase neutre = jour pur). Skyline résolue plus tard, en jeu.
+	_last_phase = -1.0
+	_apply_cycle(0.0, false)
+	print("[Thème] Équipé='", Settings.equipped_theme, "' base wall=", _base_wall)
+
+# Applique l'état du cycle pour une phase donnée. do_skyline=false pendant _apply_theme
+# (la skyline n'existe pas encore au _ready, créée par main_game après).
+func _apply_cycle(phase: float, do_skyline: bool) -> void:
+	var bright: float = _sample_f(_k_bright, phase)
+	var light: float = _sample_f(_k_light, phase)
+	var tint: Color = _sample_c(_k_tint, phase)
+	var tstr: float = _sample_f(_k_tstr, phase)
+	var star: float = _sample_f(_k_star, phase)
+
+	# Murs (la teinte du couloir vit avec l'heure ; les lignes restent nettes).
+	if _wall_material != null:
+		_wall_material.set_shader_parameter("wall_color", _modulate(_base_wall, bright, tint, tstr))
+
+	# Ciel (les 4 couleurs du ProceduralSky).
+	if _sky_mat != null:
+		_sky_mat.sky_top_color = _modulate(_base_sky_top, bright, tint, tstr)
+		_sky_mat.sky_horizon_color = _modulate(_base_sky_horizon, bright, tint, tstr)
+		_sky_mat.ground_bottom_color = _modulate(_base_ground_bottom, bright, tint, tstr)
+		_sky_mat.ground_horizon_color = _modulate(_base_ground_horizon, bright, tint, tstr)
+
+	# Skyline (fenêtres jaunes émissives → ressortent davantage la nuit, gratuit).
+	if do_skyline:
+		_resolve_skyline()
+		if _skyline_mat != null:
+			_skyline_mat.set_shader_parameter("facade_color", _modulate(_base_facade, bright, tint, tstr))
+			_skyline_mat.set_shader_parameter("fog_color", _modulate(_base_fog, bright, tint, tstr))
+
+	# Lumières : baissées la nuit (plancher) → ambiance, MAIS obstacles/pièces émissifs
+	# restent éclatants. Le perso garde assez de lumière directionnelle pour rester visible.
+	if _world_env != null and _world_env.environment != null:
+		_world_env.environment.ambient_light_energy = _base_ambient * light
+	if _dir_light != null:
+		_dir_light.light_energy = _base_dir_energy * light
+
+	# Étoiles (alpha additif → apparaissent la nuit, invisibles le jour).
+	if _star_mat != null:
+		_star_mat.set_shader_parameter("star_alpha", star)
+
+# couleur base × luminosité (garde la teinte) puis lerp léger vers la teinte d'heure.
+# Alpha forcé à 1 (Color*float multiplie aussi l'alpha → sinon ciel/murs translucides).
+func _modulate(base: Color, bright: float, tint: Color, tstr: float) -> Color:
+	var c := Color(base.r * bright, base.g * bright, base.b * bright)
+	c = c.lerp(Color(tint.r, tint.g, tint.b), tstr)
+	c.a = 1.0
+	return c
+
+# Échantillonne des keyframes (4 points aux phases 0/.25/.5/.75) en boucle, lerp continu.
+func _sample_f(keys: Array[float], phase: float) -> float:
+	var seg: float = phase * 4.0
+	var i: int = int(floor(seg)) % 4
+	var f: float = seg - floor(seg)
+	return lerpf(keys[i], keys[(i + 1) % 4], f)
+
+func _sample_c(keys: Array[Color], phase: float) -> Color:
+	var seg: float = phase * 4.0
+	var i: int = int(floor(seg)) % 4
+	var f: float = seg - floor(seg)
+	return keys[i].lerp(keys[(i + 1) % 4], f)
+
+# Résout (une fois) le matériau partagé de la skyline pour le moduler. La skyline est
+# créée par main_game APRÈS le _ready du couloir → résolution paresseuse en _process.
+# Base cachée à la 1re résolution et JAMAIS relue (sinon on relirait notre propre valeur
+# modulée = corruption). En jetpack/menu il n'y a pas de skyline → reste null.
+func _resolve_skyline() -> void:
+	if _skyline_mat != null:
 		return
-	var sky_mat: ProceduralSkyMaterial = world_env.environment.sky.sky_material as ProceduralSkyMaterial
-	if sky_mat == null:
-		push_warning("[Thème] ProceduralSkyMaterial introuvable")
+	var cam := get_parent().get_node_or_null("Camera3D")
+	if cam == null:
 		return
-	sky_mat.sky_top_color = theme["sky_top"]
-	sky_mat.sky_horizon_color = theme["sky_horizon"]
-	# FIX : ground_bottom_color était hardcodé en marron (Color(0.239, 0.173, 0.118)) dans la
-	# scène et jamais touché par le thème. C'est cette couleur qui est visible dans l'ouverture
-	# du couloir quand on regarde vers le bas — pas le wall_color du shader.
-	sky_mat.ground_bottom_color = theme["wall_color"]
-	sky_mat.ground_horizon_color = theme["sky_horizon"]
-	# Jetpack : caméra inclinée vers le HAUT → on éclaircit le sommet du dôme vers la
-	# teinte d'horizon (claire) pour que le ciel couvre tout le haut de l'écran.
-	# DEBUG Étape 1, à doser. Gardé hors menu via target != null.
-	if Settings.active_mode == "jetpack" and target != null:
-		sky_mat.sky_top_color = (theme["sky_top"] as Color).lerp(theme["sky_horizon"], 0.6)
-	print("[Thème] Ciel : top=", theme["sky_top"],
-		  "  horizon=", theme["sky_horizon"],
-		  "  ground_bottom=", theme["wall_color"])
+	var skyline := cam.get_node_or_null("CitySkyline")
+	if skyline == null:
+		return
+	for c in skyline.get_children():
+		if c is MeshInstance3D:
+			var m := (c as MeshInstance3D).material_override
+			if m is ShaderMaterial:
+				_skyline_mat = m as ShaderMaterial
+				_base_facade = _skyline_mat.get_shader_parameter("facade_color")
+				_base_fog = _skyline_mat.get_shader_parameter("fog_color")
+			return
+
+# Dôme d'étoiles : grande sphère (caméra au centre) vue de l'intérieur, additive, derrière
+# la géométrie proche mais devant le ciel. Alpha piloté par le cycle (0 jour → 1 nuit).
+func _create_star_dome() -> void:
+	var cam := get_parent().get_node_or_null("Camera3D") as Camera3D
+	if cam == null:
+		return
+	var dome := MeshInstance3D.new()
+	dome.name = "StarDome"
+	var sphere := SphereMesh.new()
+	sphere.radius = 400.0
+	sphere.height = 800.0
+	sphere.radial_segments = 24
+	sphere.rings = 16
+	dome.mesh = sphere
+	_star_mat = ShaderMaterial.new()
+	_star_mat.shader = _make_star_shader()
+	_star_mat.set_shader_parameter("star_alpha", 0.0)
+	dome.material_override = _star_mat
+	# Pas d'ombres ni d'occlusion parasites depuis une sphère géante.
+	dome.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	cam.add_child(dome)
+	dome.position = Vector3.ZERO
+
+static func _make_star_shader() -> Shader:
+	var sh := Shader.new()
+	sh.code = """
+shader_type spatial;
+render_mode unshaded, cull_front, depth_draw_never, blend_add, shadows_disabled;
+
+uniform float star_alpha : hint_range(0.0, 1.0) = 0.0;
+
+float hash(vec2 p) {
+	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+void fragment() {
+	// Grille de cellules sur l'UV de la sphère ; ~1.5% des cellules portent une étoile.
+	vec2 g = UV * vec2(220.0, 110.0);
+	vec2 cell = floor(g);
+	vec2 f = fract(g) - 0.5;
+	float is_star = step(0.985, hash(cell));
+	float d = length(f);
+	float dot_ = smoothstep(0.14, 0.0, d) * is_star;
+	float twinkle = 0.6 + 0.4 * hash(cell + 3.7);
+	ALBEDO = vec3(1.0, 0.97, 0.9);
+	ALPHA = dot_ * twinkle * star_alpha;
+}
+"""
+	return sh
