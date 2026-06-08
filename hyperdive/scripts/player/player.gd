@@ -803,20 +803,23 @@ func _physics_process(delta: float) -> void:
 		var steps: int = int(abs(global_position.y) / step_dist)
 		var target_speed: float = MAX_FALL_SPEED * pow(factor, steps)
 		_current_max_fall_speed = move_toward(_current_max_fall_speed, target_speed, SPEED_RAMP_RATE * delta)
+	# Twist de zone visuelle : rush néon (×1.10) / flottement cosmique (<1), déjà blendé doux.
+	# Multiplie la vitesse effective sans toucher _current_max_fall_speed (rampe préservée).
+	var eff_speed: float = _current_max_fall_speed * Zones.visual_speed_mult
 	if _boost_active:
 		# Boost dans le sens du déplacement (vers le haut en jetpack, pas vers la mort).
 		linear_velocity.y = dir * MAX_FALL_SPEED * BOOST_SPEED_FACTOR
 	elif dir > 0.0:
 		# Jetpack : poussée constante vers le haut (gravity_scale = 0).
-		linear_velocity.y = _current_max_fall_speed
+		linear_velocity.y = eff_speed
 		if _slowmo_active:
-			linear_velocity.y = _current_max_fall_speed * SLOWMO_FACTOR
+			linear_velocity.y = eff_speed * SLOWMO_FACTOR
 	else:
 		# Chute : la gravité accélère, on plafonne la vitesse terminale.
-		if linear_velocity.y < -_current_max_fall_speed:
-			linear_velocity.y = -_current_max_fall_speed
-		if _slowmo_active and linear_velocity.y < -_current_max_fall_speed * SLOWMO_FACTOR:
-			linear_velocity.y = -_current_max_fall_speed * SLOWMO_FACTOR
+		if linear_velocity.y < -eff_speed:
+			linear_velocity.y = -eff_speed
+		if _slowmo_active and linear_velocity.y < -eff_speed * SLOWMO_FACTOR:
+			linear_velocity.y = -eff_speed * SLOWMO_FACTOR
 	# Vent toujours actif ; en jetpack le jetpack s'ajoute (même pilotage par la vitesse).
 	Audio.set_whoosh_intensity(absf(linear_velocity.y))
 	if Settings.active_mode == "jetpack":

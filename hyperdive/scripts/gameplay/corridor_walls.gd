@@ -47,13 +47,50 @@ var _sky_mat: ProceduralSkyMaterial
 var _skyline_mat: ShaderMaterial
 var _dir_light: DirectionalLight3D
 var _star_mat: StandardMaterial3D   # matériau des étoiles ; on module son alpha selon le cycle
+var _base_line: Color = Color.WHITE   # couleur de ligne du thème (cachée → blendée par les zones)
 var _lights_cached: bool = false
 var _last_phase: float = -1.0   # force la 1re application
+
+# --- ZONES VISUELLES RARES (ambiances ponctuelles : néon / nuages / cosmique) ------
+# Une zone visuelle est PROGRAMMÉE en avance (lookahead = SPAWN_AHEAD des spawners) puis son
+# blend est animé par la POSITION du joueur quand il traverse la bande → l'ambiance, la
+# raréfaction d'obstacles (nuages) et le bonus pièces (cosmique) coïncident exactement.
+# L'ambiance OVERRIDE temporairement la sortie du cycle jour/nuit (lerp par _zone_blend),
+# puis on re-lerp vers le cycle à la sortie → retour propre, sans saut, peu importe l'heure.
+const VISUAL_LOOKAHEAD: float = 60.0   # = ObstacleSpawner.SPAWN_AHEAD (réaction spawners à temps)
+const VISUAL_CHECK_STEP: float = 14.4  # un tirage tous les ~14 m de depth (comme les obstacles)
+const VISUAL_CHANCE: float = 0.05      # ~5 % par intervalle → rare
+const VISUAL_COOLDOWN: float = 200.0   # pas deux zones coup sur coup
+const VISUAL_MIN_START: float = 150.0  # échauffement avant la 1re zone
+const VISUAL_ENTRY: float = 12.0       # lerp d'entrée (douce)
+const VISUAL_HOLD: float = 60.0        # plein régime (~3 s à 18 m/s)
+const VISUAL_EXIT: float = 12.0        # lerp de sortie (douce)
+const VISUAL_LEN: float = VISUAL_ENTRY + VISUAL_HOLD + VISUAL_EXIT
+const VISUAL_NAMES: Array[String] = ["neon"]   # nuages/cosmique ajoutés aux étapes suivantes
+
+var _dir: float = -1.0
+var _zones_enabled: bool = false
+var _next_visual_check: float = VISUAL_MIN_START
+var _next_visual_depth: float = VISUAL_MIN_START
+var _zone_active: bool = false
+var _zone_name: String = ""
+var _zone_start_depth: float = 0.0
+var _zone_blend: float = 0.0
+var _zone_dirty: bool = false   # force une dernière application quand la zone se termine
+var _pulse_t: float = 0.0       # horloge du clignotement néon
 
 func _ready() -> void:
 	if target == null and not target_path.is_empty():
 		target = get_node_or_null(target_path)
 	_is_menu = loop_cells > 0.0
+	_dir = Settings.get_fall_dir()
+	# Zones visuelles : seulement EN JEU hors campagne/coop (niveaux courts/chronométrés/sans
+	# pièces → une zone rare casserait le rythme et les twists vitesse/pièces n'ont pas de sens).
+	_zones_enabled = not _is_menu and Settings.active_mode != "campaign" and not Coop.active
+	# Reset systématique en jeu (autoload persistant) : repart à neutre même si le run précédent
+	# s'est terminé en pleine zone (sinon visual_speed_mult resterait ≠ 1 pour le run suivant).
+	if not _is_menu:
+		Zones.reset()
 	var left_mesh := $LeftWall/MeshInstance3D as MeshInstance3D
 	var right_mesh := $RightWall/MeshInstance3D as MeshInstance3D
 	_wall_material = (left_mesh.material_override as ShaderMaterial).duplicate() as ShaderMaterial
@@ -70,20 +107,72 @@ func _ready() -> void:
 	if not _is_menu:
 		_create_star_field()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if target == null:
 		return
 	global_position.y = target.global_position.y
 	if _is_menu:
 		return
+	if _zones_enabled:
+		_update_visual_zones(_dir * target.global_position.y, delta)
 	# Phase du cycle pilotée par la distance/altitude parcourue.
 	var phase: float = fposmod(absf(target.global_position.y) / CYCLE_DISTANCE, 1.0)
+	# Pendant une zone (blend > 0) ou à sa toute fin, on applique CHAQUE frame (le blend bouge
+	# même si la phase est figée). Sinon on garde l'optimisation par delta de phase.
+	if _zone_blend > 0.0 or _zone_dirty:
+		_zone_dirty = false
+		_last_phase = phase
+		_apply_cycle(phase, true)
+		return
 	# Gate : ne réécrit le ciel/le décor que si la phase a bougé sensiblement
 	# (évite de redéclencher la radiance du ciel à chaque frame). ~5-10 maj/s suffisent.
 	if absf(phase - _last_phase) < 0.0015:
 		return
 	_last_phase = phase
 	_apply_cycle(phase, true)
+
+# Scheduler + animation du blend des zones visuelles. depth = coord dir-relative du joueur.
+func _update_visual_zones(depth: float, delta: float) -> void:
+	Zones.prune(depth)
+	# 1) PROGRAMMATION (aucune zone en cours) : un tirage par intervalle, cooldown + démarrage
+	#    mini respectés, et exclusion vs les bandes d'obstacles. La bande est posée LOOKAHEAD
+	#    devant → les spawners (qui remplissent SPAWN_AHEAD devant) réagissent à temps.
+	if not _zone_active:
+		while depth >= _next_visual_check:
+			_next_visual_check += VISUAL_CHECK_STEP
+			if depth >= _next_visual_depth and randf() < VISUAL_CHANCE:
+				var s: float = depth + VISUAL_LOOKAHEAD
+				if not Zones.obstacle_band_intersects(s, s + VISUAL_LEN, VISUAL_CHECK_STEP):
+					_zone_active = true
+					_zone_name = VISUAL_NAMES.pick_random()
+					_zone_start_depth = s
+					_pulse_t = 0.0
+					Zones.register_visual_band(s, s + VISUAL_LEN)
+					Zones.visual_name = _zone_name   # annoncé tôt (lookahead) pour les twists spawn-ahead
+					_next_visual_depth = s + VISUAL_COOLDOWN
+					break
+		return
+	# 2) ANIMATION du blend selon la position du joueur dans la bande [start, start+LEN].
+	_pulse_t += delta
+	var local: float = depth - _zone_start_depth
+	var b: float = 0.0
+	if local <= 0.0:
+		b = 0.0
+	elif local < VISUAL_ENTRY:
+		b = local / VISUAL_ENTRY
+	elif local < VISUAL_ENTRY + VISUAL_HOLD:
+		b = 1.0
+	elif local < VISUAL_LEN:
+		b = 1.0 - (local - VISUAL_ENTRY - VISUAL_HOLD) / VISUAL_EXIT
+	else:
+		# Zone terminée : on désactive et on force une dernière application (retour au cycle pur).
+		_zone_active = false
+		_zone_dirty = true
+		_zone_name = ""
+		Zones.visual_name = ""
+	_zone_blend = clampf(b, 0.0, 1.0)
+	Zones.visual_blend = _zone_blend
+	Zones.visual_speed_mult = lerpf(1.0, _zone_speed_target(_zone_name), _zone_blend)
 
 func _create_ambient_fx() -> void:
 	# Motes de poussière du couloir RETIRÉES (elles flottaient autour du joueur et
@@ -143,8 +232,10 @@ func _apply_theme() -> void:
 	# contraste avec les éléments de gameplay, sans la rendre laide.
 	_base_wall = (theme["wall_color"] as Color) * 0.8
 	_base_wall.a = 1.0
-	# line_color N'EST PAS modulée par le cycle (lisibilité du couloir, même de nuit).
-	_wall_material.set_shader_parameter("line_color", theme["line_color"])
+	# line_color N'EST PAS modulée par le cycle (lisibilité du couloir, même de nuit), mais
+	# elle est cachée ici pour que les ZONES visuelles puissent la blender (néon = lignes vives).
+	_base_line = theme["line_color"]
+	_wall_material.set_shader_parameter("line_color", _base_line)
 
 	_world_env = get_parent().get_node_or_null("WorldEnvironment") as WorldEnvironment
 	if _world_env != null and _world_env.environment != null and _world_env.environment.sky != null:
@@ -185,16 +276,46 @@ func _apply_cycle(phase: float, do_skyline: bool) -> void:
 	var tstr: float = _sample_f(_k_tstr, phase)
 	var star: float = _sample_f(_k_star, phase)
 
+	# --- Valeurs "normales" du cycle (= comportement d'avant) -------------------------
+	var wall: Color = _modulate(_base_wall, bright, tint, tstr)
+	var line: Color = _base_line
+	var sky_top: Color = _modulate(_base_sky_top, bright, tint, tstr)
+	var sky_hor: Color = _modulate(_base_sky_horizon, bright, tint, tstr)
+	var grd_bot: Color = _modulate(_base_ground_bottom, bright, tint, tstr)
+	var grd_hor: Color = _modulate(_base_ground_horizon, bright, tint, tstr)
+	var ambient: float = _base_ambient * light
+	var dir_e: float = _base_dir_energy * light
+	var star_a: float = star
+
+	# --- Override d'ambiance (zone visuelle) : lerp par _zone_blend, retour propre au cycle ---
+	if _zone_blend > 0.0 and _zone_name != "":
+		var z: Dictionary = _zone_targets(_zone_name)
+		var t: float = _zone_blend
+		wall = wall.lerp(z["wall"], t)
+		line = line.lerp(z["line"], t)
+		sky_top = sky_top.lerp(z["sky_top"], t)
+		sky_hor = sky_hor.lerp(z["sky_horizon"], t)
+		grd_bot = grd_bot.lerp(z["ground_bottom"], t)
+		grd_hor = grd_hor.lerp(z["ground_horizon"], t)
+		ambient = lerpf(ambient, ambient * float(z["light_mult"]), t)
+		dir_e = lerpf(dir_e, dir_e * float(z["light_mult"]), t)
+		star_a = lerpf(star_a, float(z["star"]), t)
+		# Néon : les lignes du couloir CLIGNOTENT (pulsation synthwave). Multiplicatif sur le RGB.
+		if _zone_name == "neon":
+			var pulse: float = 0.75 + 0.25 * sin(_pulse_t * 6.0)
+			line = Color(line.r * pulse, line.g * pulse, line.b * pulse, line.a)
+
 	# Murs (la teinte du couloir vit avec l'heure ; les lignes restent nettes).
 	if _wall_material != null:
-		_wall_material.set_shader_parameter("wall_color", _modulate(_base_wall, bright, tint, tstr))
+		_wall_material.set_shader_parameter("wall_color", wall)
+		_wall_material.set_shader_parameter("line_color", line)
 
 	# Ciel (les 4 couleurs du ProceduralSky).
 	if _sky_mat != null:
-		_sky_mat.sky_top_color = _modulate(_base_sky_top, bright, tint, tstr)
-		_sky_mat.sky_horizon_color = _modulate(_base_sky_horizon, bright, tint, tstr)
-		_sky_mat.ground_bottom_color = _modulate(_base_ground_bottom, bright, tint, tstr)
-		_sky_mat.ground_horizon_color = _modulate(_base_ground_horizon, bright, tint, tstr)
+		_sky_mat.sky_top_color = sky_top
+		_sky_mat.sky_horizon_color = sky_hor
+		_sky_mat.ground_bottom_color = grd_bot
+		_sky_mat.ground_horizon_color = grd_hor
 
 	# Skyline (fenêtres jaunes émissives → ressortent davantage la nuit, gratuit).
 	if do_skyline:
@@ -206,13 +327,41 @@ func _apply_cycle(phase: float, do_skyline: bool) -> void:
 	# Lumières : baissées la nuit (plancher) → ambiance, MAIS obstacles/pièces émissifs
 	# restent éclatants. Le perso garde assez de lumière directionnelle pour rester visible.
 	if _world_env != null and _world_env.environment != null:
-		_world_env.environment.ambient_light_energy = _base_ambient * light
+		_world_env.environment.ambient_light_energy = ambient
 	if _dir_light != null:
-		_dir_light.light_energy = _base_dir_energy * light
+		_dir_light.light_energy = dir_e
 
 	# Étoiles (alpha additif → apparaissent la nuit, invisibles le jour).
 	if _star_mat != null:
-		_star_mat.albedo_color.a = star
+		_star_mat.albedo_color.a = star_a
+
+# Cibles visuelles d'une ambiance (couleurs absolues + multiplicateurs). Blendées par
+# _zone_blend par-dessus la sortie du cycle dans _apply_cycle. Palette Mid-Century respectée.
+func _zone_targets(name: String) -> Dictionary:
+	match name:
+		"neon":
+			# Tunnel synthwave : couloir sombre bleu nuit, lignes turquoise vives (qui pulsent),
+			# ciel dégradé sombre → glow orange/magenta à l'horizon. Lumières baissées (néon pop).
+			return {
+				"wall": Color(0.06, 0.09, 0.17),
+				"line": Color(0.45, 1.00, 0.92),
+				"sky_top": Color(0.05, 0.06, 0.14),
+				"sky_horizon": Color(0.85, 0.30, 0.40),
+				"ground_bottom": Color(0.04, 0.05, 0.10),
+				"ground_horizon": Color(0.85, 0.30, 0.40),
+				"light_mult": 0.55,
+				"star": 0.25,
+			}
+		_:
+			return {}
+
+# Multiplicateur de vitesse du twist (1.0 = neutre). Néon = rush (+10 %).
+func _zone_speed_target(name: String) -> float:
+	match name:
+		"neon":
+			return 1.10
+		_:
+			return 1.0
 
 # couleur base × luminosité (garde la teinte) puis lerp léger vers la teinte d'heure.
 # Alpha forcé à 1 (Color*float multiplie aussi l'alpha → sinon ciel/murs translucides).

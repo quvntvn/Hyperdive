@@ -62,7 +62,11 @@ func _process(_delta: float) -> void:
 		# "depth" = coord dir-relative monotone croissante (positive en chute ET jetpack).
 		var depth: float = _dir * _next_spawn_y
 		# Gate zone rare : cooldown écoulé + tirage ~5 %. Sinon flux normal inchangé.
-		if not special_scenes.is_empty() and depth >= _next_special_depth and randf() < SPECIAL_CHANCE:
+		# EXCLUSION : on ne pose pas une zone d'obstacles qui chevaucherait une zone VISUELLE
+		# déjà programmée (sinon slalom + ambiance se marcheraient dessus). Fenêtre conservatrice
+		# (zone_len + clearance ≤ ~80) ; les deux étant rares, ça ne bride quasi jamais.
+		if not special_scenes.is_empty() and depth >= _next_special_depth and randf() < SPECIAL_CHANCE \
+				and not Zones.visual_band_intersects(depth, depth + 80.0, SPECIAL_CLEARANCE):
 			var zone_len: float = _spawn_special_at(_next_spawn_y)
 			_next_special_depth = depth + SPECIAL_COOLDOWN
 			# Saut vertical = on réserve un couloir vide (zone + marge) → aucun obstacle normal
@@ -102,6 +106,11 @@ func _spawn_special_at(y: float) -> float:
 	var obstacle: Node3D = picked.instantiate()
 	get_parent().add_child(obstacle)
 	obstacle.global_position = Vector3(0.0, y, 0.0)
+	var zone_len: float = SPAWN_INTERVAL_Y
 	if obstacle is ObstacleBase and (obstacle as ObstacleBase).zone_length > 0.0:
-		return (obstacle as ObstacleBase).zone_length
-	return SPAWN_INTERVAL_Y
+		zone_len = (obstacle as ObstacleBase).zone_length
+	# Réserve la bande de depth occupée (zone + clearance) → le scheduler des zones VISUELLES
+	# l'évite (exclusion mutuelle).
+	var d: float = _dir * y
+	Zones.register_obstacle_band(d, d + zone_len + SPECIAL_CLEARANCE)
+	return zone_len
