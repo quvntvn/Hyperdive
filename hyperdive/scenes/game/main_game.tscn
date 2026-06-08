@@ -35,7 +35,7 @@ sky_material = SubResource("ProceduralSkyMaterial_1")
 background_mode = 2
 sky = SubResource("Sky_1")
 ambient_light_source = 2
-ambient_light_color = Color(0.957, 0.914, 0.804, 1)
+ambient_light_color = Color(0.48, 0.5, 0.55, 1)
 ambient_light_energy = 0.3
 
 [node name="MainGame" type="Node3D" unique_id=119639008]
@@ -75,7 +75,6 @@ powerup_scene = ExtResource("PowerupScene")
 script = ExtResource("SpawnerScript")
 player_path = NodePath("../Player")
 obstacle_scenes = Array[PackedScene]([ExtResource("ObstacleBoxScene"), ExtResource("ObstacleBarScene"), ExtResource("ObstacleWallScene"), ExtResource("ObstacleOscillatingScene"), ExtResource("ObstacleDoorScene")])
-special_scenes = Array[PackedScene]([])
 
 [node name="PostProcess" parent="." unique_id=1022185359 instance=ExtResource("PostProcessScene")]
 
