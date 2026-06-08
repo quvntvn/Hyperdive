@@ -344,12 +344,19 @@ func _apply_cycle(phase: float, do_skyline: bool) -> void:
 	# Brume (ambiance NUAGES) : fog exponentiel WorldEnvironment, densité blendée par le blend.
 	# Atténue le LOINTAIN (obstacles proches restent nets → lisible), couplé à l'accalmie
 	# (moins d'obstacles). Désactivé hors zone nuages (densité 0 = invisible mais on coupe net).
+	# PIÈGE corrigé : fog_sky_affect par défaut = 1.0 → le fog se mêle au CIEL. Or le ciel est à
+	# distance ~infinie : son facteur de fog SATURE quasi instantanément dès que la densité > 0
+	# → tout le ciel basculait en near-white en <1 s = FLASH BLANC à l'entrée de zone. On force
+	# fog_sky_affect = 0 : le fog n'agit QUE sur la géométrie lointaine (couloir/obstacles), jamais
+	# sur le ciel (qui garde la teinte douce de la zone). Couleur de brume adoucie (gris doux, plus
+	# de near-white) pour une ambiance cotonneuse, pas aveuglante.
 	if _world_env != null and _world_env.environment != null:
 		var env: Environment = _world_env.environment
 		if _zone_name == "clouds" and _zone_blend > 0.0:
 			env.fog_enabled = true
 			env.fog_density = lerpf(0.0, CLOUD_FOG_DENSITY, _zone_blend)
-			env.fog_light_color = Color(0.95, 0.93, 0.88)
+			env.fog_sky_affect = 0.0
+			env.fog_light_color = Color(0.82, 0.83, 0.85)
 		elif env.fog_enabled:
 			env.fog_enabled = false
 
@@ -374,13 +381,15 @@ func _zone_targets(name: String) -> Dictionary:
 			# Brume cotonneuse : tout devient laiteux/clair, lignes en gris doux (restent
 			# lisibles sur le clair), lumières inchangées (couvert lumineux). Pas d'étoiles.
 			# La densité de brume est appliquée à part (fog WorldEnvironment) dans _apply_cycle.
+			# Blancs ADOUCIS (étaient ~0.80-0.93, lecture « aveuglante ») → gris-crème doux : ambiance
+			# nuageuse lisible, plus de bascule trop claire à l'entrée.
 			return {
-				"wall": Color(0.80, 0.80, 0.78),
-				"line": Color(0.58, 0.60, 0.60),
-				"sky_top": Color(0.86, 0.85, 0.82),
-				"sky_horizon": Color(0.93, 0.91, 0.86),
-				"ground_bottom": Color(0.88, 0.86, 0.82),
-				"ground_horizon": Color(0.92, 0.90, 0.85),
+				"wall": Color(0.70, 0.70, 0.69),
+				"line": Color(0.52, 0.54, 0.54),
+				"sky_top": Color(0.72, 0.72, 0.70),
+				"sky_horizon": Color(0.80, 0.79, 0.75),
+				"ground_bottom": Color(0.74, 0.73, 0.70),
+				"ground_horizon": Color(0.78, 0.77, 0.73),
 				"light_mult": 1.0,
 				"star": 0.0,
 			}
