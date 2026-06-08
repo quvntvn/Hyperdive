@@ -13,15 +13,16 @@ var _is_menu: bool = false
 # --- CYCLE JOUR/NUIT CONTINU (piloté par la DISTANCE, pas le temps) ---------------
 # Un cycle complet jour→crépuscule→nuit→aube→jour tous les CYCLE_DISTANCE mètres.
 # Nuit (phase 0.5) atteinte à 1250m → jalon « aller loin ».
-# Le cycle MODULE le thème équipé, il ne le remplace pas :
-#   - luminosité MULTIPLICATIVE (garde la teinte → le thème reste reconnaissable)
+# Le cycle ne touche QUE le CIEL/FOND (ProceduralSky + skyline lointaine + étoiles) :
+#   - luminosité MULTIPLICATIVE sur le ciel (garde la teinte du thème)
 #   - teinte d'heure du jour en LERP léger (force 0 le jour → thème pur de jour).
+# Il NE touche PAS les murs latéraux, ni l'éclairage global (ambient/directionnelle) → le
+# perso, les pièces, power-ups et obstacles gardent leur rendu normal, lisibles à toute heure.
 # Tout = lerp de couleurs/uniforms (quasi gratuit), réécriture gatée par delta de phase.
 const CYCLE_DISTANCE: float = 3750.0   # cycle 1,5× plus lent (était 2500) → on profite mieux de chaque ambiance
 
 # Keyframes aux phases 0.00=jour, 0.25=crépuscule, 0.50=nuit, 0.75=aube (boucle).
-var _k_bright: Array[float] = [1.00, 0.72, 0.40, 0.74]   # luminosité (plancher 0.40 = lisible)
-var _k_light: Array[float]  = [1.00, 0.80, 0.58, 0.80]   # énergie lumières (jamais 0)
+var _k_bright: Array[float] = [1.00, 0.72, 0.40, 0.74]   # luminosité du CIEL (plancher 0.40 = lisible)
 var _k_star: Array[float]   = [0.00, 0.15, 1.00, 0.15]   # opacité du champ d'étoiles
 var _k_tstr: Array[float]   = [0.00, 0.30, 0.35, 0.25]   # force de la teinte d'heure
 var _k_tint: Array[Color] = [
@@ -272,20 +273,24 @@ func _apply_theme() -> void:
 # (la skyline n'existe pas encore au _ready, créée par main_game après).
 func _apply_cycle(phase: float, do_skyline: bool) -> void:
 	var bright: float = _sample_f(_k_bright, phase)
-	var light: float = _sample_f(_k_light, phase)
 	var tint: Color = _sample_c(_k_tint, phase)
 	var tstr: float = _sample_f(_k_tstr, phase)
 	var star: float = _sample_f(_k_star, phase)
 
-	# --- Valeurs "normales" du cycle (= comportement d'avant) -------------------------
-	var wall: Color = _modulate(_base_wall, bright, tint, tstr)
+	# --- Le cycle jour/nuit ne touche QUE le CIEL / FOND LOINTAIN ----------------------
+	# Murs latéraux, perso, pièces, power-ups et obstacles gardent leur rendu NORMAL : leur
+	# couleur (wall_color) ET l'ÉCLAIRAGE global (ambient + directionnelle) restent CONSTANTS,
+	# peu importe l'heure → lisibilité du gameplay préservée à tout moment, sur tous les thèmes.
+	# Seuls le ciel (ProceduralSky), la skyline lointaine et les étoiles vivent avec le cycle.
+	# (Les ZONES visuelles rares, plus bas, peuvent encore tout teinter ponctuellement.)
+	var wall: Color = _base_wall          # constant (thème) → murs jamais teintés par le cycle
 	var line: Color = _base_line
 	var sky_top: Color = _modulate(_base_sky_top, bright, tint, tstr)
 	var sky_hor: Color = _modulate(_base_sky_horizon, bright, tint, tstr)
 	var grd_bot: Color = _modulate(_base_ground_bottom, bright, tint, tstr)
 	var grd_hor: Color = _modulate(_base_ground_horizon, bright, tint, tstr)
-	var ambient: float = _base_ambient * light
-	var dir_e: float = _base_dir_energy * light
+	var ambient: float = _base_ambient    # constant → éclairage du gameplay stable
+	var dir_e: float = _base_dir_energy    # constant
 	var star_a: float = star
 
 	# --- Override d'ambiance (zone visuelle) : lerp par _zone_blend, retour propre au cycle ---
