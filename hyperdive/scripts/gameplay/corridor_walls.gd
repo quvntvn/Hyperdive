@@ -66,7 +66,8 @@ const VISUAL_ENTRY: float = 12.0       # lerp d'entrée (douce)
 const VISUAL_HOLD: float = 60.0        # plein régime (~3 s à 18 m/s)
 const VISUAL_EXIT: float = 12.0        # lerp de sortie (douce)
 const VISUAL_LEN: float = VISUAL_ENTRY + VISUAL_HOLD + VISUAL_EXIT
-const VISUAL_NAMES: Array[String] = ["neon"]   # nuages/cosmique ajoutés aux étapes suivantes
+const VISUAL_NAMES: Array[String] = ["neon", "clouds"]   # cosmique ajouté à l'étape suivante
+const CLOUD_FOG_DENSITY: float = 0.03   # brume douce : atténue le LOINTAIN, garde le proche net
 
 var _dir: float = -1.0
 var _zones_enabled: bool = false
@@ -335,6 +336,18 @@ func _apply_cycle(phase: float, do_skyline: bool) -> void:
 	if _star_mat != null:
 		_star_mat.albedo_color.a = star_a
 
+	# Brume (ambiance NUAGES) : fog exponentiel WorldEnvironment, densité blendée par le blend.
+	# Atténue le LOINTAIN (obstacles proches restent nets → lisible), couplé à l'accalmie
+	# (moins d'obstacles). Désactivé hors zone nuages (densité 0 = invisible mais on coupe net).
+	if _world_env != null and _world_env.environment != null:
+		var env: Environment = _world_env.environment
+		if _zone_name == "clouds" and _zone_blend > 0.0:
+			env.fog_enabled = true
+			env.fog_density = lerpf(0.0, CLOUD_FOG_DENSITY, _zone_blend)
+			env.fog_light_color = Color(0.95, 0.93, 0.88)
+		elif env.fog_enabled:
+			env.fog_enabled = false
+
 # Cibles visuelles d'une ambiance (couleurs absolues + multiplicateurs). Blendées par
 # _zone_blend par-dessus la sortie du cycle dans _apply_cycle. Palette Mid-Century respectée.
 func _zone_targets(name: String) -> Dictionary:
@@ -351,6 +364,20 @@ func _zone_targets(name: String) -> Dictionary:
 				"ground_horizon": Color(0.85, 0.30, 0.40),
 				"light_mult": 0.55,
 				"star": 0.25,
+			}
+		"clouds":
+			# Brume cotonneuse : tout devient laiteux/clair, lignes en gris doux (restent
+			# lisibles sur le clair), lumières inchangées (couvert lumineux). Pas d'étoiles.
+			# La densité de brume est appliquée à part (fog WorldEnvironment) dans _apply_cycle.
+			return {
+				"wall": Color(0.80, 0.80, 0.78),
+				"line": Color(0.58, 0.60, 0.60),
+				"sky_top": Color(0.86, 0.85, 0.82),
+				"sky_horizon": Color(0.93, 0.91, 0.86),
+				"ground_bottom": Color(0.88, 0.86, 0.82),
+				"ground_horizon": Color(0.92, 0.90, 0.85),
+				"light_mult": 1.0,
+				"star": 0.0,
 			}
 		_:
 			return {}

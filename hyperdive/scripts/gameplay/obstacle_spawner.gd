@@ -21,6 +21,9 @@ const SPECIAL_CHANCE: float = 0.05
 const SPECIAL_COOLDOWN: float = 180.0
 const SPECIAL_MIN_START: float = 120.0
 const SPECIAL_CLEARANCE: float = 14.4
+# Twist "nuages" : multiplicateur d'espacement des obstacles dans la bande visuelle nuages
+# (accalmie → la brume reste lisible). Lu via Zones.in_visual_band.
+const CLOUD_SPACING_MULT: float = 1.7
 
 var _next_spawn_y: float = 0.0
 # Signe vertical : -1 chute (spawn en bas), +1 jetpack (spawn en haut). Lu une fois au départ.
@@ -74,7 +77,12 @@ func _process(_delta: float) -> void:
 			_next_spawn_y += _dir * (zone_len + SPECIAL_CLEARANCE)
 		else:
 			_spawn_at(_next_spawn_y)
-			_next_spawn_y += _dir * SPAWN_INTERVAL_Y
+			# Twist ACCALMIE (zone visuelle "nuages") : on élargit l'espacement → moins
+			# d'obstacles, ce qui rend la visibilité réduite par la brume JUSTE et lisible.
+			var interval: float = SPAWN_INTERVAL_Y
+			if Zones.in_visual_band(depth, "clouds"):
+				interval *= CLOUD_SPACING_MULT
+			_next_spawn_y += _dir * interval
 	# Despawn ce qui est passé DERRIÈRE le joueur (sinon fuite mémoire).
 	for obstacle in get_tree().get_nodes_in_group("obstacles"):
 		# Étendue de la zone : une zone rare (rouleau/spirale/zigzag) est UN seul corps dont
