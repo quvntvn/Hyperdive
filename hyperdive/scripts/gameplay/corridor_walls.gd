@@ -68,7 +68,9 @@ const VISUAL_HOLD: float = 60.0        # plein régime (~3 s à 18 m/s)
 const VISUAL_EXIT: float = 12.0        # lerp de sortie (douce)
 const VISUAL_LEN: float = VISUAL_ENTRY + VISUAL_HOLD + VISUAL_EXIT
 const VISUAL_NAMES: Array[String] = ["neon", "clouds", "cosmic"]
-const CLOUD_FOG_DENSITY: float = 0.03   # brume douce : atténue le LOINTAIN, garde le proche net
+# Opacité MAX d'un nuage au plein régime de la zone (très transparent → gameplay lisible).
+# L'alpha réel = CLOUD_MAX_ALPHA × _zone_blend → fondu doux entrée/sortie via le blend existant.
+const CLOUD_MAX_ALPHA: float = 0.22
 
 var _dir: float = -1.0
 var _zones_enabled: bool = false
@@ -80,6 +82,7 @@ var _zone_start_depth: float = 0.0
 var _zone_blend: float = 0.0
 var _zone_dirty: bool = false   # force une dernière application quand la zone se termine
 var _pulse_t: float = 0.0       # horloge du clignotement néon
+var _cloud_mat: StandardMaterial3D   # matériau des nuages de zone ; on module son alpha selon le blend
 
 func _ready() -> void:
 	if target == null and not target_path.is_empty():
@@ -180,6 +183,90 @@ func _create_ambient_fx() -> void:
 	# Motes de poussière du couloir RETIRÉES (elles flottaient autour du joueur et
 	# parasitaient le ciel). Étoiles du ciel (cycle jour/nuit) + nuages jetpack conservés.
 	_create_soft_clouds()
+	# Couche de VRAIS nuages pour la ZONE NUAGES (remplace l'ancien fog uniforme) : seulement
+	# en jeu là où les zones tournent (infini/jetpack ; jamais campagne/coop/menu).
+	if not _is_menu and _zones_enabled:
+		_create_cloud_layer()
+
+# ZONE NUAGES — vrais petits nuages transparents qui traversent l'écran en DIAGONALE.
+# Remplace l'ancien voile de fog plein écran. Émetteur ANCRÉ À LA CAMÉRA (local_coords) →
+# les nuages forment une COUCHE en surimpression qui reste dans le cadre quel que soit le
+# défilement, et dérivent en diagonale (mouvement propre, pas le défilement vertical du décor).
+# Profondeur : posés LOIN devant la caméra (~42 u) → DERRIÈRE les obstacles proches (qui
+# écrivent le depth et passent donc DEVANT) mais DEVANT le décor lointain (skyline ~90 u).
+# → les obstacles/pièces ne sont jamais masqués, lisibilité gameplay préservée.
+# Toujours émis (peu nombreux/petits = coût négligeable) ; INVISIBLES hors zone car l'alpha
+# du matériau est piloté par _zone_blend (0 hors zone) dans _apply_cycle → fondu doux auto.
+func _create_cloud_layer() -> void:
+	var cam := get_parent().get_node_or_null("Camera3D") as Camera3D
+	if cam == null:
+		return
+
+	var p := GPUParticles3D.new()
+	p.name = "ZoneClouds"
+	p.amount = 9                 # peu de nuages à la fois → espacés, beaucoup de ciel clair entre eux
+	p.lifetime = 16.0
+	p.one_shot = false
+	p.explosiveness = 0.0
+	p.randomness = 1.0           # positions/vitesses/timing variés → pas de motif régulier
+	p.local_coords = true        # couche ancrée caméra (dérive en diagonale dans le cadre)
+	p.draw_order = GPUParticles3D.DRAW_ORDER_VIEW_DEPTH
+	p.emitting = true
+
+	var mat := ParticleProcessMaterial.new()
+	# Boîte d'émission large DEVANT la caméra (−Z local), fine en profondeur → un plan de nuages.
+	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	mat.emission_box_extents = Vector3(26.0, 18.0, 5.0)
+	mat.gravity = Vector3.ZERO
+	# Diagonale : vers la droite ET le bas de l'écran (X+ , Y−). Spread → directions un peu variées.
+	mat.direction = Vector3(0.85, -0.53, 0.0)
+	mat.spread = 15.0
+	mat.initial_velocity_min = 2.5
+	mat.initial_velocity_max = 4.5
+	# Tailles modérées et variées (petits nuages, pas plein écran).
+	mat.scale_min = 4.0
+	mat.scale_max = 9.0
+	p.process_material = mat
+
+	# Quad billboard texturé d'un nuage doux/cotonneux (procédural → aucun asset).
+	var quad := QuadMesh.new()
+	quad.size = Vector2(1.0, 1.0)
+	_cloud_mat = StandardMaterial3D.new()
+	_cloud_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_cloud_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_cloud_mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	_cloud_mat.billboard_keep_scale = true   # respecte scale_min/max (sinon billboard ignore l'échelle)
+	_cloud_mat.albedo_texture = _build_cloud_texture()
+	_cloud_mat.albedo_color = Color(0.95, 0.95, 0.96, 0.0)   # alpha 0 au repos → ramené par _zone_blend
+	quad.surface_set_material(0, _cloud_mat)
+	p.draw_pass_1 = quad
+
+	cam.add_child(p)
+	# Centre le plan de nuages devant la caméra (local : X centré, −Z = devant).
+	p.position = Vector3(0.0, 2.0, -42.0)
+
+# Texture procédurale d'un nuage doux : disque à bord fondu (falloff radial) modulé par un
+# bruit simplex → forme cotonneuse irrégulière, bords doux (alpha qui s'évanouit). Générée
+# une fois au démarrage. RGB quasi blanc froid ; l'alpha global est piloté ailleurs.
+func _build_cloud_texture() -> ImageTexture:
+	var size: int = 96
+	var noise := FastNoiseLite.new()
+	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
+	noise.frequency = 0.045
+	noise.seed = 1962
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	for y in size:
+		for x in size:
+			var u: float = (float(x) + 0.5) / float(size) * 2.0 - 1.0
+			var v: float = (float(y) + 0.5) / float(size) * 2.0 - 1.0
+			var r: float = sqrt(u * u + v * v)
+			# 1 au centre → 0 au bord ; au carré pour des bords bien doux.
+			var falloff: float = smoothstep(1.0, 0.15, r)
+			falloff *= falloff
+			var n: float = noise.get_noise_2d(float(x), float(y)) * 0.5 + 0.5   # 0..1
+			var a: float = clampf(falloff * (0.45 + 0.8 * n), 0.0, 1.0)
+			img.set_pixel(x, y, Color(1.0, 1.0, 1.0, a))
+	return ImageTexture.create_from_image(img)
 
 # Nuages : UNIQUEMENT en mode jetpack (plus de nuages en chute campagne/infini ni au
 # menu). Placés en FOND latéral GAUCHE, derrière le mur gauche (x très négatif, reculés
@@ -297,6 +384,11 @@ func _apply_cycle(phase: float, do_skyline: bool) -> void:
 	if _zone_blend > 0.0 and _zone_name != "":
 		var z: Dictionary = _zone_targets(_zone_name)
 		var t: float = _zone_blend
+		# NUAGES : la teinte de fond reste TRÈS subtile (on ne veut plus de voile laiteux plein
+		# écran — l'effet principal = les nuages qui passent). On atténue fortement le décalage
+		# de couleur ; les vrais nuages billboards (couche transparente) portent l'ambiance.
+		if _zone_name == "clouds":
+			t *= 0.30
 		wall = wall.lerp(z["wall"], t)
 		line = line.lerp(z["line"], t)
 		sky_top = sky_top.lerp(z["sky_top"], t)
@@ -341,24 +433,18 @@ func _apply_cycle(phase: float, do_skyline: bool) -> void:
 	if _star_mat != null:
 		_star_mat.albedo_color.a = star_a
 
-	# Brume (ambiance NUAGES) : fog exponentiel WorldEnvironment, densité blendée par le blend.
-	# Atténue le LOINTAIN (obstacles proches restent nets → lisible), couplé à l'accalmie
-	# (moins d'obstacles). Désactivé hors zone nuages (densité 0 = invisible mais on coupe net).
-	# PIÈGE corrigé : fog_sky_affect par défaut = 1.0 → le fog se mêle au CIEL. Or le ciel est à
-	# distance ~infinie : son facteur de fog SATURE quasi instantanément dès que la densité > 0
-	# → tout le ciel basculait en near-white en <1 s = FLASH BLANC à l'entrée de zone. On force
-	# fog_sky_affect = 0 : le fog n'agit QUE sur la géométrie lointaine (couloir/obstacles), jamais
-	# sur le ciel (qui garde la teinte douce de la zone). Couleur de brume adoucie (gris doux, plus
-	# de near-white) pour une ambiance cotonneuse, pas aveuglante.
-	if _world_env != null and _world_env.environment != null:
-		var env: Environment = _world_env.environment
-		if _zone_name == "clouds" and _zone_blend > 0.0:
-			env.fog_enabled = true
-			env.fog_density = lerpf(0.0, CLOUD_FOG_DENSITY, _zone_blend)
-			env.fog_sky_affect = 0.0
-			env.fog_light_color = Color(0.82, 0.83, 0.85)
-		elif env.fog_enabled:
-			env.fog_enabled = false
+	# Ambiance NUAGES : plus de fog uniforme (le voile gris plein écran est SUPPRIMÉ). À la
+	# place, une couche de vrais petits nuages transparents en diagonale (créée dans
+	# _create_cloud_layer). Ici on ne fait que piloter leur OPACITÉ par le blend → ils
+	# apparaissent en fondu doux à l'entrée de zone, s'estompent à la sortie, invisibles ailleurs.
+	if _cloud_mat != null:
+		var cloud_a: float = 0.0
+		if _zone_name == "clouds":
+			cloud_a = CLOUD_MAX_ALPHA * _zone_blend
+		_cloud_mat.albedo_color.a = cloud_a
+	# Garde-fou : si un ancien fog traînait (résidu d'un run précédent), on le coupe.
+	if _world_env != null and _world_env.environment != null and _world_env.environment.fog_enabled:
+		_world_env.environment.fog_enabled = false
 
 # Cibles visuelles d'une ambiance (couleurs absolues + multiplicateurs). Blendées par
 # _zone_blend par-dessus la sortie du cycle dans _apply_cycle. Palette Mid-Century respectée.
