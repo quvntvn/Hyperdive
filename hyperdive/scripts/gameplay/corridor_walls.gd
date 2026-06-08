@@ -66,7 +66,7 @@ const VISUAL_ENTRY: float = 12.0       # lerp d'entrée (douce)
 const VISUAL_HOLD: float = 60.0        # plein régime (~3 s à 18 m/s)
 const VISUAL_EXIT: float = 12.0        # lerp de sortie (douce)
 const VISUAL_LEN: float = VISUAL_ENTRY + VISUAL_HOLD + VISUAL_EXIT
-const VISUAL_NAMES: Array[String] = ["neon", "clouds"]   # cosmique ajouté à l'étape suivante
+const VISUAL_NAMES: Array[String] = ["neon", "clouds", "cosmic"]
 const CLOUD_FOG_DENSITY: float = 0.03   # brume douce : atténue le LOINTAIN, garde le proche net
 
 var _dir: float = -1.0
@@ -379,6 +379,19 @@ func _zone_targets(name: String) -> Dictionary:
 				"light_mult": 1.0,
 				"star": 0.0,
 			}
+		"cosmic":
+			# L'espace : couloir/ciel quasi noirs, dégradé NÉBULEUSE violet→turquoise à l'horizon,
+			# étoiles à fond. Lumières basses (les obstacles/pièces émissifs restent éclatants).
+			return {
+				"wall": Color(0.05, 0.06, 0.10),
+				"line": Color(0.30, 0.55, 0.62),
+				"sky_top": Color(0.02, 0.02, 0.06),
+				"sky_horizon": Color(0.35, 0.18, 0.40),
+				"ground_bottom": Color(0.02, 0.03, 0.06),
+				"ground_horizon": Color(0.16, 0.30, 0.34),
+				"light_mult": 0.45,
+				"star": 1.0,
+			}
 		_:
 			return {}
 
@@ -387,6 +400,8 @@ func _zone_speed_target(name: String) -> float:
 	match name:
 		"neon":
 			return 1.10
+		"cosmic":
+			return 0.85   # flottement : on ralentit légèrement (sensation d'apesanteur)
 		_:
 			return 1.0
 

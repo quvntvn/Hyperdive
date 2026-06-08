@@ -9,6 +9,8 @@ const SPAWN_INTERVAL_Y: float = 14.4
 const SPAWN_AHEAD: float = 60.0
 const CORRIDOR_HALF_WIDTH: float = 4.0
 const DESPAWN_BEHIND: float = 15.0
+# Twist "cosmique" : pièces plus DENSES dans la bande visuelle cosmique (trésor spatial).
+const COSMIC_COIN_MULT: float = 0.5
 
 var _next_spawn_y: float = -SPAWN_AHEAD
 # Signe vertical : -1 chute (spawn en bas), +1 jetpack (spawn en haut). Lu une fois au départ.
@@ -28,7 +30,11 @@ func _process(_delta: float) -> void:
 	var player_y: float = player.global_position.y
 	while _dir * _next_spawn_y < _dir * player_y + SPAWN_AHEAD:
 		_spawn_at(_next_spawn_y)
-		_next_spawn_y += _dir * SPAWN_INTERVAL_Y
+		# Twist cosmique : intervalle réduit (pièces denses) dans la bande visuelle cosmique.
+		var interval: float = SPAWN_INTERVAL_Y
+		if Zones.in_visual_band(_dir * _next_spawn_y, "cosmic"):
+			interval *= COSMIC_COIN_MULT
+		_next_spawn_y += _dir * interval
 	for coin in get_tree().get_nodes_in_group("coins"):
 		if _dir * coin.global_position.y < _dir * player_y - DESPAWN_BEHIND:
 			coin.queue_free()
