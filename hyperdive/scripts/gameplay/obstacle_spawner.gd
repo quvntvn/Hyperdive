@@ -4,9 +4,12 @@ class_name ObstacleSpawner
 @export var player: Node3D
 @export var player_path: NodePath
 @export var obstacle_scenes: Array[PackedScene]
-# Obstacles de "zone rare" (spirale). VOLONTAIREMENT séparés de obstacle_scenes :
+# Obstacles de "zone rare". VOLONTAIREMENT séparés de obstacle_scenes :
 # ils n'entrent PAS dans la pioche pondérée normale. Ils remplacent rarement un spawn normal
-# (voir gate ci-dessous), puis le flux normal reprend. Vide => comportement 100 % d'avant.
+# (voir gate ci-dessous), puis le flux normal reprend.
+# ACTUELLEMENT VIDE (aucune zone rare d'obstacles) => comportement 100 % normal : le gate
+# `not special_scenes.is_empty()` ci-dessous court-circuite tout déclenchement. Tableau prévu
+# pour réintroduire facilement une zone rare plus tard sans retoucher la logique.
 @export var special_scenes: Array[PackedScene]
 
 const SPAWN_INTERVAL_Y: float = 14.4
@@ -85,7 +88,7 @@ func _process(_delta: float) -> void:
 			_next_spawn_y += _dir * interval
 	# Despawn ce qui est passé DERRIÈRE le joueur (sinon fuite mémoire).
 	for obstacle in get_tree().get_nodes_in_group("obstacles"):
-		# Étendue de la zone : une zone rare (spirale) est UN seul corps dont
+		# Étendue de la zone : une zone rare est UN seul corps dont
 		# l'origine = l'élément d'ENTRÉE ; ses autres éléments s'étalent vers l'AVANT (sens dir)
 		# sur zone_length. On ne libère la zone que quand son EXTRÉMITÉ la plus avancée
 		# (origine + dir*zone_length) est derrière le joueur — sinon despawn prématuré alors que
@@ -107,7 +110,7 @@ func _spawn_at(y: float) -> void:
 		x = randf_range(-CORRIDOR_HALF_WIDTH, CORRIDOR_HALF_WIDTH)
 	obstacle.global_position = Vector3(x, y, 0.0)
 
-# Pose UN obstacle de zone rare (spirale) au centre. Retourne sa hauteur
+# Pose UN obstacle de zone rare au centre. Retourne sa hauteur
 # verticale (zone_length) pour que la boucle de spawn saute la zone et reprenne le flux normal.
 func _spawn_special_at(y: float) -> float:
 	var picked: PackedScene = special_scenes.pick_random()
