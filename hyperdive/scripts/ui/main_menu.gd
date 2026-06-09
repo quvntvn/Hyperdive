@@ -22,12 +22,11 @@ func _ready() -> void:
 	# plus derrière le flou de l'écran. On GARDE le décor 3D (ville défilante) : il vit dans le
 	# monde Node3D, pas dans MenuUI → le backdrop de l'écran continue de le flouter joliment.
 	# Piloté par visibility_changed (un seul point de vérité, gère ouverture ET fermeture).
-	for screen: CanvasLayer in [$ShopScreen, $SettingsScreen, $MissionsScreen, $CoopConfigScreen]:
+	for screen: CanvasLayer in [$ShopScreen, $SettingsScreen, $MissionsScreen, $CoopConfigScreen, $CampaignScreen, $ChapterReader]:
 		screen.visibility_changed.connect(_sync_menu_ui_visibility)
 
-	# Le bouton campagne affiche le niveau de progression courant et le lance DIRECTEMENT
-	# (plus d'écran intermédiaire). Relu à chaque _ready → reflète la progression au retour.
-	%CampagneButton.text = "NIVEAU " + UIAnimations.format_number(Settings.campaign_level)
+	# Le bouton campagne ouvre la CARTE de l'HISTOIRE (campagne narrative 40 chapitres).
+	%CampagneButton.text = "HISTOIRE"
 	# Descend l'engrenage sous la safe area (encoche/caméra frontale), avec une marge mini
 	# généreuse même sans encoche pour qu'il ne soit pas collé au bord haut.
 	UIAnimations.apply_top_safe_area(%SettingsGearButton, 28.0)
@@ -61,8 +60,8 @@ func _update_mode_buttons() -> void:
 		  " jetpack=", jetpack_unlocked,
 		  " best_infinite_distance=", Settings.best_infinite_distance)
 	# Libellés d'AFFICHAGE seulement ; active_mode reste "infinite"/"jetpack" en interne.
-	_set_mode_button(%RecordButton, record_unlocked, "CLASSIQUE", "Termine le niveau 1")
-	_set_mode_button(%JetpackButton, jetpack_unlocked, "JETPACK", "Atteins 1000m en Classique")
+	_set_mode_button(%RecordButton, record_unlocked, "CLASSIQUE", "Termine le chapitre 1")
+	_set_mode_button(%JetpackButton, jetpack_unlocked, "JETPACK", "Termine le chapitre 20")
 
 # Débloqué : texte = nom du mode, cliquable, grande police. Verrouillé : texte = nom +
 # cadenas + condition (2 lignes), grisé, police réduite pour faire tenir la condition.
@@ -79,7 +78,7 @@ func _set_mode_button(btn: Button, unlocked: bool, mode_name: String, condition:
 # la réaffiche quand ils sont tous fermés. Le décor 3D reste visible (hors MenuUI).
 func _sync_menu_ui_visibility() -> void:
 	var any_open: bool = false
-	for screen: CanvasLayer in [$ShopScreen, $SettingsScreen, $MissionsScreen, $CoopConfigScreen]:
+	for screen: CanvasLayer in [$ShopScreen, $SettingsScreen, $MissionsScreen, $CoopConfigScreen, $CampaignScreen, $ChapterReader]:
 		if screen.visible:
 			any_open = true
 			break
@@ -93,11 +92,17 @@ func update_stats() -> void:
 
 func _on_campagne_pressed() -> void:
 	Audio.play_ui_click()
-	# Lancement direct du niveau de progression courant, sans écran intermédiaire.
-	# Les pièces gagnées ne s'affichent qu'au pop-up de fin de niveau (dans le jeu).
-	Settings.active_mode = "campaign"
-	Settings.active_level = Settings.campaign_level
-	Transition.change_scene("res://scenes/game/main_game.tscn")
+	# Ouvre la CARTE de l'histoire (carte verticale des 40 chapitres) au lieu de lancer un niveau.
+	var campaign := get_tree().get_first_node_in_group("campaign_screen")
+	if campaign:
+		campaign.open()
+
+# Rafraîchit les boutons de mode + stats après une complétion de chapitre (la carte appelle
+# ça quand un chapitre débloque Classique (ch.1) ou Jetpack (ch.20)). Le menu reste chargé
+# derrière la carte → il suffit de relire les déblocages/stats.
+func refresh_after_story() -> void:
+	_update_mode_buttons()
+	update_stats()
 
 func _on_record_pressed() -> void:
 	Audio.play_ui_click()

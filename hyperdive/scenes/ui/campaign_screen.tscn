@@ -1,0 +1,70 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/campaign_screen.gd" id="CampaignScript"]
+[ext_resource type="Script" path="res://scripts/ui/glass_blur.gd" id="GlassBlurScript"]
+
+[node name="CampaignScreen" type="CanvasLayer"]
+layer = 9
+visible = false
+process_mode = 3
+script = ExtResource("CampaignScript")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("GlassBlurScript")
+gui_corner_radius = 0.0
+
+[node name="Tint" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.06, 0.05, 0.1, 0.5)
+
+[node name="Content" type="Control" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="TitleLabel" type="Label" parent="Content"]
+anchor_right = 1.0
+offset_top = 50.0
+offset_bottom = 104.0
+mouse_filter = 2
+text = "HISTOIRE"
+horizontal_alignment = 1
+theme_type_variation = &"Title"
+theme_override_font_sizes/font_size = 44
+
+[node name="GalleryButton" type="Button" parent="Content"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -176.0
+offset_top = 54.0
+offset_right = -20.0
+offset_bottom = 102.0
+text = "Lire 📖"
+theme_override_font_sizes/font_size = 20
+
+[node name="Scroll" type="ScrollContainer" parent="Content"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 116.0
+offset_right = -16.0
+offset_bottom = -92.0
+horizontal_scroll_mode = 0
+
+[node name="Map" type="Control" parent="Content/Scroll"]
+mouse_filter = 2
+
+[node name="RetourButton" type="Button" parent="Content"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -76.0
+offset_right = 100.0
+offset_bottom = -20.0
+text = "RETOUR"
+theme_override_font_sizes/font_size = 24

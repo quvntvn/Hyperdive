@@ -1,0 +1,123 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/chapter_reader.gd" id="ReaderScript"]
+
+[node name="ChapterReader" type="CanvasLayer"]
+layer = 10
+visible = false
+process_mode = 3
+script = ExtResource("ReaderScript")
+
+[node name="PlaceholderBg" type="TextureRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+expand_mode = 1
+stretch_mode = 0
+mouse_filter = 2
+
+[node name="ImageBg" type="TextureRect" parent="."]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+expand_mode = 1
+stretch_mode = 6
+mouse_filter = 2
+
+[node name="NumberLabel" type="Label" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+modulate = Color(1, 1, 1, 0.12)
+text = "01"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 220
+theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
+
+[node name="TopVeil" type="TextureRect" parent="."]
+anchor_right = 1.0
+offset_bottom = 320.0
+expand_mode = 1
+stretch_mode = 0
+mouse_filter = 2
+
+[node name="BottomVeil" type="TextureRect" parent="."]
+anchor_top = 0.4
+anchor_right = 1.0
+anchor_bottom = 1.0
+expand_mode = 1
+stretch_mode = 0
+mouse_filter = 2
+
+[node name="TitleLabel" type="Label" parent="."]
+anchor_right = 1.0
+offset_top = 64.0
+offset_bottom = 128.0
+mouse_filter = 2
+text = "Titre"
+horizontal_alignment = 1
+theme_type_variation = &"Title"
+theme_override_font_sizes/font_size = 44
+
+[node name="TextScroll" type="ScrollContainer" parent="."]
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = 0.0
+offset_right = -28.0
+offset_bottom = -150.0
+horizontal_scroll_mode = 0
+
+[node name="TextLabel" type="Label" parent="TextScroll"]
+size_flags_horizontal = 3
+text = "Texte du chapitre…"
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
+theme_override_constants/line_spacing = 6
+
+[node name="ActionButton" type="Button" parent="."]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -96.0
+offset_right = 120.0
+offset_bottom = -32.0
+text = "CONTINUER"
+theme_override_font_sizes/font_size = 26
+
+[node name="NavBox" type="HBoxContainer" parent="."]
+visible = false
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -96.0
+offset_right = -28.0
+offset_bottom = -32.0
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="PrevButton" type="Button" parent="NavBox"]
+custom_minimum_size = Vector2(84, 64)
+text = "◀"
+theme_override_font_sizes/font_size = 26
+
+[node name="BackButton" type="Button" parent="NavBox"]
+custom_minimum_size = Vector2(160, 64)
+text = "RETOUR"
+theme_override_font_sizes/font_size = 22
+
+[node name="NextButton" type="Button" parent="NavBox"]
+custom_minimum_size = Vector2(84, 64)
+text = "▶"
+theme_override_font_sizes/font_size = 26
+
+[node name="Fade" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0)
+mouse_filter = 2
