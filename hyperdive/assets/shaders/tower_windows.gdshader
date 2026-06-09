@@ -20,6 +20,9 @@ uniform vec3 win_lit_b : source_color = vec3(0.62, 0.50, 0.20);   // moutarde at
 uniform vec3 win_dark : source_color = vec3(0.10, 0.09, 0.07);    // éteinte
 uniform float line_alpha : hint_range(0.0, 1.0) = 0.10;
 uniform float edge_alpha : hint_range(0.0, 1.0) = 0.0;   // 0 = opaque ; >0 = bords fondus
+// Décalage vertical du motif en px (= scroll de la carte) : les tours sont un calque FIXE
+// pleine emprise écran, seul le motif de fenêtres défile quand on scrolle la carte.
+uniform float scroll_offset = 0.0;
 uniform float seed = 1962.0;
 
 float hash21(vec2 p) {
@@ -30,6 +33,7 @@ float hash21(vec2 p) {
 
 void fragment() {
 	vec2 px = UV * rect_size;
+	px.y += scroll_offset;                  // le motif défile avec la carte (tours fixes à l'écran)
 	vec2 grid = px / cell_px;
 	vec2 cell_id = floor(grid) + vec2(seed);
 	vec2 cell_uv = fract(grid);

@@ -14,7 +14,6 @@ const LOCK_ICON: String = "res://assets/ui/lock_icon.svg"
 const VSTEP: float = 150.0          # espacement vertical entre deux nœuds
 const TOP_PAD: float = 110.0
 const BOT_PAD: float = 140.0
-const TOWER_W: float = 54.0
 const NORMAL_D: float = 60.0        # diamètre d'un nœud
 const CURRENT_D: float = 80.0       # diamètre du nœud courant (mis en avant)
 const SIDE_MARGIN: float = 16.0     # = offset_left/right du Scroll dans la scène
@@ -31,14 +30,53 @@ var _reader_connected: bool = false
 
 @onready var _map: Control = $Content/Scroll/Map
 @onready var _scroll: ScrollContainer = $Content/Scroll
+@onready var _towers: Array[ColorRect] = [$Content/LeftTower, $Content/RightTower]
 
 func _ready() -> void:
 	add_to_group("campaign_screen")
 	$Content/GalleryButton.pressed.connect(_on_gallery)
 	$Content/RetourButton.pressed.connect(_on_retour)
 	UIAnimations.wire_buttons(self)
-	UIAnimations.apply_top_safe_area($Content/TitleLabel, 24.0)
-	UIAnimations.apply_top_safe_area($Content/GalleryButton, 24.0)
+	# En-tête empilé (Lire au-dessus, HISTOIRE dessous) + Scroll : tout décalé du même inset de
+	# safe area (encoche), pour garder l'empilage propre sans chevauchement sur tous les écrans.
+	var inset: float = maxf(UIAnimations.top_safe_inset(get_viewport()), 24.0)
+	for ctrl: Control in [$Content/GalleryButton, $Content/TitleLabel]:
+		ctrl.offset_top += inset
+		ctrl.offset_bottom += inset
+	_scroll.offset_top += inset
+	_setup_towers()
+
+# Les tours sont un CALQUE DE FOND fixe (pleine emprise écran, collées aux bords) : seul le motif
+# de fenêtres défile (via scroll_offset dans le shader). Matériau par tour, teinté par le thème.
+func _setup_towers() -> void:
+	for col in _towers:
+		var mat := ShaderMaterial.new()
+		mat.shader = load(TOWER_SHADER)
+		col.material = mat
+	_apply_tower_theme()
+	Settings.equipped_theme_changed.connect(func(_id: String) -> void: _apply_tower_theme())
+
+func _apply_tower_theme() -> void:
+	var theme: Dictionary = Catalog.get_theme(Settings.equipped_theme)
+	var wall: Color = (theme["wall_color"] as Color) * 0.8   # assombri (comme les murs du jeu)
+	wall.a = 1.0
+	for col in _towers:
+		var m := col.material as ShaderMaterial
+		if m != null:
+			m.set_shader_parameter("wall_color", wall)
+			m.set_shader_parameter("line_color", theme["line_color"])
+
+# Met à jour la taille réelle des tours (pour les cellules de fenêtres) et fait défiler le motif
+# selon le scroll de la carte. Léger (2 set_shader_parameter), gaté sur la visibilité.
+func _process(_delta: float) -> void:
+	if not visible:
+		return
+	var off: float = float(_scroll.scroll_vertical)
+	for col in _towers:
+		var m := col.material as ShaderMaterial
+		if m != null:
+			m.set_shader_parameter("rect_size", col.size)
+			m.set_shader_parameter("scroll_offset", off)
 
 func open() -> void:
 	visible = true
@@ -82,11 +120,8 @@ func _build() -> void:
 	var map_h: float = TOP_PAD + float(n_count - 1) * VSTEP + BOT_PAD
 	_map.custom_minimum_size = Vector2(mw, map_h)
 
-	# Tours (derrière) — colonnes fenêtrées teintées par le thème, défilent avec la carte.
-	_add_tower(0.0, map_h)
-	_add_tower(mw - TOWER_W, map_h)
-
-	# Chemin (au-dessus des tours, sous les nœuds) — Control dessiné via le signal `draw`.
+	# Chemin (sous les nœuds) — Control dessiné via le signal `draw`. Les tours sont un calque
+	# de fond séparé (pleine emprise écran), pas dans la carte scrollée.
 	var path := Control.new()
 	path.name = "Path"
 	path.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -108,23 +143,6 @@ func _build() -> void:
 
 	for i in n_count:
 		_add_node(i)
-
-func _add_tower(x: float, map_h: float) -> void:
-	var col := ColorRect.new()
-	col.position = Vector2(x, 0.0)
-	col.size = Vector2(TOWER_W, map_h)
-	col.custom_minimum_size = col.size
-	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var mat := ShaderMaterial.new()
-	mat.shader = load(TOWER_SHADER)
-	var theme: Dictionary = Catalog.get_theme(Settings.equipped_theme)
-	var wall: Color = (theme["wall_color"] as Color) * 0.8
-	wall.a = 1.0
-	mat.set_shader_parameter("wall_color", wall)
-	mat.set_shader_parameter("line_color", theme["line_color"])
-	mat.set_shader_parameter("rect_size", col.size)
-	col.material = mat
-	_map.add_child(col)
 
 func _draw_path(path: Control) -> void:
 	if _centers.size() < 2:
