@@ -52,7 +52,7 @@ const CHAPTERS: Array[Dictionary] = [
 		"text": "Chaque chute me rend un fragment de plus. Et les fragments ne collent pas avec l'histoire qu'on m'a racontée.\nLes secours sont arrivés trop vite. Les caméras de la tour étaient éteintes ce jour-là — toutes, en même temps. L'enquête a duré trois jours avant de conclure « défaillance structurelle ».\nTrois jours. Pour tuer une famille de sept et refermer le dossier.\nCe n'était pas un attentat. C'était un travail propre, déguisé en tragédie."},
 	{"n": 13, "type": "story", "title": "DGSE", "image": "res://assets/story/ch13.png",
 		"text": "Mes parents n'étaient pas ceux que je croyais.\nJe l'ai compris en recollant leurs absences, leurs voyages, les coups de fil à voix basse. Ils travaillaient pour les services. Tous les deux. Sous des noms qui n'étaient pas les leurs.\nIls savaient quelque chose. Quelque chose d'assez lourd pour qu'on préfère faire tomber une tour entière plutôt que de les laisser parler.\nJ'ai grandi orphelin d'espions sans jamais le savoir."},
-	{"n": 14, "type": "play",  "mode": "jetpack", "objective": {"kind": "dodge",    "value": 24},   "text_when": "after",  "title": "La famille brisée", "image": "res://assets/story/ch14.png",
+	{"n": 14, "type": "play",  "mode": "fall",    "objective": {"kind": "dodge",    "value": 24},   "text_when": "after",  "title": "La famille brisée", "image": "res://assets/story/ch14.png",
 		"text": "On était sept, là-haut. Papa, maman, et nous cinq.\nMaman est morte — ça, on me l'a dit. Moi j'ai survécu, en miettes.\nMais les autres ? Mes quatre frères et sœurs ? Papa ?\nPersonne n'en a jamais parlé. Pas un corps, pas une tombe, pas un mot. Comme s'ils n'avaient jamais existé. Disparus dans la même seconde où le sol s'est ouvert.\nOù êtes-vous ?"},
 	{"n": 15, "type": "story", "title": "L'appât", "image": "res://assets/story/ch15.png",
 		"text": "Et soudain je comprends. Tout. D'un coup, comme une nausée.\nElle ne me torture pas pour ce que je sais — j'avais huit ans, je ne sais rien.\nElle me torture pour qu'on me voie souffrir. Quelque part, mon père est peut-être encore vivant, caché depuis vingt-six ans avec son secret. Et elle parie qu'aucun père ne peut regarder son fils tomber en boucle sans finir par sortir de l'ombre.\nJe ne suis pas le prisonnier. Je suis l'hameçon."},
@@ -123,6 +123,22 @@ func chapter_reward(n: int) -> int:
 var active: bool = false                # garde-fou global du contexte campagne (miroir Coop.active)
 var active_chapter: int = 0             # chapitre en cours de jeu (0 = aucun)
 var dodged: int = 0                     # esquives du run courant (objectif "dodge"), NON gaté
+var pending_outro: int = 0              # chapitre dont l'outro reste à lire au retour menu (0 = aucun)
+
+# Démarre un chapitre jouable : pose le contexte campagne + le mode de jeu, puis le main_game
+# lit Story.objective(). Mode "jetpack" pour un chapitre jetpack, "infinite" pour la chute
+# (réutilise les modes existants → get_fall_dir donne le bon sens). Le lancement de scène se
+# fait côté appelant (campaign_screen) juste après.
+func start_chapter(n: int) -> void:
+	var ch: Dictionary = get_chapter(n)
+	active = true
+	active_chapter = n
+	dodged = 0
+	Settings.active_mode = "jetpack" if ch.get("mode", "fall") == "jetpack" else "infinite"
+
+# Objectif du chapitre EN COURS (alias lisible pour le main_game).
+func current_objective() -> Dictionary:
+	return objective()
 
 func chapter_count() -> int:
 	return CHAPTERS.size()

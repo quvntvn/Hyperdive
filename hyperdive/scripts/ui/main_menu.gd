@@ -46,6 +46,11 @@ func _ready() -> void:
 
 	_animate_title()
 
+	# Retour d'un chapitre HISTOIRE (victoire/échec/abandon) → on rouvre la carte (et l'outro
+	# en attente le cas échéant) au lieu d'atterrir sur le menu racine. Après les connexions de
+	# visibilité ci-dessus → l'ouverture de la carte masque bien l'UI du menu.
+	_handle_story_return()
+
 	# DEBUG TEMP — appui long (~0.8s) sur le titre HYPERDIVE débloque tout. À RETIRER.
 	%TitleLabel.mouse_filter = Control.MOUSE_FILTER_STOP
 	%TitleLabel.gui_input.connect(_on_title_debug_input)
@@ -96,6 +101,23 @@ func _on_campagne_pressed() -> void:
 	var campaign := get_tree().get_first_node_in_group("campaign_screen")
 	if campaign:
 		campaign.open()
+
+# Au retour d'un chapitre joué (Story.active resté actif), rouvre la carte centrée sur le
+# chapitre courant ; si une outro est en attente (chapitre à texte "after" tout juste réussi),
+# l'affiche par-dessus en lecture seule. Puis coupe le contexte campagne.
+func _handle_story_return() -> void:
+	if not Story.active and Story.pending_outro <= 0:
+		return
+	var outro: int = Story.pending_outro
+	Story.pending_outro = 0
+	Story.clear()
+	var campaign := get_tree().get_first_node_in_group("campaign_screen")
+	if campaign:
+		campaign.open()
+	if outro > 0:
+		var reader := get_tree().get_first_node_in_group("chapter_reader")
+		if reader:
+			reader.open_chapter(outro, "outro")
 
 # Rafraîchit les boutons de mode + stats après une complétion de chapitre (la carte appelle
 # ça quand un chapitre débloque Classique (ch.1) ou Jetpack (ch.20)). Le menu reste chargé

@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://n5w4ipcged50" path="res://scripts/gameplay/follow_camera.gd" id="FollowCameraScript"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_hud.tscn" id="GameHUDScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="GameOverScreenScene"]
-[ext_resource type="PackedScene" path="res://scenes/ui/level_complete_screen.tscn" id="LevelCompleteScreenScene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/chapter_end_screen.tscn" id="ChapterEndScreenScene"]
 [ext_resource type="Script" uid="uid://dcvebv8vqpanx" path="res://scripts/gameplay/main_game.gd" id="MainGameScript"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_bar.tscn" id="ObstacleBarScene"]
 [ext_resource type="PackedScene" path="res://scenes/obstacles/obstacle_box.tscn" id="ObstacleBoxScene"]
@@ -85,7 +85,7 @@ player_path = NodePath("../Player")
 
 [node name="GameOverScreen" parent="." unique_id=11009195 instance=ExtResource("GameOverScreenScene")]
 
-[node name="LevelCompleteScreen" parent="." unique_id=1209078578 instance=ExtResource("LevelCompleteScreenScene")]
+[node name="ChapterEndScreen" parent="." unique_id=1209078578 instance=ExtResource("ChapterEndScreenScene")]
 
 [node name="PauseScreen" parent="." unique_id=444877523 instance=ExtResource("PauseScreenScene")]
 

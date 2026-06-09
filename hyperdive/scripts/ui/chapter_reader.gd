@@ -7,11 +7,12 @@ class_name ChapterReader
 #
 # Contextes (_ctx) :
 #   "story"       narration → bouton CONTINUER (complète + retour carte)
-#   "play_before" jouable, intro → bouton JOUER (étape 2 : stub complète ; étape 3 : lance le niveau)
-#   "play_after"  jouable, outro → bouton CONTINUER (complète + retour carte)
+#   "play_before" jouable, intro → bouton JOUER (lance le niveau du chapitre)
+#   "outro"       texte après une victoire (text_when "after") → CONTINUER (lecture seule, retour carte)
 #   "gallery"     relecture → ◀ ▶ parmi les chapitres débloqués + RETOUR (aucune complétion)
 
-signal chapter_closed(n: int)   # émis après complétion (la carte se reconstruit / le menu rafraîchit)
+signal chapter_closed(n: int)   # émis après complétion d'une narration (carte reconstruite / menu rafraîchi)
+signal play_requested(n: int)   # JOUER sur un chapitre jouable → la carte lance le niveau
 
 const FADE_TIME: float = 0.3
 
@@ -117,11 +118,13 @@ func _configure_buttons() -> void:
 
 func _on_action() -> void:
 	Audio.play_ui_click()
-	# STUB ÉTAPE 2 : tous les contextes complètent directement pour tester la progression.
-	# ÉTAPE 3 : "play_before" ne complétera PLUS ici — il lancera le niveau jouable
-	#   (Settings.active_mode = mode du chapitre + objectif Story, puis Transition.change_scene),
-	#   et la complétion se fera à la réussite du niveau (puis outro via open_chapter "play_after").
-	await _complete_and_close()
+	match _ctx:
+		"play_before":
+			await _request_play()   # JOUER → la carte lance le niveau (et fait la complétion à la victoire)
+		"outro":
+			await _close_only()     # texte déjà "complété" en jeu → simple retour carte
+		_:                          # "story" : narration → lire = compléter
+			await _complete_and_close()
 
 func _complete_and_close() -> void:
 	var n: int = _n
@@ -129,6 +132,16 @@ func _complete_and_close() -> void:
 	visible = false
 	Story.complete_chapter(n)   # crédite pièces + déblocages (ch.1→Classique, ch.20→Jetpack) + avance
 	chapter_closed.emit(n)
+
+func _request_play() -> void:
+	var n: int = _n
+	await _fade_out()
+	visible = false
+	play_requested.emit(n)
+
+func _close_only() -> void:
+	await _fade_out()
+	visible = false
 
 func _on_prev() -> void:
 	Audio.play_ui_click()

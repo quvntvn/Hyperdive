@@ -55,13 +55,11 @@ var equipped_trail: String = "none"
 var owned_themes: Array[String] = ["default"]
 var equipped_theme: String = "default"
 var claimed_missions: Array[String] = []
-var campaign_level: int = 1
-# Campagne HISTOIRE (nouveau système Story) : plus haut chapitre débloqué = chapitre courant.
-# Débloquage linéaire (1..40). < courant = complété, > = verrouillé. Remplacera campaign_level
-# quand l'ancien système de niveau sera retiré (étape ultérieure) ; coexiste en attendant.
+# Campagne HISTOIRE (système Story) : plus haut chapitre débloqué = chapitre courant.
+# Débloquage linéaire (1..40). < courant = complété, > = verrouillé. (A remplacé l'ancien
+# système de niveaux chronométrés campaign_level, retiré à l'étape 3.)
 var story_chapter: int = 1
 var active_mode: String = "infinite"
-var active_level: int = 1
 
 var daily_date: String = ""
 var daily_challenges: Array = []
@@ -300,7 +298,7 @@ func equip_theme(theme_id: String) -> bool:
 
 func get_mission_progress(mission: Dictionary) -> int:
 	match mission["type"]:
-		"campaign_level":    return campaign_level
+		"story_chapter":     return story_chapter
 		"infinite_distance": return best_infinite_distance
 		"jetpack_distance":  return best_jetpack_distance
 		"distance":          return best_distance   # compat héritée
@@ -451,15 +449,9 @@ func claim_daily(ch: Dictionary) -> bool:
 	save_settings()
 	return true
 
-func get_level_duration(level: int) -> float:
-	return 30.0 + float(level - 1) * 5.0
-
-func get_level_reward(level: int) -> int:
-	return 20 + level * 10
-
 func is_infinite_unlocked() -> bool:
-	# Débloqué dès la 1re fin de niveau campagne (flag) ; campaign_level > 1 = garde-fou.
-	return infinite_unlocked or campaign_level > 1
+	# Débloqué à la complétion du chapitre 1 de l'HISTOIRE (flag posé par Story.complete_chapter).
+	return infinite_unlocked
 
 func is_jetpack_unlocked() -> bool:
 	# Débloqué par la campagne (fin du chapitre 20) OU en atteignant 1000 m en mode infini.
@@ -469,15 +461,6 @@ func is_jetpack_unlocked() -> bool:
 # +1.0 en jetpack (le joueur MONTE), -1.0 sinon (chute). Tous les scripts lisent ça.
 func get_fall_dir() -> float:
 	return 1.0 if active_mode == "jetpack" else -1.0
-
-func complete_current_level() -> void:
-	coins_total += get_level_reward(active_level)
-	coin_collected.emit(coins_total)
-	# Terminer un niveau (le 1er suffit) débloque définitivement le mode infini ("Record").
-	infinite_unlocked = true
-	if active_level == campaign_level:
-		campaign_level += 1
-	save_settings()
 
 func _migrate_trails() -> void:
 	var legacy_ids: Array[String] = ["default", "turquoise", "orange", "mustard", "bordeaux", "creme"]
@@ -554,7 +537,7 @@ func debug_unlock_all() -> void:
 	best_no_wall_time = 9999
 	powerups_used = ["shield", "slowmo", "magnet", "boost"]
 	ascetic_done = true
-	campaign_level = 99
+	story_chapter = Story.chapter_count()   # DEBUG : tous les chapitres de l'HISTOIRE débloqués/jouables
 	infinite_unlocked = true
 	jetpack_unlocked = true
 	owned_skins_changed.emit()
@@ -595,7 +578,6 @@ func save_settings() -> void:
 	cfg.set_value("cosmetics", "owned_themes", owned_themes)
 	cfg.set_value("cosmetics", "equipped_theme", equipped_theme)
 	cfg.set_value("missions", "claimed_missions", claimed_missions)
-	cfg.set_value("campaign", "campaign_level", campaign_level)
 	cfg.set_value("campaign", "story_chapter", story_chapter)
 	cfg.set_value("campaign", "infinite_unlocked", infinite_unlocked)
 	cfg.set_value("campaign", "jetpack_unlocked", jetpack_unlocked)
@@ -650,7 +632,6 @@ func load_settings() -> void:
 	equipped_theme = cfg.get_value("cosmetics", "equipped_theme", "default")
 	_validate_cosmetics()   # purge les ids supprimés + rééquipe un fallback valide
 	claimed_missions.assign(cfg.get_value("missions", "claimed_missions", []))
-	campaign_level = cfg.get_value("campaign", "campaign_level", 1)
 	story_chapter = cfg.get_value("campaign", "story_chapter", 1)
 	infinite_unlocked = cfg.get_value("campaign", "infinite_unlocked", false)
 	jetpack_unlocked = cfg.get_value("campaign", "jetpack_unlocked", false)

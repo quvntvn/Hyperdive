@@ -389,17 +389,14 @@ func _style_body_material(mat: StandardMaterial3D, skin: Dictionary) -> void:
 		mat.anisotropy = 0.0
 		mat.emission_enabled = false
 
-func _on_level_survived() -> void:
+# Animation de victoire (parachute) : redresse le perso debout, déploie le parachute, coupe le
+# whoosh. PAS de stats ni de complétion ici — le main_game (contexte HISTOIRE) pilote la suite
+# (Story.complete_chapter + écran de victoire). awaitée par main_game._on_objective_success.
+func win_parachute() -> void:
 	if _level_completed:
 		return
 	_level_completed = true
 	_parachute_active = true
-	var distance: int = int(abs(global_position.y))
-	Settings.daily_distance += distance
-	Settings.daily_time += int(_run_time)
-	Settings.update_daily_progress()
-	# Niveau réussi (pas une mort) : on fige quand même les meilleurs scores de run.
-	Settings.finalize_run(distance, int(_best_no_wall_run))
 	var para := $Character/Parachute
 	para.visible = true
 	para.scale = Vector3.ZERO
@@ -408,17 +405,6 @@ func _on_level_survived() -> void:
 	t.parallel().tween_property($Character, "rotation_degrees", Vector3.ZERO, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	Audio.set_whoosh_intensity(0.0)
 	await get_tree().create_timer(0.6).timeout
-	# Capturer AVANT complete_current_level() : il crédite les pièces et incrémente
-	# campaign_level. On affiche le niveau réussi + le gain exact dans l'overlay.
-	var completed: int = Settings.active_level
-	var reward: int = Settings.get_level_reward(completed)
-	Settings.complete_current_level()
-	# Overlay in-game (le jeu reste derrière, flouté) plutôt qu'un changement de scène.
-	var screen := get_tree().get_first_node_in_group("level_complete_screen")
-	if screen:
-		screen.show_level_complete(completed, reward)
-	else:
-		Transition.change_scene("res://scenes/ui/main_menu.tscn")
 
 func _on_body_entered(body: Node3D) -> void:
 	if _is_dead or _level_completed:
@@ -530,6 +516,14 @@ func _trigger_ragdoll() -> void:
 	if Coop.active:
 		Audio.play_game_over()
 		Coop.end_turn(distance)
+		return
+	# HISTOIRE : mort = échec DOUX (retry illimité). Aucune stat (déjà gaté par Story.active),
+	# pas de game over solo — overlay de chapitre "Tu es tombé" (Réessayer / Retour campagne).
+	if Story.active:
+		Audio.play_game_over()
+		var end_screen := get_tree().get_first_node_in_group("chapter_end_screen")
+		if end_screen:
+			end_screen.show_failure(Story.active_chapter)
 		return
 	Settings.update_best_distance(distance)
 	Settings.daily_distance += distance

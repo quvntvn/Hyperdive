@@ -253,6 +253,11 @@ func _flash_coop_row(p: int) -> void:
 func update_campaign_time(seconds: float) -> void:
 	_distance_label.text = str(ceili(seconds)) + "s"
 
+# Progression vers l'objectif d'un chapitre HISTOIRE ("320 / 800 m", "12 / 24 s", "8 / 15 esquives").
+# Réutilise le label de distance (mode campagne actif → l'auto-distance de _process est figée).
+func update_story_progress(text: String) -> void:
+	_distance_label.text = text
+
 func _process(_delta: float) -> void:
 	if _player == null:
 		return

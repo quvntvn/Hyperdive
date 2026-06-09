@@ -94,8 +94,11 @@ func _connect_reader() -> void:
 	if _reader_connected:
 		return
 	var r := get_tree().get_first_node_in_group("chapter_reader")
-	if r != null and not r.chapter_closed.is_connected(_on_chapter_closed):
-		r.chapter_closed.connect(_on_chapter_closed)
+	if r != null:
+		if not r.chapter_closed.is_connected(_on_chapter_closed):
+			r.chapter_closed.connect(_on_chapter_closed)   # narration complétée → reconstruire la carte
+		if not r.play_requested.is_connected(_launch_chapter):
+			r.play_requested.connect(_launch_chapter)       # JOUER (intro) → lancer le niveau
 		_reader_connected = true
 
 func _on_chapter_closed(_n: int) -> void:
@@ -254,16 +257,26 @@ func _on_node(n: int, unlocked: bool, btn: Button) -> void:
 		return
 	Audio.play_ui_click()
 	var ch: Dictionary = Story.get_chapter(n)
-	var ctx: String
-	if ch.get("type", "story") == "story":
-		ctx = "story"
-	elif ch.get("text_when", "before") == "before":
-		ctx = "play_before"
-	else:
-		ctx = "play_after"
+	# Jouable avec texte APRÈS (outro) → lancement direct (le texte se lit après la victoire).
+	if ch.get("type", "story") != "story" and ch.get("text_when", "before") != "before":
+		_launch_chapter(n)
+		return
+	# Narration → lecteur (CONTINUER complète). Jouable avec texte AVANT → lecteur (JOUER lance).
+	var ctx: String = "story" if ch.get("type", "story") == "story" else "play_before"
 	var r := get_tree().get_first_node_in_group("chapter_reader")
 	if r != null:
 		r.open_chapter(n, ctx)
+
+# Lance le niveau d'un chapitre jouable. Cas spécial ch.1 (objectif "descent" = ouverture) :
+# géré à l'étape 4 — pour l'instant on complète directement (stub) pour ne pas bloquer.
+func _launch_chapter(n: int) -> void:
+	var obj: Dictionary = Story.get_chapter(n).get("objective", {})
+	if obj.get("kind", "") == "descent":
+		Story.complete_chapter(n)   # STUB ch.1 (étape 4 : vraie ouverture jouable)
+		_on_chapter_closed(n)
+		return
+	Story.start_chapter(n)
+	Transition.change_scene("res://scenes/game/main_game.tscn")
 
 func _shake(btn: Button) -> void:
 	var x0: float = btn.position.x
@@ -290,3 +303,19 @@ func _center_on_current() -> void:
 	var target: float = _centers[ci].y - view_h * 0.5
 	var max_s: float = maxf(0.0, _map.custom_minimum_size.y - view_h)
 	_scroll.scroll_vertical = int(clampf(target, 0.0, max_s))
+
+# DEBUG TEMP — PageUp/PageDown : avance/recule la progression d'un chapitre pour tester les
+# états (courant/complété/verrouillé) et lancer chute ET jetpack sans tout dérouler. À RETIRER.
+func _unhandled_input(event: InputEvent) -> void:
+	if not visible:
+		return
+	if event is InputEventKey and event.pressed and not event.echo:
+		var delta: int = 0
+		if event.keycode == KEY_PAGEUP:
+			delta = 1
+		elif event.keycode == KEY_PAGEDOWN:
+			delta = -1
+		if delta != 0:
+			Settings.story_chapter = clampi(Settings.story_chapter + delta, 1, Story.chapter_count())
+			Settings.save_settings()
+			_on_chapter_closed(Settings.story_chapter)   # rebuild + recentre + rafraîchit le menu

@@ -91,7 +91,7 @@ func _ready() -> void:
 	_dir = Settings.get_fall_dir()
 	# Zones visuelles : seulement EN JEU hors campagne/coop (niveaux courts/chronométrés/sans
 	# pièces → une zone rare casserait le rythme et les twists vitesse/pièces n'ont pas de sens).
-	_zones_enabled = not _is_menu and Settings.active_mode != "campaign" and not Coop.active
+	_zones_enabled = not _is_menu and Settings.active_mode != "campaign" and not Coop.active and not Story.active
 	# Reset systématique en jeu (autoload persistant) : repart à neutre même si le run précédent
 	# s'est terminé en pleine zone (sinon visual_speed_mult resterait ≠ 1 pour le run suivant).
 	if not _is_menu:

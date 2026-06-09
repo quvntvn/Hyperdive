@@ -169,8 +169,8 @@ func _format_progress(mission: Dictionary, progress: int, target: int) -> String
 	var p: String = UIAnimations.format_number(progress)
 	var t: String = UIAnimations.format_number(target)
 	match mission["type"]:
-		"campaign_level":
-			return "Niveau %s/%s" % [p, t]
+		"story_chapter":
+			return "Chapitre %s/%s" % [p, t]
 		"infinite_distance", "jetpack_distance", "distance", "dual_distance":
 			return "%s/%s m" % [p, t]
 		"coins_lifetime", "coins_run":
