@@ -107,7 +107,6 @@ func _ready() -> void:
 	_wall_material.set_shader_parameter("win_mix", 0.50)
 	_apply_theme()
 	Settings.equipped_theme_changed.connect(func(_id: String) -> void: _apply_theme())
-	_create_ambient_fx()
 	# Champ d'étoiles : seulement EN JEU (pas au menu). Visible la nuit (alpha = cycle).
 	if not _is_menu:
 		_create_star_field()
@@ -178,57 +177,6 @@ func _update_visual_zones(depth: float, delta: float) -> void:
 	_zone_blend = clampf(b, 0.0, 1.0)
 	Zones.visual_blend = _zone_blend
 	Zones.visual_speed_mult = lerpf(1.0, _zone_speed_target(_zone_name), _zone_blend)
-
-func _create_ambient_fx() -> void:
-	# Motes de poussière du couloir RETIRÉES (elles flottaient autour du joueur et
-	# parasitaient le ciel). Étoiles du ciel (cycle jour/nuit) + nuages jetpack conservés.
-	# La zone visuelle "clouds" n'affiche plus d'objet (système de nuages abandonné) — il
-	# ne reste que son léger décalage de teinte + la raréfaction d'obstacles.
-	_create_soft_clouds()
-
-# Nuages : UNIQUEMENT en mode jetpack (plus de nuages en chute campagne/infini ni au
-# menu). Placés en FOND latéral GAUCHE, derrière le mur gauche (x très négatif, reculés
-# en z) → ils lisent comme des nuages lointains à gauche, pas au milieu de la piste.
-func _create_soft_clouds() -> void:
-	if _is_menu or Settings.active_mode != "jetpack":
-		return
-
-	var p := GPUParticles3D.new()
-	p.amount = 10
-	p.lifetime = 14.0
-	p.one_shot = false
-	p.explosiveness = 0.0
-	p.randomness = 1.0
-	p.local_coords = true
-	p.emitting = true
-	# Tout à gauche, au-delà du mur gauche (couloir = ±4.5), reculé en profondeur.
-	p.position = Vector3(-10.0, 6.0, -5.0)
-
-	var mat := ParticleProcessMaterial.new()
-	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	mat.emission_box_extents = Vector3(2.0, 9.0, 2.5)
-	mat.direction = Vector3(1.0, 0.0, 0.0)
-	mat.spread = 20.0
-	mat.initial_velocity_min = 0.10
-	mat.initial_velocity_max = 0.30
-	mat.gravity = Vector3.ZERO
-	mat.scale_min = 0.60
-	mat.scale_max = 1.20
-	# Opacité /2 (0.075 -> 0.0375) : nuages lointains discrets.
-	mat.color = Color(0.910, 0.875, 0.805, 0.0375)
-	p.process_material = mat
-
-	var sphere := SphereMesh.new()
-	sphere.radius = 0.60
-	sphere.height = 1.20
-	var cmat := StandardMaterial3D.new()
-	cmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	cmat.vertex_color_use_as_albedo = true
-	cmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	sphere.surface_set_material(0, cmat)
-	p.draw_pass_1 = sphere
-	add_child(p)
-
 
 # Met en CACHE les couleurs base du thème, puis applique une fois (phase neutre = jour
 # pur). Le cycle (en jeu) re-module ces bases chaque frame. Au menu, cet appel suffit
