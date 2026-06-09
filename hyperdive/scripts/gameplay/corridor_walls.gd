@@ -188,15 +188,17 @@ func _create_ambient_fx() -> void:
 	if not _is_menu and _zones_enabled:
 		_create_cloud_layer()
 
-# ZONE NUAGES — vrais petits nuages transparents qui traversent l'écran en DIAGONALE.
-# Remplace l'ancien voile de fog plein écran. Émetteur ANCRÉ À LA CAMÉRA (local_coords) →
-# les nuages forment une COUCHE en surimpression qui reste dans le cadre quel que soit le
-# défilement, et dérivent en diagonale (mouvement propre, pas le défilement vertical du décor).
-# Profondeur : posés LOIN devant la caméra (~42 u) → DERRIÈRE les obstacles proches (qui
-# écrivent le depth et passent donc DEVANT) mais DEVANT le décor lointain (skyline ~90 u).
-# → les obstacles/pièces ne sont jamais masqués, lisibilité gameplay préservée.
-# Toujours émis (peu nombreux/petits = coût négligeable) ; INVISIBLES hors zone car l'alpha
-# du matériau est piloté par _zone_blend (0 hors zone) dans _apply_cycle → fondu doux auto.
+# ZONE NUAGES — vrais nuages transparents qui traversent TOUT l'écran en DIAGONALE, LOIN
+# dans le ciel derrière toute la géométrie. Émetteur ANCRÉ À LA CAMÉRA (local_coords) → la
+# couche reste dans le cadre quel que soit le défilement et dérive d'un bord à l'autre.
+# PROFONDEUR : posée TRÈS LOIN (local z ≈ −86, monde ≈ −55 à −75) → DERRIÈRE les murs (z=−4..+4,
+# opaques → ils écrivent le depth) ET derrière les obstacles (z=0) → le depth test les MASQUE
+# naturellement aux bords (un nuage émerge de derrière l'immeuble gauche, traverse le ciel,
+# se cache derrière l'immeuble droit). Juste DEVANT la skyline (local z=−90) → nuages dans le
+# ciel, ville derrière. Jamais devant le joueur/obstacles/immeubles. MONTÉE en local Y (−52,
+# au-dessus de la skyline placée à −72) → la couche tombe dans la bande de ciel visible.
+# Toujours émise (peu nombreuse = coût négligeable) ; INVISIBLE hors zone car l'alpha du
+# matériau est piloté par _zone_blend (0 hors zone) dans _apply_cycle → fondu doux auto.
 func _create_cloud_layer() -> void:
 	var cam := get_parent().get_node_or_null("Camera3D") as Camera3D
 	if cam == null:
@@ -204,8 +206,8 @@ func _create_cloud_layer() -> void:
 
 	var p := GPUParticles3D.new()
 	p.name = "ZoneClouds"
-	p.amount = 9                 # peu de nuages à la fois → espacés, beaucoup de ciel clair entre eux
-	p.lifetime = 16.0
+	p.amount = 8                 # peu de nuages à la fois → espacés, beaucoup de ciel clair entre eux
+	p.lifetime = 22.0            # long → traversée lente et complète d'un bord à l'autre
 	p.one_shot = false
 	p.explosiveness = 0.0
 	p.randomness = 1.0           # positions/vitesses/timing variés → pas de motif régulier
@@ -214,18 +216,21 @@ func _create_cloud_layer() -> void:
 	p.emitting = true
 
 	var mat := ParticleProcessMaterial.new()
-	# Boîte d'émission large DEVANT la caméra (−Z local), fine en profondeur → un plan de nuages.
+	# Boîte d'émission TRÈS large en X (couvre derrière l'immeuble gauche jusqu'à derrière le
+	# droit), fine en Y (bande de ciel) et en Z (un plan) → une bande de nuages lointaine.
 	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	mat.emission_box_extents = Vector3(26.0, 18.0, 5.0)
+	mat.emission_box_extents = Vector3(46.0, 7.0, 6.0)
 	mat.gravity = Vector3.ZERO
-	# Diagonale : vers la droite ET le bas de l'écran (X+ , Y−). Spread → directions un peu variées.
-	mat.direction = Vector3(0.85, -0.53, 0.0)
-	mat.spread = 15.0
-	mat.initial_velocity_min = 2.5
-	mat.initial_velocity_max = 4.5
-	# Tailles modérées et variées (petits nuages, pas plein écran).
-	mat.scale_min = 4.0
-	mat.scale_max = 9.0
+	# Diagonale lente : surtout vers la droite (traverse toute la largeur), légère descente.
+	mat.direction = Vector3(0.92, -0.26, 0.0)
+	mat.spread = 10.0
+	# Vélocité × lifetime ≈ 100-150 u → garantit la traversée des ~92 u de large à cette profondeur.
+	mat.initial_velocity_min = 4.5
+	mat.initial_velocity_max = 7.0
+	# Taille de BASE des nuages lointains × variation aléatoire 0.75-1.25 (gros/petits mêlés).
+	var cloud_base: float = 13.0
+	mat.scale_min = cloud_base * 0.75
+	mat.scale_max = cloud_base * 1.25
 	p.process_material = mat
 
 	# Quad billboard texturé d'un nuage doux/cotonneux (procédural → aucun asset).
@@ -242,29 +247,46 @@ func _create_cloud_layer() -> void:
 	p.draw_pass_1 = quad
 
 	cam.add_child(p)
-	# Centre le plan de nuages devant la caméra (local : X centré, −Z = devant).
-	p.position = Vector3(0.0, 2.0, -42.0)
+	# Place la bande LOIN dans le ciel : −Z profond (derrière murs/obstacles, devant la skyline),
+	# remontée en Y (au-dessus de la skyline) → dans la bande de ciel visible. X centré.
+	p.position = Vector3(0.0, -52.0, -86.0)
 
-# Texture procédurale d'un nuage doux : disque à bord fondu (falloff radial) modulé par un
-# bruit simplex → forme cotonneuse irrégulière, bords doux (alpha qui s'évanouit). Générée
-# une fois au démarrage. RGB quasi blanc froid ; l'alpha global est piloté ailleurs.
+# Texture procédurale d'un VRAI nuage : silhouette cotonneuse à plusieurs BOSSES, obtenue par
+# union douce de lobes ronds (métaballs) — bosses arrondies sur le dessus, base plus plate —
+# modulée par un bruit FBM pour casser les bords (aspect coton). Bords qui s'évanouissent en
+# alpha → pas de rectangle ni de blob. Générée une fois. RGB quasi blanc froid ; l'alpha global
+# est piloté ailleurs (_zone_blend).
 func _build_cloud_texture() -> ImageTexture:
-	var size: int = 96
+	var size: int = 128
 	var noise := FastNoiseLite.new()
 	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
-	noise.frequency = 0.045
+	noise.fractal_type = FastNoiseLite.FRACTAL_FBM
+	noise.fractal_octaves = 4
+	noise.frequency = 0.04
 	noise.seed = 1962
+	# Lobes (x, y, rayon) en espace −1..1 : plusieurs bosses sur le dessus + base large/plate.
+	var lobes: Array = [
+		Vector3(0.00, -0.18, 0.62),   # base large, posée bas
+		Vector3(-0.50, 0.00, 0.40),   # bosse gauche
+		Vector3(-0.18, 0.18, 0.46),   # bosse haute gauche
+		Vector3(0.22, 0.14, 0.48),    # bosse haute droite
+		Vector3(0.52, -0.02, 0.42),   # bosse droite
+	]
 	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
 	for y in size:
 		for x in size:
 			var u: float = (float(x) + 0.5) / float(size) * 2.0 - 1.0
 			var v: float = (float(y) + 0.5) / float(size) * 2.0 - 1.0
-			var r: float = sqrt(u * u + v * v)
-			# 1 au centre → 0 au bord ; au carré pour des bords bien doux.
-			var falloff: float = smoothstep(1.0, 0.15, r)
-			falloff *= falloff
+			# Union douce des lobes : on garde la contribution la plus forte (silhouette à bosses).
+			var cover: float = 0.0
+			for lobe in lobes:
+				var d: float = sqrt((u - lobe.x) * (u - lobe.x) + (v - lobe.y) * (v - lobe.y))
+				cover = maxf(cover, smoothstep(lobe.z, lobe.z * 0.45, d))
+			# Bruit FBM → bords cotonneux irréguliers (ronge la silhouette, pas un contour net).
 			var n: float = noise.get_noise_2d(float(x), float(y)) * 0.5 + 0.5   # 0..1
-			var a: float = clampf(falloff * (0.45 + 0.8 * n), 0.0, 1.0)
+			var a: float = clampf(cover * (0.55 + 0.7 * n), 0.0, 1.0)
+			# Garde-fou : alpha nul tout au bord de la texture (jamais de coupe franche au quad).
+			a *= smoothstep(1.0, 0.82, maxf(absf(u), absf(v)))
 			img.set_pixel(x, y, Color(1.0, 1.0, 1.0, a))
 	return ImageTexture.create_from_image(img)
 
