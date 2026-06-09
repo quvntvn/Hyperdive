@@ -29,6 +29,7 @@ var best_distance: int = 0
 var best_infinite_distance: int = 0   # record en mode infini ("Record") — débloque le jetpack à 1000 m
 var best_jetpack_distance: int = 0    # record d'altitude en mode jetpack (défis altitude)
 var infinite_unlocked: bool = false   # passé true à la 1re fin de niveau campagne
+var jetpack_unlocked: bool = false    # passé true à la complétion du chapitre 20 de campagne
 
 # === Stats cumulées pour les défis (persistées) ===
 var coins_lifetime: int = 0           # total de pièces JAMAIS ramassées (ne baisse pas aux achats)
@@ -461,8 +462,8 @@ func is_infinite_unlocked() -> bool:
 	return infinite_unlocked or campaign_level > 1
 
 func is_jetpack_unlocked() -> bool:
-	# Débloqué après avoir atteint 1000 m en mode infini ("Record").
-	return best_infinite_distance >= JETPACK_UNLOCK_DISTANCE
+	# Débloqué par la campagne (fin du chapitre 20) OU en atteignant 1000 m en mode infini.
+	return jetpack_unlocked or best_infinite_distance >= JETPACK_UNLOCK_DISTANCE
 
 # Signe vertical centralisé (source de vérité unique pour l'inversion du mode jetpack).
 # +1.0 en jetpack (le joueur MONTE), -1.0 sinon (chute). Tous les scripts lisent ça.
@@ -555,6 +556,7 @@ func debug_unlock_all() -> void:
 	ascetic_done = true
 	campaign_level = 99
 	infinite_unlocked = true
+	jetpack_unlocked = true
 	owned_skins_changed.emit()
 	owned_trails_changed.emit()
 	owned_themes_changed.emit()
@@ -596,6 +598,7 @@ func save_settings() -> void:
 	cfg.set_value("campaign", "campaign_level", campaign_level)
 	cfg.set_value("campaign", "story_chapter", story_chapter)
 	cfg.set_value("campaign", "infinite_unlocked", infinite_unlocked)
+	cfg.set_value("campaign", "jetpack_unlocked", jetpack_unlocked)
 	cfg.set_value("daily", "date", daily_date)
 	cfg.set_value("daily", "challenges", daily_challenges)
 	cfg.set_value("daily", "progress", daily_progress)
@@ -650,6 +653,7 @@ func load_settings() -> void:
 	campaign_level = cfg.get_value("campaign", "campaign_level", 1)
 	story_chapter = cfg.get_value("campaign", "story_chapter", 1)
 	infinite_unlocked = cfg.get_value("campaign", "infinite_unlocked", false)
+	jetpack_unlocked = cfg.get_value("campaign", "jetpack_unlocked", false)
 	daily_date = cfg.get_value("daily", "date", "")
 	daily_challenges = cfg.get_value("daily", "challenges", [])
 	daily_progress = cfg.get_value("daily", "progress", {})
