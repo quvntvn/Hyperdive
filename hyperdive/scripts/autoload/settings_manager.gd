@@ -55,6 +55,10 @@ var owned_themes: Array[String] = ["default"]
 var equipped_theme: String = "default"
 var claimed_missions: Array[String] = []
 var campaign_level: int = 1
+# Campagne HISTOIRE (nouveau système Story) : plus haut chapitre débloqué = chapitre courant.
+# Débloquage linéaire (1..40). < courant = complété, > = verrouillé. Remplacera campaign_level
+# quand l'ancien système de niveau sera retiré (étape ultérieure) ; coexiste en attendant.
+var story_chapter: int = 1
 var active_mode: String = "infinite"
 var active_level: int = 1
 
@@ -147,6 +151,8 @@ func reset_run_stats() -> void:
 	run_active = true
 
 func update_best_distance(distance: int) -> void:
+	if Story.active:
+		return   # campagne : ne touche JAMAIS les records solo (distance/infini/jetpack)
 	var changed: bool = false
 	if distance > best_distance:
 		best_distance = distance
@@ -167,7 +173,9 @@ func update_best_distance(distance: int) -> void:
 # COOP : court-circuité — aucune stat perso (parties, esquives…) ne bouge. run_active reste
 # false → register_obstacle_dodged() devient un no-op de lui-même. Solo intouché.
 func register_run_start() -> void:
-	if Coop.active:
+	Story.reset_run()   # compteur d'esquive campagne remis à zéro à chaque run (gratuit hors campagne)
+	# Campagne HISTOIRE : comme la coop, aucune stat perso (parties, esquives, records) ne bouge.
+	if Coop.active or Story.active:
 		return
 	reset_run_stats()
 	total_games += 1
@@ -183,6 +191,8 @@ func register_run_start() -> void:
 # Un obstacle dépassé = une esquive. Appelé au despawn (une seule fois par obstacle).
 # Garde-fou run_active : ne compte pas après la mort (le joueur est figé, mais ceinture+bretelles).
 func register_obstacle_dodged() -> void:
+	if Story.active:
+		return   # campagne : l'esquive est comptée par Story.notify_dodge (objectif), pas dans les stats solo
 	if not run_active:
 		return
 	total_obstacles_dodged += 1
@@ -192,7 +202,7 @@ func register_obstacle_dodged() -> void:
 # Type de power-up ramassé. On mémorise l'ensemble des types vus (défi "utilise les 4").
 # COOP : court-circuité (les power-up coop ne valident pas les défis solo).
 func register_powerup_used(ptype: String) -> void:
-	if Coop.active:
+	if Coop.active or Story.active:
 		return
 	if ptype in powerups_used:
 		return
@@ -202,11 +212,15 @@ func register_powerup_used(ptype: String) -> void:
 	# add_coin). powerups_used est persisté au finalize_run de fin de partie.
 
 func register_death() -> void:
+	if Story.active:
+		return   # campagne : retry illimité, les morts ne comptent pas dans les stats solo
 	total_deaths += 1
 
 # Fin de partie (mort OU niveau réussi). Met à jour les MEILLEURS scores par run + flags.
 # no_wall_seconds = plus longue série sans toucher un mur (calculée côté player).
 func finalize_run(distance: int, no_wall_seconds: int) -> void:
+	if Story.active:
+		return   # campagne : aucun "meilleur score de run" ni flag (ascète…) ne bouge
 	if coins_this_run > best_coins_run:
 		best_coins_run = coins_this_run
 	if obstacles_dodged_run > best_obstacles_run:
@@ -580,6 +594,7 @@ func save_settings() -> void:
 	cfg.set_value("cosmetics", "equipped_theme", equipped_theme)
 	cfg.set_value("missions", "claimed_missions", claimed_missions)
 	cfg.set_value("campaign", "campaign_level", campaign_level)
+	cfg.set_value("campaign", "story_chapter", story_chapter)
 	cfg.set_value("campaign", "infinite_unlocked", infinite_unlocked)
 	cfg.set_value("daily", "date", daily_date)
 	cfg.set_value("daily", "challenges", daily_challenges)
@@ -633,6 +648,7 @@ func load_settings() -> void:
 	_validate_cosmetics()   # purge les ids supprimés + rééquipe un fallback valide
 	claimed_missions.assign(cfg.get_value("missions", "claimed_missions", []))
 	campaign_level = cfg.get_value("campaign", "campaign_level", 1)
+	story_chapter = cfg.get_value("campaign", "story_chapter", 1)
 	infinite_unlocked = cfg.get_value("campaign", "infinite_unlocked", false)
 	daily_date = cfg.get_value("daily", "date", "")
 	daily_challenges = cfg.get_value("daily", "challenges", [])
