@@ -26,7 +26,9 @@ class_name StoryManager
 # Déblocages liés à la complétion : ch.1 → mode Classique, ch.20 → mode Jetpack (voir complete_chapter).
 
 const CHAPTERS: Array[Dictionary] = [
-	{"n": 1,  "type": "play",  "mode": "fall",    "objective": {"kind": "descent",  "value": 0},    "text_when": "after",  "title": "2028", "image": "res://assets/story/ch01.png",
+	# PROVISOIRE (étape 3) : objectif distance court → le ch.1 est un vrai niveau jouable de chute.
+	# L'ouverture "descent" (mourir = réussir) viendra à l'étape 4 ; on retirera ce distance 300.
+	{"n": 1,  "type": "play",  "mode": "fall",    "objective": {"kind": "distance", "value": 300},  "text_when": "after",  "title": "2028", "image": "res://assets/story/ch01.png",
 		"text": "Tout a commencé en 2028. J'avais huit ans.\nC'était mon anniversaire. On était montés tout en haut — le restaurant au sommet de la tour, celui avec le sol en verre et la ville entière sous nos pieds. Maman riait. Mes frères se chamaillaient pour la place près de la vitre. Papa avait commandé le gâteau.\nJe me souviens de la lumière. Je me souviens d'avoir soufflé les bougies.\nEt puis le sol s'est ouvert."},
 	{"n": 2,  "type": "story", "title": "Réveil", "image": "res://assets/story/ch02.png",
 		"text": "Je me réveille en sursaut. Trente-quatre ans. Un autre lit, une autre ville, une autre vie. Le rêve s'efface déjà — il s'efface toujours, je n'en garde que la sensation du vide sous moi.\nOn frappe. L'homme au manteau gris est là, comme convenu. Il pose une enveloppe sur la table. Un nom dessus : Vertex.\n« On a un travail pour vous. »"},

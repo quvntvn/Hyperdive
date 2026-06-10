@@ -288,12 +288,13 @@ func _on_node(n: int, unlocked: bool, btn: Button) -> void:
 	if r != null:
 		r.open_chapter(n, ctx)
 
-# Lance le niveau d'un chapitre jouable. Cas spécial ch.1 (objectif "descent" = ouverture) :
-# géré à l'étape 4 — pour l'instant on complète directement (stub) pour ne pas bloquer.
+# Lance le niveau d'un chapitre jouable. Garde-fou "descent" : aucun chapitre n'utilise ce type
+# pour l'instant (le ch.1 a un objectif distance provisoire) ; il sera la vraie ouverture jouable
+# à l'étape 4. Tant qu'il n'est pas implémenté, on complète directement plutôt que de softlock.
 func _launch_chapter(n: int) -> void:
 	var obj: Dictionary = Story.get_chapter(n).get("objective", {})
 	if obj.get("kind", "") == "descent":
-		Story.complete_chapter(n)   # STUB ch.1 (étape 4 : vraie ouverture jouable)
+		Story.complete_chapter(n)   # défensif (étape 4 : vraie ouverture "mourir = réussir")
 		_on_chapter_closed(n)
 		return
 	Story.start_chapter(n)
