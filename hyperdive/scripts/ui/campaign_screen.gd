@@ -10,12 +10,14 @@ class_name CampaignScreen
 
 const TOWER_SHADER: String = "res://assets/shaders/tower_windows.gdshader"
 const LOCK_ICON: String = "res://assets/ui/lock_icon.svg"
+const PLAY_ICON: String = "res://assets/ui/play_icon.svg"   # chapitre JOUABLE (triangle "play")
+const READ_ICON: String = "res://assets/ui/read_icon.svg"   # chapitre NARRATION (livre ouvert)
 
-const VSTEP: float = 150.0          # espacement vertical entre deux nœuds
+const VSTEP: float = 158.0          # espacement vertical entre deux nœuds (un peu plus large : nœuds agrandis)
 const TOP_PAD: float = 110.0
 const BOT_PAD: float = 140.0
-const NORMAL_D: float = 60.0        # diamètre d'un nœud
-const CURRENT_D: float = 80.0       # diamètre du nœud courant (mis en avant)
+const NORMAL_D: float = 76.0        # diamètre d'un nœud (agrandi : numéro + logo de type lisibles)
+const CURRENT_D: float = 96.0       # diamètre du nœud courant (mis en avant)
 const SIDE_MARGIN: float = 16.0     # = offset_left/right du Scroll dans la scène
 
 const TURQUOISE: Color = Color(0.235, 0.682, 0.639)   # chute
@@ -186,11 +188,30 @@ func _add_node(i: int) -> void:
 		btn.add_theme_stylebox_override(s, sb)
 
 	if unlocked:
-		btn.text = str(n)
-		btn.add_theme_font_size_override("font_size", 26 if current else 22)
-		var num_col: Color = tcol if completed else CREME
-		for cname in ["font_color", "font_hover_color", "font_pressed_color"]:
-			btn.add_theme_color_override(cname, num_col)
+		# Logo de TYPE en haut du nœud : triangle "play" (jouable) ou livre (narration), teinté
+		# par la couleur de type. Le numéro passe dans la moitié BASSE → les deux restent lisibles.
+		var is_story: bool = ch.get("type", "story") == "story"
+		var icon := TextureRect.new()
+		icon.texture = load(READ_ICON if is_story else PLAY_ICON)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		var isz: float = d * 0.34
+		icon.size = Vector2(isz, isz)
+		icon.position = Vector2((d - isz) * 0.5, d * 0.13)
+		icon.modulate = tcol
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		btn.add_child(icon)
+		# Numéro de chapitre (moitié basse), couleur de type si complété, crème sinon.
+		var num := Label.new()
+		num.text = str(n)
+		num.add_theme_font_size_override("font_size", 26 if current else 22)
+		num.add_theme_color_override("font_color", tcol if completed else CREME)
+		num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		num.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		num.size = Vector2(d, d * 0.45)
+		num.position = Vector2(0.0, d * 0.47)
+		num.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		btn.add_child(num)
 	else:
 		# Verrouillé : pas de numéro, un cadenas centré. Le cadenas PRIME sur le liseré de type.
 		var lock := TextureRect.new()
