@@ -75,6 +75,10 @@ func _resize_info_bar() -> void:
 func set_campaign_mode(enabled: bool) -> void:
 	_campaign_mode = enabled
 	$InfoBar/VBox/CoinCounter.visible = not enabled
+	# Progression d'objectif plus SOBRE : même taille que les noms du HUD coop (20, vs 36 par
+	# défaut du score solo) → la ligne "320 / 800 m" ne mange plus le haut de l'écran.
+	if enabled:
+		_distance_label.add_theme_font_size_override("font_size", 20)
 	# Le contenu du VBox change (1 ou 2 lignes) → recaler la hauteur du fond (différé : la
 	# taille mini du conteneur se met à jour après le toggle de visibilité).
 	_resize_info_bar.call_deferred()
