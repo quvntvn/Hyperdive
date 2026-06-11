@@ -19,6 +19,10 @@ const BOT_PAD: float = 140.0
 const NORMAL_D: float = 76.0        # diamètre d'un nœud (agrandi : numéro + logo de type lisibles)
 const CURRENT_D: float = 96.0       # diamètre du nœud courant (mis en avant)
 const SIDE_MARGIN: float = 16.0     # = offset_left/right du Scroll dans la scène
+# Largeur du titre sous un nœud, calée pour ne PAS déborder sur les tours : en base 540, nœud à
+# ±91 px du centre écran (270) et bord de tour à 180 px du centre → demi-titre max ≈ 89. Sur
+# écran plus large, l'écart nœud/tour grandit → 540 est le pire cas.
+const TITLE_W: float = 170.0
 
 const TURQUOISE: Color = Color(0.235, 0.682, 0.639)   # chute
 const JAUNE: Color = Color(0.949, 0.757, 0.306)       # jetpack
@@ -188,20 +192,7 @@ func _add_node(i: int) -> void:
 		btn.add_theme_stylebox_override(s, sb)
 
 	if unlocked:
-		# Logo de TYPE en haut du nœud : triangle "play" (jouable) ou livre (narration), teinté
-		# par la couleur de type. Le numéro passe dans la moitié BASSE → les deux restent lisibles.
-		var is_story: bool = ch.get("type", "story") == "story"
-		var icon := TextureRect.new()
-		icon.texture = load(READ_ICON if is_story else PLAY_ICON)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		var isz: float = d * 0.34
-		icon.size = Vector2(isz, isz)
-		icon.position = Vector2((d - isz) * 0.5, d * 0.13)
-		icon.modulate = tcol
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		btn.add_child(icon)
-		# Numéro de chapitre (moitié basse), couleur de type si complété, crème sinon.
+		# Numéro de chapitre (moitié HAUTE), couleur de type si complété, crème sinon.
 		var num := Label.new()
 		num.text = str(n)
 		num.add_theme_font_size_override("font_size", 26 if current else 22)
@@ -209,9 +200,22 @@ func _add_node(i: int) -> void:
 		num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		num.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		num.size = Vector2(d, d * 0.45)
-		num.position = Vector2(0.0, d * 0.47)
+		num.position = Vector2(0.0, d * 0.06)
 		num.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		btn.add_child(num)
+		# Logo de TYPE sous le numéro : triangle "play" (jouable) ou livre (narration), teinté
+		# par la couleur de type. Numéro en haut + logo en bas → les deux restent lisibles.
+		var is_story: bool = ch.get("type", "story") == "story"
+		var icon := TextureRect.new()
+		icon.texture = load(READ_ICON if is_story else PLAY_ICON)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		var isz: float = d * 0.34
+		icon.size = Vector2(isz, isz)
+		icon.position = Vector2((d - isz) * 0.5, d * 0.53)
+		icon.modulate = tcol
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		btn.add_child(icon)
 	else:
 		# Verrouillé : pas de numéro, un cadenas centré. Le cadenas PRIME sur le liseré de type.
 		var lock := TextureRect.new()
@@ -232,8 +236,15 @@ func _add_node(i: int) -> void:
 		var tw := btn.create_tween().set_loops()
 		tw.tween_property(btn, "modulate", Color(1.25, 1.25, 1.25, 1.0), 0.9).set_trans(Tween.TRANS_SINE)
 		tw.tween_property(btn, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.9).set_trans(Tween.TRANS_SINE)
-		# Titre court du chapitre courant, sous le nœud.
-		_add_label(ch.get("title", ""), 16, CREME, Vector2(center.x - 100.0, center.y + d * 0.5 + 6.0), 200.0)
+
+	# Titre sous chaque nœud DÉBLOQUÉ (complétés ✓ + courant) ; les verrouillés n'affichent rien
+	# (garde le mystère sur la suite). Le courant est un peu plus grand et plein feu (repérable
+	# d'un coup d'œil), les autres en crème adoucie. Autowrap 2 lignes pour les titres longs.
+	if unlocked:
+		var t_size: int = 15 if current else 12
+		var t_col: Color = CREME if current else Color(CREME, 0.72)
+		_add_label(ch.get("title", ""), t_size, t_col,
+			Vector2(center.x - TITLE_W * 0.5, center.y + d * 0.5 + 4.0), TITLE_W, true)
 
 	# Badge ✓ pour les chapitres complétés (en haut à droite du nœud).
 	if completed:
@@ -243,13 +254,22 @@ func _add_node(i: int) -> void:
 	if n == 20:
 		_add_label("↓  ↑", 22, JAUNE, Vector2(center.x - 60.0, center.y - d * 0.5 - 30.0), 120.0)
 
-func _add_label(txt: String, font_size: int, color: Color, pos: Vector2, width: float) -> void:
+func _add_label(txt: String, font_size: int, color: Color, pos: Vector2, width: float, two_lines: bool = false) -> void:
 	var lbl := Label.new()
 	lbl.text = txt
 	lbl.add_theme_font_size_override("font_size", font_size)
 	lbl.add_theme_color_override("font_color", color)
+	# Liseré sombre : le texte reste lisible quand il passe sur le chemin crème ou les tours.
+	lbl.add_theme_color_override("font_outline_color", Color(0.05, 0.06, 0.10, 0.85))
+	lbl.add_theme_constant_override("outline_size", 4)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.size = Vector2(width, float(font_size) + 8.0)
+	# two_lines : autowrap pour les titres longs ("Vertex est tombée"…) — hauteur réservée pour
+	# 2 lignes (un titre court n'en occupe qu'une, l'espace vide en dessous ne se voit pas).
+	if two_lines:
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+		lbl.size = Vector2(width, (float(font_size) + 6.0) * 2.0)
+	else:
+		lbl.size = Vector2(width, float(font_size) + 8.0)
 	lbl.custom_minimum_size = lbl.size
 	lbl.position = pos
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
