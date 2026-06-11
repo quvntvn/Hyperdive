@@ -7,6 +7,7 @@ var _player: PlayerController
 var _distance_label: Label
 var _coin_label: Label
 var _campaign_mode: bool = false
+var _progress_urgent: bool = false   # altimètre "descent" passé en orange (état → pas de réécriture/frame)
 # Pastilles power-up : un widget par type (icone coloree + barre de compte a rebours).
 # Cle = type, valeur = { "root": PanelContainer, "bar": ProgressBar }.
 var _pills: Dictionary = {}
@@ -257,10 +258,22 @@ func _flash_coop_row(p: int) -> void:
 func update_campaign_time(seconds: float) -> void:
 	_distance_label.text = str(ceili(seconds)) + "s"
 
-# Progression vers l'objectif d'un chapitre HISTOIRE ("320 / 800 m", "12 / 24 s", "8 / 15 esquives").
+# Progression vers l'objectif d'un chapitre HISTOIRE ("320 / 800 m", "12 / 24 s", "8 / 15 esquives")
+# — ou l'ALTIMÈTRE décroissant de l'ouverture "descent" ("240 m" → "0 m").
 # Réutilise le label de distance (mode campagne actif → l'auto-distance de _process est figée).
 func update_story_progress(text: String) -> void:
 	_distance_label.text = text
+
+# Tension de l'altimètre "descent" : sous le seuil, la valeur passe en orange brûlé (le sol
+# approche).
+func set_story_progress_urgent(urgent: bool) -> void:
+	if urgent == _progress_urgent:
+		return
+	_progress_urgent = urgent
+	if urgent:
+		_distance_label.add_theme_color_override("font_color", Color(0.914, 0.310, 0.216))
+	else:
+		_distance_label.remove_theme_color_override("font_color")
 
 func _process(_delta: float) -> void:
 	if _player == null:

@@ -517,9 +517,24 @@ func _trigger_ragdoll() -> void:
 		Audio.play_game_over()
 		Coop.end_turn(distance)
 		return
-	# HISTOIRE : mort = échec DOUX (retry illimité). Aucune stat (déjà gaté par Story.active),
-	# pas de game over solo — overlay de chapitre "Tu es tombé" (Réessayer / Retour campagne).
+	# HISTOIRE : aucune stat (déjà gaté par Story.active), pas de game over solo.
 	if Story.active:
+		# Stoppe le driver d'objectif de main_game (sinon il continue pendant le ragdoll : un
+		# "survive" pouvait « réussir » après la mort, et l'altimètre descent continuait de vivre).
+		game_over.emit()
+		# OUVERTURE "descent" (ch.1) : la mort EST la réussite. Pas d'écran "CHAPITRE RÉUSSI",
+		# pas de jingle de game over (le silence après l'impact est voulu) — on laisse le ragdoll
+		# en scène (~1,5 s au total), puis FONDU NOIR direct (Transition) vers le menu, qui lit
+		# pending_outro → lecteur (texte "2028") → carte. Pièces + déblocage Classique + avance
+		# au ch.2 via complete_chapter, comme une victoire normale.
+		if Story.objective().get("kind", "") == "descent":
+			await get_tree().create_timer(0.3).timeout
+			var n: int = Story.active_chapter
+			Story.pending_outro = n
+			Story.complete_chapter(n)
+			Transition.change_scene("res://scenes/ui/main_menu.tscn")
+			return
+		# Autres chapitres : mort = échec DOUX (retry illimité) — overlay "Tu es tombé".
 		Audio.play_game_over()
 		var end_screen := get_tree().get_first_node_in_group("chapter_end_screen")
 		if end_screen:

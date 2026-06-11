@@ -308,15 +308,9 @@ func _on_node(n: int, unlocked: bool, btn: Button) -> void:
 	if r != null:
 		r.open_chapter(n, ctx)
 
-# Lance le niveau d'un chapitre jouable. Garde-fou "descent" : aucun chapitre n'utilise ce type
-# pour l'instant (le ch.1 a un objectif distance provisoire) ; il sera la vraie ouverture jouable
-# à l'étape 4. Tant qu'il n'est pas implémenté, on complète directement plutôt que de softlock.
+# Lance le niveau d'un chapitre jouable. L'ouverture "descent" du ch.1 se lance comme les autres :
+# main_game pose le sol + les silhouettes + l'altimètre, player.gd route la mort en réussite.
 func _launch_chapter(n: int) -> void:
-	var obj: Dictionary = Story.get_chapter(n).get("objective", {})
-	if obj.get("kind", "") == "descent":
-		Story.complete_chapter(n)   # défensif (étape 4 : vraie ouverture "mourir = réussir")
-		_on_chapter_closed(n)
-		return
 	Story.start_chapter(n)
 	Transition.change_scene("res://scenes/game/main_game.tscn")
 

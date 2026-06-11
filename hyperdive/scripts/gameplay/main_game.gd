@@ -31,6 +31,8 @@ func _ready() -> void:
 		($GameHUD as GameHUD).set_campaign_mode(true)   # masque les pièces + fige l'auto-distance
 		_push_progress(0)
 		($Player as PlayerController).game_over.connect(func() -> void: _player_alive = false)
+		if _objective_kind == "descent":
+			_setup_descent()
 		return
 
 func _process(delta: float) -> void:
@@ -46,8 +48,16 @@ func _process(delta: float) -> void:
 			cur = int(_story_time)
 		"dodge":
 			cur = Story.dodged
+		"descent":
+			# OUVERTURE ch.1 : ALTIMÈTRE DÉCROISSANT (mètres restants avant le sol), orange sous
+			# 50 m (tension). AUCUNE réussite en vol — seule la collision avec le sol termine,
+			# routée en réussite par player.gd (la mort EST la réussite).
+			var remaining: int = int(maxf(0.0, float(_objective_value) - absf(player.global_position.y)))
+			($GameHUD as GameHUD).update_story_progress("%d m" % remaining)
+			($GameHUD as GameHUD).set_story_progress_urgent(remaining <= 50)
+			return
 		_:
-			return   # "descent" (ch.1) = ouverture spéciale (étape 4), non gérée ici
+			return
 	_push_progress(cur)
 	if _objective_value > 0 and cur >= _objective_value:
 		_on_objective_success()
@@ -61,6 +71,46 @@ func _push_progress(cur: int) -> void:
 		"dodge":    t = "%d / %d esquives" % [cur, _objective_value]
 		_:          return
 	($GameHUD as GameHUD).update_story_progress(t)
+
+# OUVERTURE ch.1 (objectif "descent" : MOURIR = réussir) : chute scriptée, rien à esquiver ni à
+# ramasser — obstacles et power-ups coupés (les pièces le sont déjà), MUSIQUE coupée (le whoosh
+# seul porte la brutalité de la scène ; le menu la relance au retour), un SOL inévitable à
+# `value` mètres et la famille en silhouettes qui se disperse pendant la descente.
+func _setup_descent() -> void:
+	$ObstacleSpawner.set_process(false)
+	$PowerupSpawner.set_process(false)
+	Audio.stop_music()
+	_spawn_descent_ground(float(_objective_value))
+	var fallers := StoryFallers.new()
+	fallers.name = "StoryFallers"
+	add_child(fallers)
+	fallers.setup($Player, float(_objective_value))
+	($GameHUD as GameHUD).update_story_progress("%d m" % _objective_value)
+
+# Le sol de l'ouverture : une dalle SOMBRE (la rue en bas de la tour) bien plus large que le
+# couloir — pas d'esquive possible. Surface EXACTEMENT à y = -dist (l'altimètre tombe à 0
+# dessus). Groupe "obstacles" → la collision passe par le chemin de mort EXISTANT
+# (player._on_body_entered → ragdoll), que player.gd route en réussite pour "descent".
+func _spawn_descent_ground(dist: float) -> void:
+	var ground := StaticBody3D.new()
+	ground.name = "DescentGround"
+	ground.add_to_group("obstacles")
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(60.0, 2.0, 60.0)
+	shape.shape = box
+	ground.add_child(shape)
+	var mesh := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = box.size
+	mesh.mesh = bm
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = Color(0.11, 0.09, 0.08)   # asphalte noyer sombre (palette, décor terne)
+	mesh.material_override = mat
+	ground.add_child(mesh)
+	ground.position = Vector3(0.0, -dist - 1.0, 0.0)   # demi-épaisseur 1 → top de dalle à -dist
+	add_child(ground)
 
 func _on_objective_success() -> void:
 	_success_handled = true
