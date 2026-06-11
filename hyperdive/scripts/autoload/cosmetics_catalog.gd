@@ -74,8 +74,30 @@ const THEMES: Array[Dictionary] = [
 	{"id": "steel",    "name": "Acier",              "wall_color": Color(0.16,  0.17,  0.19),  "line_color": Color(0.78,  0.82,  0.88),  "sky_top": Color(0.18,  0.20,  0.24),  "sky_horizon": Color(0.62,  0.66,  0.72),  "price": -1},
 ]
 
+# Thèmes CAMPAGNE (arc visuel narratif) : imposés automatiquement par chapitre via
+# Story.current_theme_id(), JAMAIS vendus ni équipables. Tableau SÉPARÉ de THEMES exprès :
+# le shop, le défi "Décorateur" (all_shop_themes), debug_unlock_all et la validation de save
+# itèrent THEMES → les thèmes campagne leur restent invisibles. Même structure (price -1
+# par homogénéité avec les exclusifs), résolus par get_theme() comme les autres.
+const CAMPAIGN_THEMES: Array[Dictionary] = [
+	# Simulation : froid numérique, irréel — cyan électrique sur noir, sensation de machine.
+	{"id": "simulation", "name": "Simulation",   "wall_color": Color(0.03, 0.10, 0.11), "line_color": Color(0.30, 1.00, 0.95), "sky_top": Color(0.01, 0.05, 0.06), "sky_horizon": Color(0.08, 0.42, 0.45), "price": -1},
+	# Sang & Verre : oppressant, traumatique — bordeaux sombre, lignes rouge profond (crimson,
+	# distinct de l'orange émissif des obstacles), ciel rouge-noir.
+	{"id": "sang_verre", "name": "Sang & Verre", "wall_color": Color(0.16, 0.04, 0.05), "line_color": Color(0.78, 0.16, 0.18), "sky_top": Color(0.09, 0.02, 0.03), "sky_horizon": Color(0.42, 0.08, 0.10), "price": -1},
+	# Aube : espoir naissant — murs rose poussiéreux, lumière tendre, ciel lavande → rose-orangé.
+	# Le plus clair des quatre, sans être éclatant (les obstacles émissifs restent dominants).
+	{"id": "aube",       "name": "Aube",         "wall_color": Color(0.30, 0.20, 0.22), "line_color": Color(0.96, 0.83, 0.60), "sky_top": Color(0.36, 0.38, 0.58), "sky_horizon": Color(0.97, 0.72, 0.58), "price": -1},
+	# Trouble : réalité qui se brouille — gris-violacé désaturé, lignes ternes (voulu),
+	# ciel indéfini ni jour ni nuit.
+	{"id": "trouble",    "name": "Trouble",      "wall_color": Color(0.17, 0.16, 0.19), "line_color": Color(0.62, 0.58, 0.66), "sky_top": Color(0.24, 0.22, 0.27), "sky_horizon": Color(0.48, 0.47, 0.42), "price": -1},
+]
+
 func get_theme(id: String) -> Dictionary:
 	for theme in THEMES:
+		if theme["id"] == id:
+			return theme
+	for theme in CAMPAIGN_THEMES:
 		if theme["id"] == id:
 			return theme
 	return THEMES[0]
