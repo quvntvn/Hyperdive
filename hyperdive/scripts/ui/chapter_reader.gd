@@ -192,15 +192,25 @@ func _vertical_gradient(top: Color, bottom: Color) -> GradientTexture2D:
 	tex.fill_to = Vector2(0.0, 1.0)
 	return tex
 
-# Placeholder élégant : dégradé DIAGONAL entre 2 couleurs de la palette choisies de façon
-# DÉTERMINISTE selon le n° de chapitre (assombries pour que le titre/texte clair ressortent).
+# Placeholder élégant : si le chapitre a un THÈME imposé (arc visuel narratif), dégradé tiré
+# de ses couleurs de ciel (l'ambiance du chapitre transparaît dès la lecture) ; sinon repli
+# sur un dégradé DIAGONAL entre 2 couleurs de la palette choisies de façon DÉTERMINISTE selon
+# le n° de chapitre. Assombri dans les deux cas pour que le titre/texte clair ressortent.
 func _placeholder_gradient(n: int) -> GradientTexture2D:
-	var i1: int = (n * 2) % PALETTE.size()
-	var i2: int = (n * 2 + 3) % PALETTE.size()
-	if i2 == i1:
-		i2 = (i2 + 1) % PALETTE.size()
-	var c1: Color = PALETTE[i1].lerp(DARK, 0.45)
-	var c2: Color = PALETTE[i2].lerp(DARK, 0.70)
+	var c1: Color
+	var c2: Color
+	var theme_id: String = Story.chapter_theme_id(n)
+	if theme_id != "":
+		var th: Dictionary = Catalog.get_theme(theme_id)
+		c1 = (th["sky_top"] as Color).lerp(DARK, 0.35)
+		c2 = (th["sky_horizon"] as Color).lerp(DARK, 0.45)
+	else:
+		var i1: int = (n * 2) % PALETTE.size()
+		var i2: int = (n * 2 + 3) % PALETTE.size()
+		if i2 == i1:
+			i2 = (i2 + 1) % PALETTE.size()
+		c1 = PALETTE[i1].lerp(DARK, 0.45)
+		c2 = PALETTE[i2].lerp(DARK, 0.70)
 	var g := Gradient.new()
 	g.set_color(0, c1)
 	g.set_color(1, c2)

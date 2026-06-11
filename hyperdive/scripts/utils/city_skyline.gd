@@ -7,7 +7,9 @@ class_name CitySkyline
 
 # Construit la skyline et l'ajoute comme enfant de la caméra (donc fixe à l'écran).
 # ascending = true (mode jetpack) : PAS de skyline du tout (ciel + murs suffisent).
-static func attach_to(cam: Camera3D, ascending: bool = false) -> void:
+# theme_override : id de thème IMPOSÉ (chapitre campagne, passé par main_game) ; "" = thème
+# équipé. Le menu appelle sans argument → toujours le thème du joueur.
+static func attach_to(cam: Camera3D, ascending: bool = false, theme_override: String = "") -> void:
 	if cam == null:
 		push_warning("[Skyline] Caméra introuvable — skyline non créée")
 		return
@@ -28,9 +30,9 @@ static func attach_to(cam: Camera3D, ascending: bool = false) -> void:
 	# que corridor_walls), fenêtres émissives jaunes via un shader.
 	var mat := ShaderMaterial.new()
 	mat.shader = _make_shader()
-	# Couleur du thème équipé (même source que corridor_walls._apply_theme).
-	# Assombrie pour garder l'effet "lointain/nuit".
-	var theme: Dictionary = Catalog.get_theme(Settings.equipped_theme)
+	# Couleur du thème : celui imposé par le chapitre campagne s'il y en a un, sinon le thème
+	# équipé (même résolution que corridor_walls._apply_theme). Assombrie pour l'effet lointain.
+	var theme: Dictionary = Catalog.get_theme(theme_override if theme_override != "" else Settings.equipped_theme)
 	var theme_color: Color = theme["wall_color"]
 	var facade: Color = theme_color * 0.5
 	# Désaturer vers le gris sombre pour mettre le décor en retrait derrière le gameplay.

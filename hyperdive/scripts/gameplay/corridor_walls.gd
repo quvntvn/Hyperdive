@@ -120,7 +120,11 @@ func _process(delta: float) -> void:
 	if _zones_enabled:
 		_update_visual_zones(_dir * target.global_position.y, delta)
 	# Phase du cycle pilotée par la distance/altitude parcourue.
-	var phase: float = fposmod(absf(target.global_position.y) / CYCLE_DISTANCE, 1.0)
+	# CAMPAGNE : cycle FIGÉ à la phase 0 (= « jour » = thème pur, l'état à 0 m du mode normal).
+	# L'ambiance d'un chapitre est signée par son thème imposé — la laisser dériver vers le
+	# crépuscule/la nuit la déformerait (les objectifs vont jusqu'à 1300 m ≈ 35 % du cycle).
+	# Gratuit : le gate par delta de phase ci-dessous coupe toute réécriture après la 1re.
+	var phase: float = 0.0 if Story.active else fposmod(absf(target.global_position.y) / CYCLE_DISTANCE, 1.0)
 	# Pendant une zone (blend > 0) ou à sa toute fin, on applique CHAQUE frame (le blend bouge
 	# même si la phase est figée). Sinon on garde l'optimisation par delta de phase.
 	if _zone_blend > 0.0 or _zone_dirty:
@@ -182,7 +186,16 @@ func _update_visual_zones(depth: float, delta: float) -> void:
 # pur). Le cycle (en jeu) re-module ces bases chaque frame. Au menu, cet appel suffit
 # (pas de cycle → look statique du thème).
 func _apply_theme() -> void:
-	var theme: Dictionary = Catalog.get_theme(Settings.equipped_theme)
+	# Thème IMPOSÉ par le chapitre campagne (arc visuel narratif) : prime sur le thème équipé
+	# EN JEU seulement. Le menu garde toujours le thème équipé (au retour d'un chapitre,
+	# Story.active est encore vrai un instant avant Story.clear() → sans ce gate, le fond du
+	# menu prendrait le thème du chapitre). Override transient : equipped_theme n'est jamais
+	# écrit, le thème du joueur revient tout seul hors campagne. Le SKIN, lui, n'est pas géré
+	# ici (player.gd lit equipped_skin) → toujours celui du joueur, campagne comprise.
+	var theme_id: String = Settings.equipped_theme
+	if not _is_menu and Story.current_theme_id() != "":
+		theme_id = Story.current_theme_id()
+	var theme: Dictionary = Catalog.get_theme(theme_id)
 	# Décor en retrait : on assombrit la couleur des murs (×0.8) pour creuser le
 	# contraste avec les éléments de gameplay, sans la rendre laide.
 	_base_wall = (theme["wall_color"] as Color) * 0.8
@@ -220,7 +233,7 @@ func _apply_theme() -> void:
 	# Application immédiate (phase neutre = jour pur). Skyline résolue plus tard, en jeu.
 	_last_phase = -1.0
 	_apply_cycle(0.0, false)
-	print("[Thème] Équipé='", Settings.equipped_theme, "' base wall=", _base_wall)
+	print("[Thème] appliqué='", theme_id, "' (équipé='", Settings.equipped_theme, "') base wall=", _base_wall)
 
 # Applique l'état du cycle pour une phase donnée. do_skyline=false pendant _apply_theme
 # (la skyline n'existe pas encore au _ready, créée par main_game après).

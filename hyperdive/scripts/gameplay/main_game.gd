@@ -11,7 +11,8 @@ var _player_alive: bool = true
 func _ready() -> void:
 	# La skyline est ancrée à la caméra. En jetpack (caméra vers le haut) on lui passe le
 	# flag pour compenser le tangage et la garder en bas de l'écran comme en chute.
-	CitySkyline.attach_to(get_viewport().get_camera_3d(), Settings.active_mode == "jetpack")
+	# En campagne, le thème du CHAPITRE prime sur le thème équipé ("" hors campagne).
+	CitySkyline.attach_to(get_viewport().get_camera_3d(), Settings.active_mode == "jetpack", Story.current_theme_id())
 	# COOP : pièces OFF + power-up sans aimant (branche campagne du spawner), mais PAS d'objectif
 	# — la manche coop se joue jusqu'à la mort (mode infini/jetpack), classement live au HUD.
 	if Coop.active:
