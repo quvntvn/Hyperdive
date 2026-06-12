@@ -69,6 +69,7 @@ var _boost_aura: MeshInstance3D
 var _magnet_aura: Node3D
 var _magnet_ring_t: float = 0.0
 var _pulverize_sfx_cd: float = 0.0   # throttle du son/vibration de pulverisation (anti-spam zones)
+var _base_max_speed: float = MAX_FALL_SPEED       # vitesse de base du run (× Story.speed_factor en campagne)
 var _current_max_fall_speed: float = MAX_FALL_SPEED
 var _jetpack_flames: GPUParticles3D
 var _jetpack_smoke: GPUParticles3D
@@ -78,6 +79,11 @@ signal game_over
 func _ready() -> void:
 	add_to_group("player")   # référence cross-scène (porte réactive, etc.)
 	Settings.register_run_start()
+	# HISTOIRE : difficulté progressive — vitesse de base du chapitre ×1.0 (ch.1) → ×2.0
+	# (ch.40), appliquée DÈS le départ (valeur initiale posée direct, pas de rampe d'amorçage
+	# — move_toward mettrait ~100 s à rejoindre ×2). 1.0 partout hors campagne.
+	_base_max_speed = MAX_FALL_SPEED * Story.speed_factor()
+	_current_max_fall_speed = _base_max_speed
 	# Mode jetpack : on MONTE. Pas de gravité (poussée constante pilotée dans
 	# _physics_process), perso en pose FUSÉE penchée + réacteur dorsal + flammes.
 	# En jetpack le son du réacteur s'AJOUTE au whoosh du vent (les deux jouent ensemble).
@@ -795,7 +801,7 @@ func _physics_process(delta: float) -> void:
 			step_dist = SPEED_RAMP_STEP_JETPACK if Settings.active_mode == "jetpack" else SPEED_RAMP_STEP
 			factor = SPEED_RAMP_FACTOR
 		var steps: int = int(abs(global_position.y) / step_dist)
-		var target_speed: float = MAX_FALL_SPEED * pow(factor, steps)
+		var target_speed: float = _base_max_speed * pow(factor, steps)
 		_current_max_fall_speed = move_toward(_current_max_fall_speed, target_speed, SPEED_RAMP_RATE * delta)
 	# Twist de zone visuelle : rush néon (×1.10) / flottement cosmique (<1), déjà blendé doux.
 	# Multiplie la vitesse effective sans toucher _current_max_fall_speed (rampe préservée).

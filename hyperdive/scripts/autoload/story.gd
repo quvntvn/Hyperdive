@@ -172,6 +172,15 @@ func current_theme_id() -> String:
 		return chapter_theme_id(active_chapter)
 	return ""
 
+# Multiplicateur de VITESSE DE BASE du chapitre en cours (difficulté progressive de la
+# campagne) : linéaire, ×1.0 au ch.1 → ×2.0 au ch.40. 1.0 hors campagne. Le ch.1 "descent"
+# reste à ×1.0 par la formule (le timing de l'ouverture est intouché). La rampe interne d'un
+# run (+10 %/1000 m) s'applique PAR-DESSUS, inchangée (n'affecte que les longs chapitres).
+func speed_factor() -> float:
+	if active and active_chapter > 0:
+		return 1.0 + float(active_chapter - 1) / float(CHAPTERS.size() - 1)
+	return 1.0
+
 # Objectif du chapitre actuellement EN COURS (vide si aucun / narration).
 func objective() -> Dictionary:
 	return get_chapter(active_chapter).get("objective", {})
