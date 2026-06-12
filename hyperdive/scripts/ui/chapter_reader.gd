@@ -32,6 +32,8 @@ var _n: int = 1
 var _ctx: String = "story"
 var _gallery: Array[int] = []
 var _gallery_index: int = 0
+var _scroll_fade: TextureRect      # fondu bas de zone de texte (signale du contenu en dessous)
+var _scroll_chevron: Label         # chevron ▼ pulsant sous le texte (même signal, plus explicite)
 
 @onready var _image_bg: TextureRect = $ImageBg
 @onready var _placeholder_bg: TextureRect = $PlaceholderBg
@@ -54,6 +56,10 @@ func _ready() -> void:
 	$NavBox/BackButton.pressed.connect(_on_back)
 	UIAnimations.wire_buttons(self)
 	UIAnimations.apply_top_safe_area(_title, 24.0)
+	_build_scroll_hint()
+	# Le hint suit le scroll en continu (il disparaît une fois le bas atteint).
+	_text_scroll.get_v_scroll_bar().value_changed.connect(
+		func(_v: float) -> void: _update_scroll_hint())
 
 # === Ouvertures ============================================================================
 
@@ -89,6 +95,7 @@ func _show_content(n: int) -> void:
 	_title.text = ch.get("title", "Chapitre %d" % n)
 	_text.text = ch.get("text", "")
 	_text_scroll.scroll_vertical = 0
+	_refresh_scroll_hint()
 	# Image plein fond si le fichier existe, sinon placeholder dégradé + numéro (jamais cassé).
 	var img_path: String = ch.get("image", "")
 	if img_path != "" and ResourceLoader.exists(img_path):
@@ -176,6 +183,66 @@ func _fade_out() -> void:
 	var t := create_tween()
 	t.tween_property(_fade, "color:a", 1.0, FADE_TIME).set_trans(Tween.TRANS_QUAD)
 	await t.finished
+
+# === Indicateur de scroll ==================================================================
+# Sur les chapitres longs, le texte est coupé et rien n'indiquait qu'on peut scroller (on
+# ratait la fin sans le savoir). Deux signaux discrets, valables dans TOUS les contextes
+# (narration/intro/outro/galerie) : un FONDU vers le sombre plaqué sur le bas de la zone de
+# texte + un chevron ▼ à pulsation douce dessous. Les deux ne sont visibles que s'il reste
+# du contenu sous le bord, et s'effacent dès qu'on atteint le bas du scroll.
+
+func _build_scroll_hint() -> void:
+	# Fondu : dégradé transparent → sombre PAR-DESSUS les dernières lignes (inséré juste après
+	# TextScroll dans l'ordre de dessin → au-dessus du texte, sous les boutons et le Fade).
+	_scroll_fade = TextureRect.new()
+	_scroll_fade.texture = _vertical_gradient(Color(DARK, 0.0), Color(DARK, 0.95))
+	_scroll_fade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_scroll_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_scroll_fade.visible = false
+	# Calé sur le BAS de TextScroll (ancré bas d'écran, bottom = -150 comme le .tscn).
+	_scroll_fade.anchor_top = 1.0
+	_scroll_fade.anchor_bottom = 1.0
+	_scroll_fade.anchor_right = 1.0
+	_scroll_fade.offset_top = -222.0
+	_scroll_fade.offset_bottom = -150.0
+	add_child(_scroll_fade)
+	move_child(_scroll_fade, _text_scroll.get_index() + 1)
+
+	_scroll_chevron = Label.new()
+	_scroll_chevron.text = "▼"
+	_scroll_chevron.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_scroll_chevron.add_theme_font_size_override("font_size", 20)
+	_scroll_chevron.add_theme_color_override("font_color", Color(0.957, 0.914, 0.804))
+	_scroll_chevron.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_scroll_chevron.visible = false
+	# Dans la fine bande entre le bas du texte (-150) et le bouton d'action (-96).
+	_scroll_chevron.anchor_top = 1.0
+	_scroll_chevron.anchor_bottom = 1.0
+	_scroll_chevron.anchor_right = 1.0
+	_scroll_chevron.offset_top = -146.0
+	_scroll_chevron.offset_bottom = -110.0
+	add_child(_scroll_chevron)
+	move_child(_scroll_chevron, _text_scroll.get_index() + 2)
+	# Pulsation douce en boucle (respiration, pas un clignotement). Tourne même caché : coût
+	# nul (un float), et le chevron réapparaît toujours en phase.
+	var tw := create_tween().set_loops()
+	tw.tween_property(_scroll_chevron, "modulate:a", 0.35, 0.8).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(_scroll_chevron, "modulate:a", 0.95, 0.8).set_trans(Tween.TRANS_SINE)
+
+# La hauteur réelle du label (autowrap) n'est connue qu'après une frame de layout → on
+# diffère la première évaluation (appelé à chaque _show_content, donc aussi en galerie).
+func _refresh_scroll_hint() -> void:
+	await get_tree().process_frame
+	_update_scroll_hint()
+
+func _update_scroll_hint() -> void:
+	if _scroll_fade == null:
+		return
+	var bar: VScrollBar = _text_scroll.get_v_scroll_bar()
+	# Reste-t-il du contenu sous le bord bas ? (marge 4 px : tolérance d'arrondi)
+	var more: bool = bar.max_value - bar.page - bar.value > 4.0
+	_scroll_fade.visible = more
+	_scroll_chevron.visible = more
 
 # === Dégradés ==============================================================================
 
