@@ -89,7 +89,7 @@ Pass-and-play LOCAL : 2 à 5 joueurs se passent le téléphone. `Coop.active` = 
 
 ### Campagne narrative — détail (autoload `Story`)
 
-L'histoire de Hyperdive en **40 chapitres** (`story.gd`, const `CHAPTERS`). Chaque chapitre : `{n, title, text, image, type}`. `type` = **"story"** (narration : lire pour avancer) ou **"play"** (jouable : un niveau à réussir). Répartition : 19 narration + 21 jouables (14 chute, 7 jetpack). Textes définitifs en place ; les IMAGES (`assets/story/ch01-40.png`) ne sont PAS encore présentes → placeholder dégradé élégant par chapitre (jamais cassé).
+L'histoire de Hyperdive en **40 chapitres** (`story.gd`, const `CHAPTERS`). Chaque chapitre : `{n, title, text, image, type}`. `type` = **"story"** (narration : lire pour avancer) ou **"play"** (jouable : un niveau à réussir). Répartition : 19 narration + 21 jouables (15 chute, 6 jetpack). Textes définitifs en place ; les IMAGES (`assets/story/ch01-40.png`) ne sont PAS encore présentes → placeholder dégradé élégant par chapitre (jamais cassé).
 
 - **Progression** : `Settings.story_chapter` (persisté), débloquage LINÉAIRE. `story_chapter` = plus haut chapitre débloqué = chapitre COURANT. `< courant` = complété, `> courant` = verrouillé.
 - **`Story.active`** : garde-fou global (miroir de `Coop.active`) → court-circuite les records perso. SEULE exception : la récompense PIÈCES de `complete_chapter` (NON gatée → monnaie réelle du shop). Jouer un chapitre ne pollue jamais best_distance/best_jetpack/etc.

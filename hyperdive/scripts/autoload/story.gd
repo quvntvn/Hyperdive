@@ -25,7 +25,7 @@ class_name StoryManager
 #              current_theme_id() (corridor_walls/skyline EN JEU) — prime sur le thème équipé
 #              sans JAMAIS le modifier ; le SKIN équipé du joueur, lui, reste toujours actif.
 #
-# Textes définitifs (40 chapitres). Répartition : 19 narration + 21 jouables (14 chute, 7 jetpack).
+# Textes définitifs (40 chapitres). Répartition : 19 narration + 21 jouables (15 chute, 6 jetpack).
 # Déblocages liés à la complétion : ch.1 → mode Classique, ch.20 → mode Jetpack (voir complete_chapter).
 
 const CHAPTERS: Array[Dictionary] = [
