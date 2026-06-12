@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="PlayerScript"]
 
@@ -23,14 +23,6 @@ height = 0.40
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.33
 height = 1.65
-
-[sub_resource type="SphereMesh" id="ParachuteMesh"]
-radius = 0.6
-height = 1.2
-
-[sub_resource type="StandardMaterial3D" id="ParachuteMaterial"]
-shading_mode = 1
-albedo_color = Color(0.957, 0.914, 0.804, 1)
 
 [node name="Player" type="RigidBody3D"]
 mass = 1.0
@@ -75,15 +67,6 @@ material_override = SubResource("BodyMaterial")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13, -0.28, 0)
 mesh = SubResource("LegMesh")
 material_override = SubResource("BodyMaterial")
-
-[node name="Parachute" type="Node3D" parent="Character"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
-visible = false
-
-[node name="Canopy" type="MeshInstance3D" parent="Character/Parachute"]
-transform = Transform3D(1, 0, 0, 0, 0.5, 0, 0, 0, 1, 0, 0, 0)
-mesh = SubResource("ParachuteMesh")
-material_override = SubResource("ParachuteMaterial")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_1")

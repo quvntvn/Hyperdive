@@ -42,7 +42,6 @@ var _is_touching: bool = false
 var _wall_hit_cooldown: float = 0.0
 var _touch_target_x: float = 0.0
 var _is_dead: bool = false
-var _parachute_active: bool = false
 var _level_completed: bool = false
 var _run_time: float = 0.0
 # Série en cours sans toucher un mur + meilleure série du run (défi "survis X s sans mur").
@@ -389,22 +388,13 @@ func _style_body_material(mat: StandardMaterial3D, skin: Dictionary) -> void:
 		mat.anisotropy = 0.0
 		mat.emission_enabled = false
 
-# Animation de victoire (parachute) : redresse le perso debout, déploie le parachute, coupe le
-# whoosh. PAS de stats ni de complétion ici — le main_game (contexte HISTOIRE) pilote la suite
-# (Story.complete_chapter + écran de victoire). awaitée par main_game._on_objective_success.
-func win_parachute() -> void:
-	if _level_completed:
-		return
+# Fin de chapitre HISTOIRE réussie : fige l'état "terminé" — timer/stats stoppés et collisions
+# ignorées via _level_completed (le perso file invincible, toujours contrôlable, le court
+# instant avant le fondu noir). PAS de stats ni de complétion ici — le main_game pilote la
+# suite (fondu noir + Story.complete_chapter + écran de victoire). L'ancienne animation
+# parachute a été retirée : simulation de torture, pas un saut sportif.
+func complete_run() -> void:
 	_level_completed = true
-	_parachute_active = true
-	var para := $Character/Parachute
-	para.visible = true
-	para.scale = Vector3.ZERO
-	var t := create_tween()
-	t.tween_property(para, "scale", Vector3.ONE, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	t.parallel().tween_property($Character, "rotation_degrees", Vector3.ZERO, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	Audio.set_whoosh_intensity(0.0)
-	await get_tree().create_timer(0.6).timeout
 
 func _on_body_entered(body: Node3D) -> void:
 	if _is_dead or _level_completed:
@@ -777,11 +767,6 @@ func _physics_process(delta: float) -> void:
 		_no_wall_streak += delta
 		if _no_wall_streak > _best_no_wall_run:
 			_best_no_wall_run = _no_wall_streak
-	if _parachute_active:
-		linear_velocity.y = maxf(linear_velocity.y, -1.5)
-		linear_velocity.x = move_toward(linear_velocity.x, 0.0, 10.0 * delta)
-		Audio.set_whoosh_intensity(linear_velocity.y)
-		return
 	if Settings.control_mode == SettingsManager.ControlMode.TOUCH:
 		if _is_touching:
 			var diff: float = _touch_target_x - global_position.x
@@ -835,7 +820,7 @@ func _physics_process(delta: float) -> void:
 		Audio.set_jetpack_intensity(absf(linear_velocity.y))
 
 func _process(delta: float) -> void:
-	if _is_dead or _parachute_active:
+	if _is_dead or _level_completed:
 		return
 	_pulverize_sfx_cd = maxf(_pulverize_sfx_cd - delta, 0.0)
 	if boost_timer > 0.0:

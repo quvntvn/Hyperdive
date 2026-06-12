@@ -25,6 +25,26 @@ func change_scene(path: String) -> void:
 	$Overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_is_transitioning = false
 
+# Fondu noir MANUEL, sans changement de scène (victoire de chapitre HISTOIRE : couper net
+# l'action avant l'écran de réussite). L'appelant enchaîne fade_from_black() quand son écran
+# est prêt. Réutilise l'overlay ET le verrou _is_transitioning : tant qu'on est au noir, un
+# change_scene concurrent est ignoré ; le verrou ne se libère qu'au fade_from_black.
+func fade_to_black(duration: float = FADE_DURATION) -> void:
+	if _is_transitioning:
+		return
+	_is_transitioning = true
+	$Overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	var t := create_tween()
+	t.tween_property($Overlay, "color:a", 1.0, duration).set_trans(Tween.TRANS_LINEAR)
+	await t.finished
+
+func fade_from_black(duration: float = FADE_DURATION) -> void:
+	var t := create_tween()
+	t.tween_property($Overlay, "color:a", 0.0, duration).set_trans(Tween.TRANS_LINEAR)
+	await t.finished
+	$Overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_is_transitioning = false
+
 func reload_scene() -> void:
 	if _is_transitioning:
 		return

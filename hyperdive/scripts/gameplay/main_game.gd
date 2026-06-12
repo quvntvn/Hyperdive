@@ -115,7 +115,13 @@ func _spawn_descent_ground(dist: float) -> void:
 func _on_objective_success() -> void:
 	_success_handled = true
 	var player := $Player as PlayerController
-	await player.win_parachute()   # redressement parachute (anim de victoire)
+	player.complete_run()   # fige le run (invincible, stats stoppées), le perso file encore
+	# Un court instant de chute libre puis FONDU NOIR : la simulation coupe net — pas
+	# d'atterrissage héroïque (l'ancien parachute ne collait plus au ton de l'histoire).
+	await get_tree().create_timer(0.5).timeout
+	await Transition.fade_to_black()
+	Audio.stop_whoosh()
+	Audio.stop_jetpack()
 	var n: int = Story.active_chapter
 	var ch: Dictionary = Story.get_chapter(n)
 	var reward: int = Story.chapter_reward(n)
@@ -123,6 +129,11 @@ func _on_objective_success() -> void:
 	var has_outro: bool = ch.get("text_when", "before") == "after"
 	var screen := get_tree().get_first_node_in_group("chapter_end_screen")
 	if screen:
+		# L'écran de victoire (inchangé) apparaît pendant que le noir se dissipe.
 		screen.show_victory(n, reward, has_outro)
+		Transition.fade_from_black()
 	else:
+		# Repli théorique (l'écran vit dans main_game.tscn) : on libère le verrou du fondu
+		# avant de naviguer, sinon change_scene serait ignoré.
+		await Transition.fade_from_black()
 		Transition.change_scene("res://scenes/ui/main_menu.tscn")
