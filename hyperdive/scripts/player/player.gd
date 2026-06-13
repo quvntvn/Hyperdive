@@ -79,9 +79,9 @@ signal game_over
 func _ready() -> void:
 	add_to_group("player")   # référence cross-scène (porte réactive, etc.)
 	Settings.register_run_start()
-	# HISTOIRE : difficulté progressive — vitesse de base du chapitre ×1.0 (ch.1) → ×2.0
-	# (ch.40), appliquée DÈS le départ (valeur initiale posée direct, pas de rampe d'amorçage
-	# — move_toward mettrait ~100 s à rejoindre ×2). 1.0 partout hors campagne.
+	# HISTOIRE : difficulté progressive — vitesse de base du chapitre ×1.0 (ch.1) → ×1.75
+	# (ch.40, plafonné), appliquée DÈS le départ (valeur initiale posée direct, pas de rampe
+	# d'amorçage — move_toward mettrait ~100 s à rejoindre la cible). 1.0 partout hors campagne.
 	_base_max_speed = MAX_FALL_SPEED * Story.speed_factor()
 	_current_max_fall_speed = _base_max_speed
 	# Mode jetpack : on MONTE. Pas de gravité (poussée constante pilotée dans
