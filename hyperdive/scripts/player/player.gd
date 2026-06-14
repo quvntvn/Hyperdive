@@ -42,6 +42,10 @@ const SPEED_RAMP_RATE: float = MAX_FALL_SPEED * 0.10 / 10.0  # ≈ 0.18 m/s² �
 # physique. Tourne le repère PARENT ; le sway des membres (enfants) se compose par-dessus.
 const TUMBLE_MAX_SPEED: float = 180.0   # degrés/seconde — vitesse de rotation max (à tweaker)
 const TUMBLE_ACCEL: float = 40.0        # degrés/seconde² — montée en régime jusqu'au max
+# Battement des membres proportionnel à l'intensité du tumble (intensity = _tumble_speed/MAX).
+# Valeurs EXAGÉRÉES pour ce 1er test — à doser après. N'affectent QUE l'oscillation sin.
+const LIMB_FLAIL_BOOST: float = 2.0      # à intensité max : amplitude ×(1+2)=×3 (doser vers 0.6–1.0)
+const LIMB_FLAIL_FREQ_BOOST: float = 1.5 # à intensité max : fréquence du sin ×(1+1.5)=×2.5
 
 var _is_touching: bool = false
 var _wall_hit_cooldown: float = 0.0
@@ -1196,10 +1200,17 @@ func _apply_limb_sway(node: Node3D, lateral: float, delta: float,
 		speed: float, phase: float,
 		base_z: float, z_amp: float, x_amp: float, lat_z: float,
 		jolt_z: float, jolt_x: float, base_x: float = 0.0) -> void:
-	var s: float = sin(_sway_time * speed + phase)
+	# Plus le tumble est rapide, plus les membres fouettent fort (amp_mult) et vite (freq_mult).
+	# Boost appliqué UNIQUEMENT à l'oscillation sin (x_amp/z_amp + fréquence), PAS aux bases
+	# spread-eagle ni aux termes jolt/latéral. intensity=0 hors tumble (jetpack / _tumble_speed nul)
+	# → amp_mult=freq_mult=1.0 → comportement d'origine strictement inchangé.
+	var intensity: float = clampf(_tumble_speed / TUMBLE_MAX_SPEED, 0.0, 1.0)
+	var amp_mult: float = 1.0 + intensity * LIMB_FLAIL_BOOST
+	var freq_mult: float = 1.0 + intensity * LIMB_FLAIL_FREQ_BOOST
+	var s: float = sin(_sway_time * speed * freq_mult + phase)
 	var target := Vector3(
-		base_x + s * x_amp + _jolt * jolt_x,
+		base_x + s * x_amp * amp_mult + _jolt * jolt_x,
 		0.0,
-		base_z + s * z_amp + lateral * lat_z + _jolt * jolt_z
+		base_z + s * z_amp * amp_mult + lateral * lat_z + _jolt * jolt_z
 	)
 	node.rotation_degrees = node.rotation_degrees.lerp(target, delta * 8.0)
