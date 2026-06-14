@@ -37,6 +37,11 @@ const SPEED_RAMP_FACTOR_COOP: float = 1.05
 const SPEED_RAMP_STEP_TIEBREAK: float = 100.0
 const SPEED_RAMP_FACTOR_TIEBREAK: float = 1.10
 const SPEED_RAMP_RATE: float = MAX_FALL_SPEED * 0.10 / 10.0  # ≈ 0.18 m/s² → +10 % en ~10 s
+# Tumble : culbute continue du Character en CHUTE (rotation lente avant/arrière + légère vrille).
+# Purement VISUELLE — le RigidBody a ses 3 axes angulaires lockés (.tscn) → n'affecte pas la
+# physique. Tourne le repère PARENT ; le sway des membres (enfants) se compose par-dessus.
+const TUMBLE_MAX_SPEED: float = 180.0   # degrés/seconde — vitesse de rotation max (à tweaker)
+const TUMBLE_ACCEL: float = 40.0        # degrés/seconde² — montée en régime jusqu'au max
 
 var _is_touching: bool = false
 var _wall_hit_cooldown: float = 0.0
@@ -53,6 +58,8 @@ var _trail_grad_tex: GradientTexture1D
 var _trail_node: GPUParticles3D
 var _sway_time: float = 0.0
 var _jolt: float = 0.0
+var _tumble_speed: float = 0.0   # vitesse de culbute courante (move vers TUMBLE_MAX_SPEED)
+var _tumble_axis_z: float        # dérive latérale figée au spawn (-0.3..0.3 → un peu de vrille)
 var _shield_aura: MeshInstance3D
 var _slowmo_active: bool = false
 var _magnet_active: bool = false
@@ -96,6 +103,9 @@ func _ready() -> void:
 		Audio.play_jetpack()
 	else:
 		$Character.rotation_degrees = CHARACTER_BASE_ROT
+	# Axe de culbute figé au spawn : surtout autour de X (avant/arrière) + une pointe de Z (vrille),
+	# pour que chaque run tournoie légèrement différemment. Lu chaque frame dans _physics_process.
+	_tumble_axis_z = randf_range(-0.3, 0.3)
 	body_entered.connect(_on_body_entered)
 	# Pulverisation en boost : signal PAR FORME touchee → gere le par-element des zones rares
 	# (on ne detruit que ce qu'on percute reellement, le reste de la zone survit).
@@ -767,6 +777,16 @@ func _physics_process(delta: float) -> void:
 	if _is_dead:
 		return
 	_wall_hit_cooldown = maxf(_wall_hit_cooldown - delta, 0.0)
+	# Culbute continue du Character. _is_dead déjà filtré par le return ci-dessus (Character masqué
+	# pendant le ragdoll). Gaté CHUTE only : en jetpack la pose fusée doit rester stable. Gaté hors
+	# _level_completed : pas de tournoiement pendant le « file » de victoire avant le fondu noir.
+	# rotate_object_local ACCUMULE sur la pose de base (CHARACTER_BASE_ROT) sans toucher les membres
+	# (le sway agit sur les ENFANTS de $Character, donc aucun conflit d'écriture).
+	if Settings.active_mode != "jetpack" and not _level_completed:
+		_tumble_speed = minf(_tumble_speed + TUMBLE_ACCEL * delta, TUMBLE_MAX_SPEED)
+		$Character.rotate_object_local(
+			Vector3(1.0, 0.0, _tumble_axis_z).normalized(),
+			deg_to_rad(_tumble_speed * delta))
 	if not _level_completed:
 		_run_time += delta
 		# Série sans toucher un mur : s'accumule tant qu'on joue, reset à chaque hit de mur.
