@@ -100,7 +100,7 @@ func _add_lock_icon(btn: Button) -> void:
 	var lock := TextureRect.new()
 	lock.texture = LOCK_TEX
 	# Taille FIXE : on NE laisse PAS le cadenas s'étirer avec le bouton (sinon flou + taille variable).
-	lock.expand_mode = TextureRect.EXPAND_KEEP_SIZE
+	lock.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	lock.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	lock.custom_minimum_size = Vector2(LOCK_SIZE, LOCK_SIZE)
 	lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
