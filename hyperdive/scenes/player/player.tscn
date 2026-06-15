@@ -52,7 +52,7 @@ mesh = SubResource("HeadMesh")
 material_override = SubResource("BodyMaterial")
 
 [node name="ArmLeftPivot" type="Node3D" parent="Character"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.19, 0.28, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0.28, 0)
 
 [node name="ArmLeft" type="MeshInstance3D" parent="Character/ArmLeftPivot"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.18, 0)
@@ -60,7 +60,7 @@ mesh = SubResource("ArmMesh")
 material_override = SubResource("BodyMaterial")
 
 [node name="ArmRightPivot" type="Node3D" parent="Character"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19, 0.28, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.28, 0)
 
 [node name="ArmRight" type="MeshInstance3D" parent="Character/ArmRightPivot"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.18, 0)
