@@ -42,16 +42,19 @@ const SPEED_RAMP_RATE: float = MAX_FALL_SPEED * 0.10 / 10.0  # ≈ 0.18 m/s² �
 # physique. Tourne le repère PARENT ; le sway des membres (enfants) se compose par-dessus.
 const TUMBLE_MAX_SPEED: float = 180.0   # degrés/seconde — vitesse de rotation max (à tweaker)
 const TUMBLE_ACCEL: float = 40.0        # degrés/seconde² — montée en régime jusqu'au max
-# Spring-bones des membres en CHUTE : chaque membre est un ressort amorti 2D (cur/vel) qui
-# court après une cible (base spread-eagle + flottement + portance vitesse + traînée latérale).
-# Le pivot est à l'ARTICULATION (épaule/hanche/cou, cf. *Pivot dans player.tscn) → la rotation
-# fait pendre le membre depuis le joint, plus de détachement. Valeurs de départ, à doser device.
-const LIMB_SPRING_STIFFNESS: float = 120.0  # raideur k : vitesse de rappel vers la cible
-const LIMB_SPRING_DAMPING: float = 14.0     # amortissement c : freine l'oscillation (anti-rebond)
-const LIMB_DRAG_LATERAL: float = 1.0        # gain global de la traînée latérale (× drag par membre)
-const LIMB_LIFT_FALLSPEED: float = 0.8      # gain global de la portance par la vitesse de chute (× lift)
-const LIMB_MAX_OFFSET: float = 45.0         # écart angulaire max autour de la base (°) — borne le ressort
-const LIMB_IDLE_FLUTTER: float = 4.0        # amplitude du micro-flottement de repos (°)
+# Membres ORGANIQUES en CHUTE : pose de repos spread-eagle = Basis fixe, par-dessus laquelle on
+# ajoute un WOBBLE (petite rotation LOCALE 3 axes) piloté par un ressort amorti. Le wobble est
+# composé en multiplication de Basis (base_basis * from_euler(wobble)) → PAS de gimbal Euler aux
+# grands angles (c'était la cause du bug bras). L'axe Y local du wobble = vrille sur soi-même.
+# Le pivot est à l'ARTICULATION (épaule/hanche/cou, cf. *Pivot dans player.tscn). Valeurs de départ.
+const LIMB_SPRING_STIFFNESS: float = 90.0   # raideur k : un peu plus souple (organique)
+const LIMB_SPRING_DAMPING: float = 12.0     # amortissement c : freine l'oscillation (anti-rebond)
+const LIMB_NOISE_AMP: float = 12.0          # amplitude (°) du wander organique sur les axes de swing (X,Z locaux)
+const LIMB_TWIST_AMP: float = 22.0          # amplitude (°) de la vrille sur soi-même (Y local = axe du membre)
+const LIMB_NOISE_SPEED: float = 0.5         # vitesse d'évolution du bruit
+const LIMB_LIFT_DEG: float = 16.0           # portance NORMALISÉE (° à pleine vitesse de chute)
+const LIMB_DRAG_DEG: float = 20.0           # traînée NORMALISÉE (° à pleine vitesse latérale)
+const LIMB_WOBBLE_CLAMP: float = 40.0       # borne du wobble autour de la pose de repos (°)
 
 var _is_touching: bool = false
 var _wall_hit_cooldown: float = 0.0
@@ -1202,65 +1205,74 @@ func _spawn_pulverize_burst(pos: Vector3, color: Color, mega: bool = false) -> v
 	burst.global_position = pos
 	get_tree().create_timer(0.7).timeout.connect(burst.queue_free)
 
-# Construit l'état spring de chaque membre. Les valeurs base/flutter/jolt/drag sont reprises
-# TELLES QUELLES de l'ancien _apply_limb_sway (mapping : base=Vector2(base_x,base_z),
-# flutter=Vector2(speed,phase), jolt=Vector2(jolt_x,jolt_z), drag=lat_z). lift est NOUVEAU :
-# combien la vitesse de chute pousse le membre vers l'arrière (bras > jambes > tête).
-# Axes Vector2 : .x = rotation avant/arrière (portance), .y = écartement latéral en Z (traînée).
+# Construit l'état organique de chaque membre. Arguments = (base_x, base_z, jolt_x, jolt_z,
+# drag=ancien lat_z, lift). base_x/base_z = pose de repos spread-eagle → encodée en base_basis.
+# lift = portance par membre (bras 1.0 > jambes 0.4 > tête 0.3). Jambes : base_z resserré de ±35
+# à ±22 (trop écartées sinon). cur/vel = WOBBLE autour de la pose de repos (PAS l'angle absolu).
 func _build_limbs() -> void:
 	_limbs = [
-		_make_limb($Character/ArmLeftPivot,  Vector2(22.0, 115.0),  Vector2(3.7, 0.0), Vector2(10.0, 40.0),   1.2, 1.0),
-		_make_limb($Character/ArmRightPivot, Vector2(22.0, -115.0), Vector2(3.4, 1.7), Vector2(-18.0, -35.0), 1.2, 1.0),
-		_make_limb($Character/LegLeftPivot,  Vector2(0.0, -35.0),   Vector2(2.8, 0.9), Vector2(28.0, -22.0),  0.5, 0.4),
-		_make_limb($Character/LegRightPivot, Vector2(0.0, 35.0),    Vector2(3.1, 2.4), Vector2(-24.0, 20.0),  0.5, 0.4),
-		_make_limb($Character/HeadPivot,     Vector2(0.0, 0.0),     Vector2(2.2, 3.2), Vector2(8.0, 20.0),    0.4, 0.3),
+		_make_limb($Character/ArmLeftPivot,  22.0,  115.0,  10.0,  40.0, 1.2, 1.0),
+		_make_limb($Character/ArmRightPivot, 22.0, -115.0, -18.0, -35.0, 1.2, 1.0),
+		_make_limb($Character/LegLeftPivot,   0.0,  -22.0,  28.0, -22.0, 0.5, 0.4),
+		_make_limb($Character/LegRightPivot,  0.0,   22.0, -24.0,  20.0, 0.5, 0.4),
+		_make_limb($Character/HeadPivot,      0.0,    0.0,   8.0,  20.0, 0.4, 0.3),
 	]
 	# Pose initiale immédiate (avant la 1re frame) : chute = base spread-eagle, jetpack = neutre
 	# (_apply_rocket_pose lerpera ensuite vers les bases JETPACK_*).
 	var jetpack: bool = Settings.active_mode == "jetpack"
 	for limb: Dictionary in _limbs:
-		var base: Vector2 = limb["base"]
-		(limb["pivot"] as Node3D).rotation_degrees = Vector3.ZERO if jetpack else Vector3(base.x, 0.0, base.y)
+		if jetpack:
+			(limb["pivot"] as Node3D).rotation_degrees = Vector3.ZERO
+		else:
+			(limb["pivot"] as Node3D).basis = limb["base_basis"]
 
-func _make_limb(pivot: Node3D, base: Vector2, flutter: Vector2, jolt: Vector2, drag: float, lift: float) -> Dictionary:
+func _make_limb(pivot: Node3D, base_x: float, base_z: float, jolt_x: float, jolt_z: float, drag: float, lift: float) -> Dictionary:
+	# Bruit propre à chaque membre + seed aléatoire → chaque partie ondule différemment.
+	var noise := FastNoiseLite.new()
+	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
+	noise.seed = randi()
 	return {
 		"pivot": pivot,
-		"base": base,
-		"flutter": flutter,   # (fréquence, déphasage) du flottement de repos
-		"jolt": jolt,         # (offset X, offset Z) appliqué pendant le flinch _jolt
-		"drag": drag,         # gain de traînée latérale propre au membre
-		"lift": lift,         # gain de portance par la vitesse de chute
-		"cur": base,          # rotation courante du ressort (= position)
-		"vel": Vector2.ZERO,  # vitesse angulaire du ressort
+		"base_basis": Basis.from_euler(Vector3(deg_to_rad(base_x), 0.0, deg_to_rad(base_z))),  # pose de repos
+		"noise": noise,
+		"jolt": Vector3(jolt_x, 0.0, jolt_z),  # offset wobble pendant le flinch _jolt
+		"drag": drag,                          # gain de traînée latérale propre au membre
+		"lift": lift,                          # gain de portance par la vitesse de chute
+		"cur": Vector3.ZERO,                   # WOBBLE courant (autour de la pose de repos)
+		"vel": Vector3.ZERO,                   # vitesse angulaire du wobble
 	}
 
-# Ressort amorti par membre : la cible = base spread-eagle + flottement de repos, décalée par la
-# portance (vitesse de chute, sur X) et la traînée (mouvement latéral, sur Z), plus le flinch _jolt
-# en OFFSET de cible (volontaire — reproduit le sursaut au choc). Intégration semi-implicite,
-# en _physics_process pour la stabilité. _jolt et _sway_time sont mis à jour dans _process.
+# Wobble organique par membre : cible = bruit Simplex décorrélé sur 3 axes (X swing, Y vrille,
+# Z swing) + portance (vitesse de chute → swing avant/arrière) + traînée (latéral → écartement) +
+# flinch _jolt. Un ressort amorti court après cette cible, puis on COMPOSE le wobble en local sur
+# la pose de repos (base_basis * from_euler(wobble)) → pas de gimbal Euler. fall_ratio/lat_ratio
+# normalisés (0..1) → les gains LIMB_*_DEG sont des degrés "à pleine vitesse", lisibles.
 func _apply_limb_springs(delta: float) -> void:
-	var fall_speed: float = absf(linear_velocity.y)
-	var lateral: float = linear_velocity.x
+	var fall_ratio: float = clampf(absf(linear_velocity.y) / MAX_FALL_SPEED, 0.0, 1.0)
+	var lat_ratio: float = clampf(linear_velocity.x / MAX_LATERAL_SPEED, -1.0, 1.0)
+	var t: float = _sway_time
 	for limb: Dictionary in _limbs:
-		var base: Vector2 = limb["base"]
-		var flutter: Vector2 = limb["flutter"]
-		var jolt: Vector2 = limb["jolt"]
+		var noise: FastNoiseLite = limb["noise"]
+		var jolt: Vector3 = limb["jolt"]
 		var drag: float = limb["drag"]
 		var lift: float = limb["lift"]
-		var cur: Vector2 = limb["cur"]
-		var vel: Vector2 = limb["vel"]
-		var idle := Vector2(
-			sin(_sway_time * flutter.x + flutter.y),
-			sin(_sway_time * flutter.x * 0.8 + flutter.y + 1.3)
-		) * LIMB_IDLE_FLUTTER
-		var target: Vector2 = base + idle
-		target.x += LIMB_LIFT_FALLSPEED * fall_speed * lift + _jolt * jolt.x
-		target.y += -LIMB_DRAG_LATERAL * lateral * drag + _jolt * jolt.y
-		var accel: Vector2 = LIMB_SPRING_STIFFNESS * (target - cur) - LIMB_SPRING_DAMPING * vel
+		var cur: Vector3 = limb["cur"]
+		var vel: Vector3 = limb["vel"]
+		# Bruit organique décorrélé sur 3 axes (offsets Y différents = signaux indépendants).
+		var nx: float = noise.get_noise_2d(t * LIMB_NOISE_SPEED, 0.0)
+		var ny: float = noise.get_noise_2d(t * LIMB_NOISE_SPEED, 37.0)
+		var nz: float = noise.get_noise_2d(t * LIMB_NOISE_SPEED, 71.0)
+		var target := Vector3(nx * LIMB_NOISE_AMP, ny * LIMB_TWIST_AMP, nz * LIMB_NOISE_AMP)
+		target.x += LIMB_LIFT_DEG * fall_ratio * lift     # portance sur le swing avant/arrière
+		target.z += -LIMB_DRAG_DEG * lat_ratio * drag     # traînée latérale
+		target += jolt * _jolt                            # flinch au choc
+		# Ressort sur le WOBBLE (autour de zéro).
+		var accel: Vector3 = LIMB_SPRING_STIFFNESS * (target - cur) - LIMB_SPRING_DAMPING * vel
 		vel += accel * delta
 		cur += vel * delta
-		cur.x = clampf(cur.x, base.x - LIMB_MAX_OFFSET, base.x + LIMB_MAX_OFFSET)
-		cur.y = clampf(cur.y, base.y - LIMB_MAX_OFFSET, base.y + LIMB_MAX_OFFSET)
+		cur = cur.clampf(-LIMB_WOBBLE_CLAMP, LIMB_WOBBLE_CLAMP)
 		limb["cur"] = cur
 		limb["vel"] = vel
-		(limb["pivot"] as Node3D).rotation_degrees = Vector3(cur.x, 0.0, cur.y)
+		# Wobble en LOCAL par-dessus la pose de repos → la composante Y est une vraie vrille sur l'axe du membre.
+		(limb["pivot"] as Node3D).basis = (limb["base_basis"] as Basis) * Basis.from_euler(
+			Vector3(deg_to_rad(cur.x), deg_to_rad(cur.y), deg_to_rad(cur.z)))
