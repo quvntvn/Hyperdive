@@ -42,10 +42,16 @@ const SPEED_RAMP_RATE: float = MAX_FALL_SPEED * 0.10 / 10.0  # ≈ 0.18 m/s² �
 # physique. Tourne le repère PARENT ; le sway des membres (enfants) se compose par-dessus.
 const TUMBLE_MAX_SPEED: float = 180.0   # degrés/seconde — vitesse de rotation max (à tweaker)
 const TUMBLE_ACCEL: float = 40.0        # degrés/seconde² — montée en régime jusqu'au max
-# Battement des membres proportionnel à l'intensité du tumble (intensity = _tumble_speed/MAX).
-# Valeurs EXAGÉRÉES pour ce 1er test — à doser après. N'affectent QUE l'oscillation sin.
-const LIMB_FLAIL_BOOST: float = 2.0      # à intensité max : amplitude ×(1+2)=×3 (doser vers 0.6–1.0)
-const LIMB_FLAIL_FREQ_BOOST: float = 1.5 # à intensité max : fréquence du sin ×(1+1.5)=×2.5
+# Spring-bones des membres en CHUTE : chaque membre est un ressort amorti 2D (cur/vel) qui
+# court après une cible (base spread-eagle + flottement + portance vitesse + traînée latérale).
+# Le pivot est à l'ARTICULATION (épaule/hanche/cou, cf. *Pivot dans player.tscn) → la rotation
+# fait pendre le membre depuis le joint, plus de détachement. Valeurs de départ, à doser device.
+const LIMB_SPRING_STIFFNESS: float = 120.0  # raideur k : vitesse de rappel vers la cible
+const LIMB_SPRING_DAMPING: float = 14.0     # amortissement c : freine l'oscillation (anti-rebond)
+const LIMB_DRAG_LATERAL: float = 1.0        # gain global de la traînée latérale (× drag par membre)
+const LIMB_LIFT_FALLSPEED: float = 0.8      # gain global de la portance par la vitesse de chute (× lift)
+const LIMB_MAX_OFFSET: float = 45.0         # écart angulaire max autour de la base (°) — borne le ressort
+const LIMB_IDLE_FLUTTER: float = 4.0        # amplitude du micro-flottement de repos (°)
 
 var _is_touching: bool = false
 var _wall_hit_cooldown: float = 0.0
@@ -84,6 +90,9 @@ var _base_max_speed: float = MAX_FALL_SPEED       # vitesse de base du run (× S
 var _current_max_fall_speed: float = MAX_FALL_SPEED
 var _jetpack_flames: GPUParticles3D
 var _jetpack_smoke: GPUParticles3D
+# Spring-bones de chute : un Dictionary par membre {pivot, base, flutter, jolt, drag, lift, cur, vel}.
+# Construit une fois en _ready (_build_limbs). cur/vel = état du ressort, mutés chaque frame physique.
+var _limbs: Array = []
 
 signal game_over
 
@@ -110,6 +119,8 @@ func _ready() -> void:
 	# Axe de culbute figé au spawn : surtout autour de X (avant/arrière) + une pointe de Z (vrille),
 	# pour que chaque run tournoie légèrement différemment. Lu chaque frame dans _physics_process.
 	_tumble_axis_z = randf_range(-0.3, 0.3)
+	# Spring-bones des membres : état construit + pose de repos posée tout de suite (avant la 1re frame).
+	_build_limbs()
 	body_entered.connect(_on_body_entered)
 	# Pulverisation en boost : signal PAR FORME touchee → gere le par-element des zones rares
 	# (on ne detruit que ce qu'on percute reellement, le reste de la zone survit).
@@ -791,6 +802,10 @@ func _physics_process(delta: float) -> void:
 		$Character.rotate_object_local(
 			Vector3(1.0, 0.0, _tumble_axis_z).normalized(),
 			deg_to_rad(_tumble_speed * delta))
+		# Membres = ressorts amortis qui réagissent à la vitesse de chute + au mouvement latéral.
+		# En _physics_process (120 Hz) pour une intégration stable du ressort. Jetpack géré à part
+		# (_apply_rocket_pose dans _process), d'où la même garde que le tumble.
+		_apply_limb_springs(delta)
 	if not _level_completed:
 		_run_time += delta
 		# Série sans toucher un mur : s'accumule tant qu'on joue, reset à chaque hit de mur.
@@ -887,19 +902,10 @@ func _process(delta: float) -> void:
 			_emit_magnet_rings(delta)
 	_sway_time += delta
 	_jolt = move_toward(_jolt, 0.0, delta * 4.0)
-	# Jetpack : pose fusée fixe (sway désactivé, calibré pour le perso flippé 180°).
+	# Jetpack : pose fusée fixe (flottement subtil dans _apply_rocket_pose). La chute n'a plus
+	# rien à faire ici : ses membres sont des ressorts intégrés dans _physics_process (_apply_limb_springs).
 	if Settings.active_mode == "jetpack":
 		_apply_rocket_pose(delta)
-		return
-	var lateral: float = linear_velocity.x
-	# speed, phase, base_z, z_amp, x_amp, lat_z, jolt_z, jolt_x, base_x
-	# lat_z positif car Character est flippé X=180° (Z local = -Z monde)
-	# base_x positif = bras tirés légèrement vers l'arrière (vers la caméra)
-	_apply_limb_sway($Character/ArmLeft,  lateral, delta, 3.7, 0.0,  115.0, 22.0, 11.0, 1.2,  40.0,  10.0, 22.0)
-	_apply_limb_sway($Character/ArmRight, lateral, delta, 3.4, 1.7, -115.0, 20.0, 11.0, 1.2, -35.0, -18.0, 22.0)
-	_apply_limb_sway($Character/LegLeft,  lateral, delta, 2.8, 0.9,  -35.0, 12.0, 13.0, 0.5, -22.0,  28.0)
-	_apply_limb_sway($Character/LegRight, lateral, delta, 3.1, 2.4,   35.0, 11.0, 13.0, 0.5,  20.0, -24.0)
-	_apply_limb_sway($Character/Head,     lateral, delta, 2.2, 3.2,    0.0, 11.0,  7.0, 0.4,  20.0,   8.0)
 
 # Pose fusée VIVANTE : oscillation légère et subtile autour des bases JETPACK (≈25 %
 # de l'amplitude du sway chute), pilotée par sin + un peu de vélocité latérale.
@@ -907,11 +913,11 @@ func _apply_rocket_pose(delta: float) -> void:
 	var t: float = _sway_time
 	var lateral: float = linear_velocity.x
 	# node, base, phase, x_amp, z_amp, lat_z
-	_apply_jetpack_sway($Character/ArmLeft,  delta, JETPACK_ARM_L, t, lateral, 0.0, 3.0, 5.0,  0.3)
-	_apply_jetpack_sway($Character/ArmRight, delta, JETPACK_ARM_R, t, lateral, 1.7, 3.0, 5.0, -0.3)
-	_apply_jetpack_sway($Character/LegLeft,  delta, JETPACK_LEG_L, t, lateral, 0.9, 2.5, 3.0,  0.2)
-	_apply_jetpack_sway($Character/LegRight, delta, JETPACK_LEG_R, t, lateral, 2.4, 2.5, 3.0, -0.2)
-	_apply_jetpack_sway($Character/Head,     delta, JETPACK_HEAD,  t, lateral, 3.2, 2.0, 2.0,  0.0)
+	_apply_jetpack_sway($Character/ArmLeftPivot,  delta, JETPACK_ARM_L, t, lateral, 0.0, 3.0, 5.0,  0.3)
+	_apply_jetpack_sway($Character/ArmRightPivot, delta, JETPACK_ARM_R, t, lateral, 1.7, 3.0, 5.0, -0.3)
+	_apply_jetpack_sway($Character/LegLeftPivot,  delta, JETPACK_LEG_L, t, lateral, 0.9, 2.5, 3.0,  0.2)
+	_apply_jetpack_sway($Character/LegRightPivot, delta, JETPACK_LEG_R, t, lateral, 2.4, 2.5, 3.0, -0.2)
+	_apply_jetpack_sway($Character/HeadPivot,     delta, JETPACK_HEAD,  t, lateral, 3.2, 2.0, 2.0,  0.0)
 
 # Flottement subtil autour d'une base fixe (pose fusée). Lent (speed 2.5), faible amp.
 func _apply_jetpack_sway(node: Node3D, delta: float, base: Vector3, t: float, lateral: float,
@@ -1196,21 +1202,65 @@ func _spawn_pulverize_burst(pos: Vector3, color: Color, mega: bool = false) -> v
 	burst.global_position = pos
 	get_tree().create_timer(0.7).timeout.connect(burst.queue_free)
 
-func _apply_limb_sway(node: Node3D, lateral: float, delta: float,
-		speed: float, phase: float,
-		base_z: float, z_amp: float, x_amp: float, lat_z: float,
-		jolt_z: float, jolt_x: float, base_x: float = 0.0) -> void:
-	# Plus le tumble est rapide, plus les membres fouettent fort (amp_mult) et vite (freq_mult).
-	# Boost appliqué UNIQUEMENT à l'oscillation sin (x_amp/z_amp + fréquence), PAS aux bases
-	# spread-eagle ni aux termes jolt/latéral. intensity=0 hors tumble (jetpack / _tumble_speed nul)
-	# → amp_mult=freq_mult=1.0 → comportement d'origine strictement inchangé.
-	var intensity: float = clampf(_tumble_speed / TUMBLE_MAX_SPEED, 0.0, 1.0)
-	var amp_mult: float = 1.0 + intensity * LIMB_FLAIL_BOOST
-	var freq_mult: float = 1.0 + intensity * LIMB_FLAIL_FREQ_BOOST
-	var s: float = sin(_sway_time * speed * freq_mult + phase)
-	var target := Vector3(
-		base_x + s * x_amp * amp_mult + _jolt * jolt_x,
-		0.0,
-		base_z + s * z_amp * amp_mult + lateral * lat_z + _jolt * jolt_z
-	)
-	node.rotation_degrees = node.rotation_degrees.lerp(target, delta * 8.0)
+# Construit l'état spring de chaque membre. Les valeurs base/flutter/jolt/drag sont reprises
+# TELLES QUELLES de l'ancien _apply_limb_sway (mapping : base=Vector2(base_x,base_z),
+# flutter=Vector2(speed,phase), jolt=Vector2(jolt_x,jolt_z), drag=lat_z). lift est NOUVEAU :
+# combien la vitesse de chute pousse le membre vers l'arrière (bras > jambes > tête).
+# Axes Vector2 : .x = rotation avant/arrière (portance), .y = écartement latéral en Z (traînée).
+func _build_limbs() -> void:
+	_limbs = [
+		_make_limb($Character/ArmLeftPivot,  Vector2(22.0, 115.0),  Vector2(3.7, 0.0), Vector2(10.0, 40.0),   1.2, 1.0),
+		_make_limb($Character/ArmRightPivot, Vector2(22.0, -115.0), Vector2(3.4, 1.7), Vector2(-18.0, -35.0), 1.2, 1.0),
+		_make_limb($Character/LegLeftPivot,  Vector2(0.0, -35.0),   Vector2(2.8, 0.9), Vector2(28.0, -22.0),  0.5, 0.4),
+		_make_limb($Character/LegRightPivot, Vector2(0.0, 35.0),    Vector2(3.1, 2.4), Vector2(-24.0, 20.0),  0.5, 0.4),
+		_make_limb($Character/HeadPivot,     Vector2(0.0, 0.0),     Vector2(2.2, 3.2), Vector2(8.0, 20.0),    0.4, 0.3),
+	]
+	# Pose initiale immédiate (avant la 1re frame) : chute = base spread-eagle, jetpack = neutre
+	# (_apply_rocket_pose lerpera ensuite vers les bases JETPACK_*).
+	var jetpack: bool = Settings.active_mode == "jetpack"
+	for limb: Dictionary in _limbs:
+		var base: Vector2 = limb["base"]
+		(limb["pivot"] as Node3D).rotation_degrees = Vector3.ZERO if jetpack else Vector3(base.x, 0.0, base.y)
+
+func _make_limb(pivot: Node3D, base: Vector2, flutter: Vector2, jolt: Vector2, drag: float, lift: float) -> Dictionary:
+	return {
+		"pivot": pivot,
+		"base": base,
+		"flutter": flutter,   # (fréquence, déphasage) du flottement de repos
+		"jolt": jolt,         # (offset X, offset Z) appliqué pendant le flinch _jolt
+		"drag": drag,         # gain de traînée latérale propre au membre
+		"lift": lift,         # gain de portance par la vitesse de chute
+		"cur": base,          # rotation courante du ressort (= position)
+		"vel": Vector2.ZERO,  # vitesse angulaire du ressort
+	}
+
+# Ressort amorti par membre : la cible = base spread-eagle + flottement de repos, décalée par la
+# portance (vitesse de chute, sur X) et la traînée (mouvement latéral, sur Z), plus le flinch _jolt
+# en OFFSET de cible (volontaire — reproduit le sursaut au choc). Intégration semi-implicite,
+# en _physics_process pour la stabilité. _jolt et _sway_time sont mis à jour dans _process.
+func _apply_limb_springs(delta: float) -> void:
+	var fall_speed: float = absf(linear_velocity.y)
+	var lateral: float = linear_velocity.x
+	for limb: Dictionary in _limbs:
+		var base: Vector2 = limb["base"]
+		var flutter: Vector2 = limb["flutter"]
+		var jolt: Vector2 = limb["jolt"]
+		var drag: float = limb["drag"]
+		var lift: float = limb["lift"]
+		var cur: Vector2 = limb["cur"]
+		var vel: Vector2 = limb["vel"]
+		var idle := Vector2(
+			sin(_sway_time * flutter.x + flutter.y),
+			sin(_sway_time * flutter.x * 0.8 + flutter.y + 1.3)
+		) * LIMB_IDLE_FLUTTER
+		var target: Vector2 = base + idle
+		target.x += LIMB_LIFT_FALLSPEED * fall_speed * lift + _jolt * jolt.x
+		target.y += -LIMB_DRAG_LATERAL * lateral * drag + _jolt * jolt.y
+		var accel: Vector2 = LIMB_SPRING_STIFFNESS * (target - cur) - LIMB_SPRING_DAMPING * vel
+		vel += accel * delta
+		cur += vel * delta
+		cur.x = clampf(cur.x, base.x - LIMB_MAX_OFFSET, base.x + LIMB_MAX_OFFSET)
+		cur.y = clampf(cur.y, base.y - LIMB_MAX_OFFSET, base.y + LIMB_MAX_OFFSET)
+		limb["cur"] = cur
+		limb["vel"] = vel
+		(limb["pivot"] as Node3D).rotation_degrees = Vector3(cur.x, 0.0, cur.y)
