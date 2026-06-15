@@ -1211,8 +1211,8 @@ func _spawn_pulverize_burst(pos: Vector3, color: Color, mega: bool = false) -> v
 # à ±22 (trop écartées sinon). cur/vel = WOBBLE autour de la pose de repos (PAS l'angle absolu).
 func _build_limbs() -> void:
 	_limbs = [
-		_make_limb($Character/ArmLeftPivot,  22.0,  115.0,  10.0,  40.0, 1.2, 1.0),
-		_make_limb($Character/ArmRightPivot, 22.0, -115.0, -18.0, -35.0, 1.2, 1.0),
+		_make_limb($Character/ArmLeftPivot,  22.0,  -90.0,  10.0,  40.0, 1.2, 1.0),
+		_make_limb($Character/ArmRightPivot, 22.0,   90.0, -18.0, -35.0, 1.2, 1.0),
 		_make_limb($Character/LegLeftPivot,   0.0,  -22.0,  28.0, -22.0, 0.5, 0.4),
 		_make_limb($Character/LegRightPivot,  0.0,   22.0, -24.0,  20.0, 0.5, 0.4),
 		_make_limb($Character/HeadPivot,      0.0,    0.0,   8.0,  20.0, 0.4, 0.3),
