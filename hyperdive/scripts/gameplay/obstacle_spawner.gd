@@ -37,6 +37,8 @@ var _draw_pool: Array[PackedScene] = []
 # "Profondeur" minimale (coord dir-relative croissante) à partir de laquelle une zone rare
 # peut se déclencher : initialisée à SPECIAL_MIN_START, repoussée de SPECIAL_COOLDOWN à chaque zone.
 var _next_special_depth: float = SPECIAL_MIN_START
+# Bandes [y_lo, y_hi] où aucun obstacle ne doit exister (didacticiel : rangée slow-time inratable).
+var _clear_bands: Array[Vector2] = []
 
 func _ready() -> void:
 	if player == null and not player_path.is_empty():
@@ -100,7 +102,24 @@ func _process(_delta: float) -> void:
 			Story.notify_dodge()   # compteur d'esquive campagne (objectif "dodge") ; no-op hors campagne
 			obstacle.queue_free()
 
+# Réserve une bande propre (aucun obstacle) ET supprime ceux déjà posés dedans. Appelé par le
+# didacticiel autour de la rangée slow-time forcée pour garantir le ramassage.
+func reserve_clear_band(y_lo: float, y_hi: float) -> void:
+	_clear_bands.append(Vector2(y_lo, y_hi))
+	for o in get_tree().get_nodes_in_group("obstacles"):
+		var oy: float = (o as Node3D).global_position.y
+		if oy >= y_lo and oy <= y_hi:
+			o.queue_free()
+
+func _in_clear_band(y: float) -> bool:
+	for b in _clear_bands:
+		if y >= b.x and y <= b.y:
+			return true
+	return false
+
 func _spawn_at(y: float) -> void:
+	if _in_clear_band(y):
+		return   # bande réservée (rangée power-up tuto) : aucun obstacle
 	var picked: PackedScene = _draw_pool.pick_random()
 	var obstacle: Node3D = picked.instantiate()
 	get_parent().add_child(obstacle)

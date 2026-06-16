@@ -147,6 +147,16 @@ func start_chapter(n: int) -> void:
 func current_objective() -> Dictionary:
 	return objective()
 
+# Chapitre DIDACTICIEL : le 1er chapitre jouable normal (fall, objectif distance). Tout le
+# comportement tuto (ralenti d'intro, textes, rangée slow-time forcée) est gaté sur is_tutorial()
+# → zéro fuite vers les autres chapitres/modes. Le dict catalogue du ch.3 reste INCHANGÉ : seul
+# l'objectif est overridé au runtime (main_game lit TUTORIAL_GOAL_M), thème/narration intacts.
+const TUTORIAL_CHAPTER: int = 3
+const TUTORIAL_GOAL_M: int = 150   # objectif override (catalogue : distance 450)
+
+func is_tutorial() -> bool:
+	return active and active_chapter == TUTORIAL_CHAPTER
+
 func chapter_count() -> int:
 	return CHAPTERS.size()
 
