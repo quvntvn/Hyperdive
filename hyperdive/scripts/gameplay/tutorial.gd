@@ -8,8 +8,8 @@ class_name Tutorial
 #   • TEXTE 1 + FLÈCHE ↔  → pilotés par le 1er INPUT (ralenti d'intro 0.025× tant que rien, puis
 #     coupé ; texte 1 tenu un court instant puis fondu ; la flèche s'estompe AVEC le texte 1).
 #   • TEXTE 2 + RANGÉES de power-up + TEXTE 3 → pilotés par des SEUILS D'ALTITUDE (altimètre
-#     restant = floor − |y|), pas par des minuteries : deux rangées slow-time inratables à ~120 m
-#     puis ~75 m, le texte 2 juste avant (~130 m), le texte 3 « La mort est inévitable » à ~45 m
+#     restant = floor − |y|), pas par des minuteries : une rangée slow-time inratable à ~120 m,
+#     le texte 2 juste avant (~130 m), le texte 3 « La mort est inévitable » à ~45 m
 #     (reste jusqu'à l'impact).
 #
 # Détection du 1er input : signal PlayerController.first_input_received (point unique côté joueur,
@@ -25,10 +25,9 @@ const PULSE_PERIOD := 1.2          # période de la pulsation (s)
 
 # Seuils d'ALTITUDE (mètres restants avant le sol) : chaque événement se déclenche une fois quand
 # l'altimètre restant passe sous le seuil. Monotone décroissant → ordre garanti.
-const TEXT2_AT_M := 130.0          # texte 2 « Attrape les bonus ! » (juste avant la 1re rangée)
-const ROW1_AT_M := 120.0           # 1re rangée de power-up slow-time
+const TEXT2_AT_M := 130.0          # texte 2 « Attrape les bonus ! » (juste avant la rangée)
+const ROW1_AT_M := 120.0           # rangée de power-up slow-time (unique)
 const TEXT2_FADE_AT_M := 95.0      # fondu du texte 2
-const ROW2_AT_M := 75.0            # 2e rangée de power-up slow-time
 const TEXT3_AT_M := 45.0           # texte 3 « La mort est inévitable » (reste jusqu'à l'impact)
 
 const ROW_LEAD := 14.0             # rangée posée à 14 m devant (dir) le joueur au déclenchement
@@ -69,7 +68,6 @@ var _done: bool = false        # texte 2 montré (info ; en descent la victoire 
 var _did_text2: bool = false
 var _did_row1: bool = false
 var _did_text2_fade: bool = false
-var _did_row2: bool = false
 var _did_text3: bool = false
 
 func is_done() -> bool:
@@ -225,9 +223,6 @@ func _process(_delta: float) -> void:
 	if not _did_text2_fade and remaining <= TEXT2_FADE_AT_M:
 		_did_text2_fade = true
 		_fade_out_text()
-	if not _did_row2 and remaining <= ROW2_AT_M:
-		_did_row2 = true
-		_spawn_slowmo_row()
 	if not _did_text3 and remaining <= TEXT3_AT_M:
 		_did_text3 = true
 		_show_text3()
