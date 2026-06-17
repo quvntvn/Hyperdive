@@ -82,8 +82,19 @@ const DAILY_POOL: Array = [
 func _ready() -> void:
 	load_settings()
 	ensure_daily_challenges()
-	if OS.has_feature("mobile") and control_mode == ControlMode.KEYBOARD:
+	# DÉFAUT = TACTILE sur mobile. On testait has_feature("mobile"), qui s'est révélé NON
+	# fiable sur l'APK (même piège que l'haptique, cf. vibrate()) : il renvoyait faux sur
+	# l'appareil → après une install fraîche (settings effacés), control_mode restait sur
+	# KEYBOARD → tactile mort en jeu (player n'écoute le touch qu'en mode TOUCH) + tuto en
+	# version clavier. On teste donc OS.get_name(), fiable sur l'appareil. Aucun réglage de
+	# contrôle n'est exposé sur mobile → un KEYBOARD sur mobile ne peut venir que de ce défaut.
+	if is_mobile_platform() and control_mode == ControlMode.KEYBOARD:
 		control_mode = ControlMode.TOUCH
+
+# Plateforme tactile fiable sur l'APK (has_feature("mobile") ne l'est pas — cf. vibrate()).
+func is_mobile_platform() -> bool:
+	var os_name: String = OS.get_name()
+	return os_name == "Android" or os_name == "iOS"
 
 func _apply_bus_volume(bus_name: String, linear: float) -> void:
 	var idx: int = AudioServer.get_bus_index(bus_name)
