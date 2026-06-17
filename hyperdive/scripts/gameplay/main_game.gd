@@ -7,7 +7,7 @@ var _objective_value: int = 0
 var _story_time: float = 0.0
 var _success_handled: bool = false
 var _player_alive: bool = true
-var _tutorial: Tutorial = null   # surcouche didacticiel (ch.3 uniquement)
+var _tutorial: Tutorial = null   # surcouche didacticiel (ch.1 « 2028 » uniquement)
 
 func _ready() -> void:
 	# La skyline est ancrée à la caméra. En jetpack (caméra vers le haut) on lui passe le
@@ -29,22 +29,19 @@ func _ready() -> void:
 		var obj: Dictionary = Story.current_objective()
 		_objective_kind = obj.get("kind", "")
 		_objective_value = int(obj.get("value", 0))
-		# DIDACTICIEL (ch.3) : override TRANSIENT de l'objectif (catalogue intact) → 150 m.
-		if Story.is_tutorial():
-			_objective_kind = "distance"
-			_objective_value = Story.TUTORIAL_GOAL_M
 		($GameHUD as GameHUD).set_campaign_mode(true)   # masque les pièces + fige l'auto-distance
 		_push_progress(0)
 		($Player as PlayerController).game_over.connect(func() -> void: _player_alive = false)
 		if _objective_kind == "descent":
 			_setup_descent()
+			# Surcouche didacticiel (ch.1 « 2028 » uniquement) : nœud dédié + son propre CanvasLayer,
+			# greffée PAR-DESSUS la descente scriptée (le sol à 150 m reste la victoire).
+			if Story.is_tutorial():
+				_tutorial = Tutorial.new()
+				_tutorial.name = "Tutorial"
+				add_child(_tutorial)
+				_tutorial.setup($Player as PlayerController, $ObstacleSpawner as ObstacleSpawner)
 			return
-		# Surcouche didacticiel (ch.3 uniquement) : nœud dédié + son propre CanvasLayer.
-		if Story.is_tutorial():
-			_tutorial = Tutorial.new()
-			_tutorial.name = "Tutorial"
-			add_child(_tutorial)
-			_tutorial.setup($Player as PlayerController, $ObstacleSpawner as ObstacleSpawner)
 		return
 
 func _process(delta: float) -> void:

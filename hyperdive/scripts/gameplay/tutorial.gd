@@ -1,22 +1,23 @@
 extends Node
 class_name Tutorial
-# Surcouche DIDACTICIEL — vit UNIQUEMENT au chapitre tuto (Story.is_tutorial(), ch.3).
-# Ajoutée par main_game. Possède son propre CanvasLayer (au-dessus du HUD, sous la pause).
-# Pilote : ralenti d'intro 0.2× tant que le joueur n'a pas donné d'input, deux textes pulsants
+# Surcouche DIDACTICIEL — vit UNIQUEMENT au chapitre tuto (Story.is_tutorial(), ch.1 « 2028 »).
+# Greffée par main_game PAR-DESSUS la descente scriptée (le sol à 150 m reste la victoire).
+# Possède son propre CanvasLayer (au-dessus du HUD, sous la pause).
+# Pilote : ralenti d'intro 0.05× tant que le joueur n'a pas donné d'input, deux textes pulsants
 # en TEMPS RÉEL, et une rangée pleine largeur de slow-time inratable synchronisée avec le texte 2.
 #
 # Détection du 1er input : on s'abonne au signal PlayerController.first_input_received (point
 # unique côté joueur, touch ET clavier) → garantie que le ralenti 0.2× se coupe TOUJOURS.
 
-const INTRO_SPEED_FACTOR := 0.2     # info : la valeur effective vit dans PlayerController.TUTORIAL_INTRO_FACTOR
-const TEXT1_HOLD_AFTER_INPUT := 2.0 # le texte 1 reste 2 s après le 1er input puis se fond
-const GAP_BEFORE_TEXT2 := 7.0       # délai après le fondu du texte 1 avant texte 2 + rangée
-const TEXT2_VISIBLE := 4.0          # durée d'affichage du texte 2 avant fondu
+const INTRO_SPEED_FACTOR := 0.05    # info : la valeur effective vit dans PlayerController.TUTORIAL_INTRO_FACTOR
+const TEXT1_HOLD_AFTER_INPUT := 1.5 # le texte 1 reste 1,5 s après le 1er input puis se fond
+const GAP_BEFORE_TEXT2 := 2.5       # délai après le fondu du texte 1 avant texte 2 + rangée
+const TEXT2_VISIBLE := 3.0          # durée d'affichage du texte 2 avant fondu
 const FADE := 0.5                   # durée des fondus de texte
 const PULSE_MIN := 1.0              # échelle de pulsation basse
 const PULSE_MAX := 1.08            # échelle de pulsation haute
 const PULSE_PERIOD := 1.2          # période de la pulsation (s)
-const ROW_SPAWN_AHEAD := 30.0      # rangée spawnée à 30 m devant (dir) au moment du texte 2
+const ROW_SPAWN_AHEAD := 18.0      # rangée spawnée à 18 m devant (dir) au moment du texte 2
 const ROW_CLEAR_HALF := 8.0        # demi-bande sans obstacle autour de la rangée
 const ROW_X_MIN := -5.0            # rangée pleine largeur (couloir = ±4,5)
 const ROW_X_MAX := 5.0
@@ -34,7 +35,7 @@ var _player: PlayerController
 var _obstacles: ObstacleSpawner
 var _label: Label
 var _pulse_tween: Tween
-var _done: bool = false        # texte 2 montré → la victoire à 150 m est autorisée
+var _done: bool = false        # texte 2 montré (info ; en descent la victoire = collision au sol)
 var _t2_timer: float = -1.0    # compte à rebours réel avant texte 2 (armé au fondu du texte 1)
 
 func is_done() -> bool:
@@ -129,14 +130,14 @@ func _process(delta: float) -> void:
 func _trigger_text2_and_row() -> void:
 	_show_text(TEXT2)
 	_spawn_slowmo_row()
-	_done = true   # leçon montrée → la victoire à 150 m est désormais autorisée
+	_done = true   # leçon montrée (info ; en descent la victoire = collision au sol)
 	await get_tree().create_timer(TEXT2_VISIBLE).timeout
 	_fade_out_text()
 
 # Rangée pleine largeur de slow-time, inratable, devant le joueur (dir-relatif). On nettoie une
 # bande sans obstacle autour pour garantir le ramassage.
 func _spawn_slowmo_row() -> void:
-	var dir: float = Settings.get_fall_dir()   # -1 en chute (ch.3)
+	var dir: float = Settings.get_fall_dir()   # -1 en chute (ch.1)
 	var y: float = _player.global_position.y + dir * ROW_SPAWN_AHEAD
 	if _obstacles != null and TUTORIAL_OBSTACLES_ENABLED:
 		_obstacles.reserve_clear_band(y - ROW_CLEAR_HALF, y + ROW_CLEAR_HALF)

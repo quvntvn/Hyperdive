@@ -55,12 +55,12 @@ const LIMB_NOISE_SPEED: float = 0.5         # vitesse d'évolution du bruit
 const LIMB_LIFT_DEG: float = 16.0           # portance NORMALISÉE (° à pleine vitesse de chute)
 const LIMB_DRAG_DEG: float = 20.0           # traînée NORMALISÉE (° à pleine vitesse latérale)
 const LIMB_WOBBLE_CLAMP: float = 40.0       # borne du wobble autour de la pose de repos (°)
-const TUTORIAL_INTRO_FACTOR: float = 0.2    # plafond de chute réduit pendant l'intro tuto (avant 1er input)
+const TUTORIAL_INTRO_FACTOR: float = 0.05   # plafond de chute réduit pendant l'intro tuto (avant 1er input)
 
 var _is_touching: bool = false
 var _wall_hit_cooldown: float = 0.0
 var _touch_target_x: float = 0.0
-var _first_input_done: bool = false   # 1er input joueur reçu (didacticiel ch.3 : coupe le ralenti 0.2×)
+var _first_input_done: bool = false   # 1er input joueur reçu (didacticiel ch.1 : coupe le ralenti 0.05×)
 var _is_dead: bool = false
 var _level_completed: bool = false
 var _run_time: float = 0.0
@@ -102,7 +102,7 @@ var _limbs: Array = []
 
 signal game_over
 # Émis UNE fois au tout premier input du joueur (1er toucher/drag en touch, 1re action
-# gauche/droite au clavier). Le didacticiel (ch.3) s'y abonne pour couper le ralenti 0.2×.
+# gauche/droite au clavier). Le didacticiel (ch.1) s'y abonne pour couper le ralenti 0.05×.
 signal first_input_received
 
 func _ready() -> void:
@@ -872,7 +872,7 @@ func _physics_process(delta: float) -> void:
 	# Twist de zone visuelle : rush néon (×1.10) / flottement cosmique (<1), déjà blendé doux.
 	# Multiplie la vitesse effective sans toucher _current_max_fall_speed (rampe préservée).
 	var eff_speed: float = _current_max_fall_speed * Zones.visual_speed_mult
-	# DIDACTICIEL (ch.3) : tant que le joueur n'a pas donné d'input, gameplay au ralenti (même
+	# DIDACTICIEL (ch.1 « 2028 ») : tant que le joueur n'a pas donné d'input, gameplay au ralenti (même
 	# levier que le slow-time : on plafonne la vitesse de chute, PAS Engine.time_scale → les
 	# textes/minuteries du tuto restent en temps réel). Coupé au 1er input via set_intro_slow(false).
 	if _intro_slow_active:
