@@ -1,39 +1,52 @@
 extends Node
 class_name Tutorial
 # Surcouche DIDACTICIEL — vit UNIQUEMENT au chapitre tuto (Story.is_tutorial(), ch.1 « 2028 »).
-# Greffée par main_game PAR-DESSUS la descente scriptée (le sol à 150 m reste la victoire).
+# Greffée par main_game PAR-DESSUS la descente scriptée (le sol à 250 m reste la victoire).
 # Possède son propre CanvasLayer (au-dessus du HUD, sous la pause).
-# Pilote : ralenti d'intro 0.05× tant que le joueur n'a pas donné d'input, deux textes pulsants
-# en TEMPS RÉEL, et une rangée pleine largeur de slow-time inratable synchronisée avec le texte 2.
+# Pilote : ralenti d'intro 0.025× tant que le joueur n'a pas donné d'input, deux textes pulsants
+# en TEMPS RÉEL, une flèche ↔ pulsante synchro au texte 1, et une rangée pleine largeur de
+# slow-time inratable synchronisée avec le texte 2.
 #
 # Détection du 1er input : on s'abonne au signal PlayerController.first_input_received (point
-# unique côté joueur, touch ET clavier) → garantie que le ralenti 0.2× se coupe TOUJOURS.
+# unique côté joueur, touch ET clavier) → garantie que le ralenti 0.025× se coupe TOUJOURS.
 
-const INTRO_SPEED_FACTOR := 0.05    # info : la valeur effective vit dans PlayerController.TUTORIAL_INTRO_FACTOR
-const TEXT1_HOLD_AFTER_INPUT := 1.5 # le texte 1 reste 1,5 s après le 1er input puis se fond
-const GAP_BEFORE_TEXT2 := 2.5       # délai après le fondu du texte 1 avant texte 2 + rangée
-const TEXT2_VISIBLE := 3.0          # durée d'affichage du texte 2 avant fondu
+const INTRO_SPEED_FACTOR := 0.025   # info : la valeur effective vit dans PlayerController.TUTORIAL_INTRO_FACTOR
+const TEXT1_HOLD_AFTER_INPUT := 2.0 # le texte 1 reste 2 s après le 1er input puis se fond
+const GAP_BEFORE_TEXT2 := 7.0       # délai après le fondu du texte 1 avant texte 2 + rangée
+const TEXT2_VISIBLE := 4.0          # durée d'affichage du texte 2 avant fondu
 const FADE := 0.5                   # durée des fondus de texte
 const PULSE_MIN := 1.0              # échelle de pulsation basse
 const PULSE_MAX := 1.08            # échelle de pulsation haute
 const PULSE_PERIOD := 1.2          # période de la pulsation (s)
-const ROW_SPAWN_AHEAD := 18.0      # rangée spawnée à 18 m devant (dir) au moment du texte 2
+const ROW_SPAWN_AHEAD := 30.0      # rangée spawnée à 30 m devant (dir) au moment du texte 2
 const ROW_CLEAR_HALF := 8.0        # demi-bande sans obstacle autour de la rangée
 const ROW_X_MIN := -5.0            # rangée pleine largeur (couloir = ±4,5)
 const ROW_X_MAX := 5.0
 const ROW_X_STEP := 1.0            # espacement (catch ~1 m/powerup → inratable)
 const TUTORIAL_OBSTACLES_ENABLED := true   # false = aucun obstacle pendant le tuto
 
+# Flèche directionnelle ↔ (Polygon2D blanc plein, sans contour) affichée pendant l'intro pour
+# signaler « déplace-toi gauche/droite ». Taille + position via ces constantes.
+const ARROW_LENGTH := 240.0        # longueur totale pointe-à-pointe (px GUI)
+const ARROW_THICKNESS := 20.0      # épaisseur de la hampe (px)
+const ARROW_HEAD_LENGTH := 46.0    # longueur de chaque tête triangulaire (px)
+const ARROW_HEAD_HALF := 38.0      # demi-hauteur des têtes (px)
+const ARROW_Y_FRAC := 0.62         # position verticale (fraction écran, 0=haut → 1=bas) ≈ niveau joueur
+const ARROW_ALPHA_MIN := 0.2       # alpha au creux de la pulsation (texte au plus petit)
+const ARROW_ALPHA_MAX := 0.3       # alpha au pic de la pulsation (texte au plus grand)
+
 # Textes placeholder ÉDITABLES. Variante selon le mode de contrôle (tilt supprimé du jeu).
 const TEXT1_TOUCH := "Glisse ton doigt pour te déplacer"
 const TEXT1_KEY   := "Utilise ←  → pour te déplacer"
-const TEXT2       := "Récupère les bonus pour t'aider\n— celui-ci ralentit le temps !"
+const TEXT2       := "Attrape les power-ups !"
 
 const POWERUP_SCENE: PackedScene = preload("res://scenes/collectibles/powerup.tscn")
 
 var _player: PlayerController
 var _obstacles: ObstacleSpawner
 var _label: Label
+var _arrow: Polygon2D
+var _arrow_fade: float = 0.0   # 0..1, fondu maître de la flèche (apparaît/s'estompe AVEC le texte 1)
 var _pulse_tween: Tween
 var _done: bool = false        # texte 2 montré (info ; en descent la victoire = collision au sol)
 var _t2_timer: float = -1.0    # compte à rebours réel avant texte 2 (armé au fondu du texte 1)
@@ -47,10 +60,11 @@ func setup(player: PlayerController, obstacles: ObstacleSpawner) -> void:
 	if not TUTORIAL_OBSTACLES_ENABLED and _obstacles != null:
 		_obstacles.set_process(false)
 	_build_ui()
-	# Ralenti d'intro ON immédiatement + texte 1 (variante selon le mode de contrôle).
+	# Ralenti d'intro ON immédiatement + texte 1 (variante selon le mode de contrôle) + flèche ↔.
 	_player.set_intro_slow(true)
 	var touch: bool = Settings.control_mode == SettingsManager.ControlMode.TOUCH
 	_show_text(TEXT1_TOUCH if touch else TEXT1_KEY)
+	_show_arrow()
 	# Abonnement FIABLE au 1er input (signal du joueur). Si l'input est déjà passé (cas limite),
 	# on réagit tout de suite ; sinon on attend le signal.
 	if _player.has_first_input():
@@ -78,6 +92,40 @@ func _build_ui() -> void:
 	_label.add_theme_constant_override("outline_size", 6)
 	_label.modulate.a = 0.0
 	layer.add_child(_label)
+	_build_arrow(layer)
+
+# Flèche bidirectionnelle ↔ : UN seul Polygon2D (hampe + 2 têtes), blanc plein, sans contour.
+# Centrée horizontalement, au niveau vertical du joueur (ARROW_Y_FRAC). Alpha via modulate.a.
+func _build_arrow(layer: CanvasLayer) -> void:
+	_arrow = Polygon2D.new()
+	_arrow.color = Color(1.0, 1.0, 1.0, 1.0)   # blanc plein ; l'alpha effectif passe par modulate.a
+	var hl: float = ARROW_LENGTH * 0.5
+	var ht: float = ARROW_THICKNESS * 0.5
+	var sx: float = hl - ARROW_HEAD_LENGTH      # x où commencent les têtes
+	var hh: float = ARROW_HEAD_HALF
+	# Contour fermé, sens horaire, depuis la pointe gauche.
+	_arrow.polygon = PackedVector2Array([
+		Vector2(-hl, 0.0),    # pointe gauche
+		Vector2(-sx, -hh),    # tête gauche, haut
+		Vector2(-sx, -ht),    # hampe, haut-gauche
+		Vector2(sx, -ht),     # hampe, haut-droit
+		Vector2(sx, -hh),     # tête droite, haut
+		Vector2(hl, 0.0),     # pointe droite
+		Vector2(sx, hh),      # tête droite, bas
+		Vector2(sx, ht),      # hampe, bas-droit
+		Vector2(-sx, ht),     # hampe, bas-gauche
+		Vector2(-sx, hh),     # tête gauche, bas
+	])
+	var vp: Vector2 = get_viewport().get_visible_rect().size
+	_arrow.position = Vector2(vp.x * 0.5, vp.y * ARROW_Y_FRAC)
+	_arrow.modulate.a = 0.0
+	layer.add_child(_arrow)
+
+func _show_arrow() -> void:
+	create_tween().tween_property(self, "_arrow_fade", 1.0, FADE)
+
+func _fade_out_arrow() -> void:
+	create_tween().tween_property(self, "_arrow_fade", 0.0, FADE)
 
 func _show_text(t: String) -> void:
 	if _pulse_tween != null and _pulse_tween.is_valid():
@@ -115,12 +163,20 @@ func _fade_out_text() -> void:
 
 func _on_first_input() -> void:
 	_player.set_intro_slow(false)   # vitesse normale, TOUJOURS, dès le 1er input
-	# Le texte 1 reste TEXT1_HOLD_AFTER_INPUT puis se fond, et ARME le compte à rebours du texte 2.
+	# Le texte 1 reste TEXT1_HOLD_AFTER_INPUT puis se fond (la flèche s'estompe AVEC lui), et ARME
+	# le compte à rebours du texte 2.
 	await get_tree().create_timer(TEXT1_HOLD_AFTER_INPUT).timeout
 	_fade_out_text()
+	_fade_out_arrow()
 	_t2_timer = GAP_BEFORE_TEXT2
 
 func _process(delta: float) -> void:
+	# Alpha de la flèche piloté par la MÊME pulsation que l'échelle du texte 1 : t reconstruit
+	# depuis _label.scale (PULSE_MIN→0 … PULSE_MAX→1) → alpha lerp ARROW_ALPHA_MIN…MAX, le tout
+	# multiplié par le fondu maître (_arrow_fade) pour l'apparition/l'estompage avec le texte 1.
+	if _arrow != null and _label != null:
+		var t: float = clampf((_label.scale.x - PULSE_MIN) / (PULSE_MAX - PULSE_MIN), 0.0, 1.0)
+		_arrow.modulate.a = _arrow_fade * lerpf(ARROW_ALPHA_MIN, ARROW_ALPHA_MAX, t)
 	if _t2_timer > 0.0:
 		_t2_timer -= delta
 		if _t2_timer <= 0.0:

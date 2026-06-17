@@ -61,6 +61,12 @@ func _process(delta: float) -> void:
 			# OUVERTURE ch.1 : ALTIMÈTRE DÉCROISSANT (mètres restants avant le sol), orange sous
 			# 50 m (tension). AUCUNE réussite en vol — seule la collision avec le sol termine,
 			# routée en réussite par player.gd (la mort EST la réussite).
+			# DIDACTICIEL : tant que le joueur n'a pas donné son 1er input, l'altimètre est FIGÉ à
+			# la valeur de départ (la progression est « en pause » — le perso dérive au ralenti
+			# 2,5 % mais ces ~quelques mètres ne comptent pas). Au 1er toucher, le décompte démarre.
+			if not player.has_first_input():
+				($GameHUD as GameHUD).update_story_progress("%d m" % _objective_value)
+				return
 			var remaining: int = int(maxf(0.0, float(_objective_value) - absf(player.global_position.y)))
 			($GameHUD as GameHUD).update_story_progress("%d m" % remaining)
 			($GameHUD as GameHUD).set_story_progress_urgent(remaining <= 50)

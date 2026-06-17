@@ -55,12 +55,12 @@ const LIMB_NOISE_SPEED: float = 0.5         # vitesse d'évolution du bruit
 const LIMB_LIFT_DEG: float = 16.0           # portance NORMALISÉE (° à pleine vitesse de chute)
 const LIMB_DRAG_DEG: float = 20.0           # traînée NORMALISÉE (° à pleine vitesse latérale)
 const LIMB_WOBBLE_CLAMP: float = 40.0       # borne du wobble autour de la pose de repos (°)
-const TUTORIAL_INTRO_FACTOR: float = 0.05   # plafond de chute réduit pendant l'intro tuto (avant 1er input)
+const TUTORIAL_INTRO_FACTOR: float = 0.025  # plafond de chute réduit pendant l'intro tuto (avant 1er input)
 
 var _is_touching: bool = false
 var _wall_hit_cooldown: float = 0.0
 var _touch_target_x: float = 0.0
-var _first_input_done: bool = false   # 1er input joueur reçu (didacticiel ch.1 : coupe le ralenti 0.05×)
+var _first_input_done: bool = false   # 1er input joueur reçu (didacticiel ch.1 : coupe le ralenti 0.025×)
 var _is_dead: bool = false
 var _level_completed: bool = false
 var _run_time: float = 0.0
@@ -102,7 +102,7 @@ var _limbs: Array = []
 
 signal game_over
 # Émis UNE fois au tout premier input du joueur (1er toucher/drag en touch, 1re action
-# gauche/droite au clavier). Le didacticiel (ch.1) s'y abonne pour couper le ralenti 0.05×.
+# gauche/droite au clavier). Le didacticiel (ch.1) s'y abonne pour couper le ralenti 0.025×.
 signal first_input_received
 
 func _ready() -> void:
