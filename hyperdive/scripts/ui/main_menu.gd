@@ -176,10 +176,8 @@ func _style_gear_glass() -> void:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.82, 0.86, 0.95, 0.18)
 	sb.set_corner_radius_all(int(GlassBlur.DEFAULT_RADIUS))
-	# Pas de contour qui fait le tour : seulement un reflet de verre TRÈS discret en haut.
+	# Pas de contour du tout (contour blanc retiré) : verre + arrondi seuls.
 	sb.set_border_width_all(0)
-	sb.border_width_top = 1
-	sb.border_color = Color(1.0, 1.0, 1.0, 0.18)
 	backing.add_theme_stylebox_override("panel", sb)
 	gear.add_child(backing)
 	gear.move_child(backing, 0)
