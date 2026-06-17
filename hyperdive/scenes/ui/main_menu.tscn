@@ -70,7 +70,8 @@ theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="MenuUI/Screen/Layout"]
 unique_name_in_owner = true
-text = "HYPERDIVE"
+text = "VERTIGE
+PROTOCOL"
 clip_text = false
 horizontal_alignment = 1
 autowrap_mode = 0
