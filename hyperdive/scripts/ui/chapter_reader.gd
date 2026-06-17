@@ -16,6 +16,11 @@ signal play_requested(n: int)   # JOUER sur un chapitre jouable → la carte lan
 
 const FADE_TIME: float = 0.3
 
+# Taille de police du TEXTE NARRATIF (le paragraphe sous l'image, bouton CONTINUER).
+# Réduite ~15 % par rapport à l'ancien 22 → la dernière ligne ne passe plus sous le
+# dégradé/bouton, et même les chapitres au texte le plus long tiennent dans le scroll.
+const NARRATIVE_FONT_SIZE: int = 19
+
 # Palette stricte Mid-Century (CLAUDE.md) — sert aux dégradés de placeholder (varient par chapitre).
 const PALETTE: Array[Color] = [
 	Color(0.914, 0.310, 0.216),   # orange brûlé
@@ -47,6 +52,7 @@ var _scroll_chevron: Label         # chevron ▼ pulsant sous le texte (même si
 
 func _ready() -> void:
 	add_to_group("chapter_reader")
+	_text.add_theme_font_size_override("font_size", NARRATIVE_FONT_SIZE)
 	# Voiles dégradés (fixes) : haut sombre→transparent (titre), bas transparent→sombre (texte).
 	$TopVeil.texture = _vertical_gradient(Color(DARK, 0.5), Color(DARK, 0.0))
 	$BottomVeil.texture = _vertical_gradient(Color(DARK, 0.0), Color(DARK, 0.92))
