@@ -23,8 +23,8 @@ func _make_splat(rng: RandomNumberGenerator) -> Image:
 	img.fill(Color(0, 0, 0, 0))
 	var cx := SIZE * 0.5 + rng.randf_range(-30.0, 30.0)
 	var cy := SIZE * 0.5 + rng.randf_range(-30.0, 30.0)
-	# Rouge foncé réaliste (≈ #5C0A0A … #7C1A14), variation par image.
-	var base := Color(rng.randf_range(0.36, 0.49), rng.randf_range(0.04, 0.11), rng.randf_range(0.04, 0.09), 1.0)
+	# Rouge SOMBRE désaturé (≈ #4A0606 … #5A0E0E), variation par image.
+	var base := Color(rng.randf_range(0.290, 0.353), rng.randf_range(0.024, 0.055), rng.randf_range(0.024, 0.055), 1.0)
 	# Blob central irrégulier : rayon modulé par quelques harmoniques angulaires.
 	var harmonics: Array = []
 	for k in range(2, 7):

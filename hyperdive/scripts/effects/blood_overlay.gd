@@ -7,7 +7,7 @@ class_name BloodOverlay
 # Deux événements, branchés depuis player.gd :
 #   • splatter_wall()  — touche de mur (collision latérale NON-FATALE) : tache fugace
 #                        (plein → hold WALL_HOLD → fondu WALL_FADE → free).
-#   • splatter_death() — mort : 1-2 taches PERMANENTES (pas de fondu), nettoyées avec la scène
+#   • splatter_death() — mort : 3-5 taches PERMANENTES (pas de fondu), nettoyées avec la scène
 #                        à la transition/redémarrage (elles sont enfants de cet overlay).
 #
 # Chaque tache : texture au hasard + rotation 0-360° + échelle aléatoire + miroir H/V aléatoire +
@@ -16,8 +16,11 @@ class_name BloodOverlay
 const LAYER := 0
 const WALL_HOLD := 0.5      # tache murale à pleine opacité (s)
 const WALL_FADE := 0.3      # puis fondu jusqu'à disparition (s)
-const SCALE_MIN := 0.45
-const SCALE_MAX := 0.95
+const BASE_ALPHA := 0.85    # opacité des taches (TRÈS légèrement transparentes) — mur ET mort
+const SCALE_MIN := 0.225    # échelle réduite de 50 % (était 0.45)
+const SCALE_MAX := 0.475    # échelle réduite de 50 % (était 0.95)
+const DEATH_MIN := 3        # mort : plusieurs taches simultanées…
+const DEATH_MAX := 5        # …positions/motifs aléatoires, qui RESTENT
 const TINT_VAR := 0.12      # amplitude de la variation de teinte par tache
 const TEX_COUNT := 12
 
@@ -41,9 +44,9 @@ func splatter_wall() -> void:
 	tw.tween_property(s, "modulate:a", 0.0, WALL_FADE)
 	tw.tween_callback(s.queue_free)
 
-# Mort : 1-2 taches qui RESTENT (pas de fondu) jusqu'à la transition d'écran.
+# Mort : PLUSIEURS taches (3-5) simultanées qui RESTENT (pas de fondu) jusqu'à la transition.
 func splatter_death() -> void:
-	var n := randi_range(1, 2)
+	var n := randi_range(DEATH_MIN, DEATH_MAX)
 	for i in n:
 		_spawn_splat()
 
@@ -66,7 +69,8 @@ func _spawn_splat() -> Sprite2D:
 	var vp := get_viewport().get_visible_rect().size
 	spr.position = Vector2(randf() * vp.x, randf() * vp.y)
 	# Variation de teinte : on assombrit légèrement et on désature un peu vers le rouge profond.
+	# Alpha BASE_ALPHA → taches très légèrement transparentes.
 	var d := randf_range(-TINT_VAR, 0.04)
-	spr.modulate = Color(clampf(1.0 + d, 0.7, 1.05), clampf(0.95 + d, 0.55, 1.0), clampf(0.92 + d, 0.55, 1.0), 1.0)
+	spr.modulate = Color(clampf(1.0 + d, 0.7, 1.05), clampf(0.95 + d, 0.55, 1.0), clampf(0.92 + d, 0.55, 1.0), BASE_ALPHA)
 	add_child(spr)
 	return spr
