@@ -4,6 +4,7 @@ class_name AudioManagerClass
 @export var coin_sfx: AudioStream
 @export var hit_sfx: AudioStream
 @export var game_over_sfx: AudioStream
+@export var level_complete_sfx: AudioStream
 @export var ui_click_sfx: AudioStream
 @export var gameplay_music: AudioStream
 @export var fall_whoosh: AudioStream
@@ -101,6 +102,7 @@ func _play_sfx(stream: AudioStream) -> void:
 func play_coin() -> void: _play_sfx(coin_sfx)
 func play_hit() -> void: _play_sfx(hit_sfx)
 func play_game_over() -> void: _play_sfx(game_over_sfx)
+func play_level_complete() -> void: _play_sfx(level_complete_sfx)
 func play_ui_click() -> void: _play_sfx(ui_click_sfx)
 
 func play_music() -> void:

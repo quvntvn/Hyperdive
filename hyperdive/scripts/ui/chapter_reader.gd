@@ -17,9 +17,10 @@ signal play_requested(n: int)   # JOUER sur un chapitre jouable → la carte lan
 const FADE_TIME: float = 0.3
 
 # Taille de police du TEXTE NARRATIF (le paragraphe sous l'image, bouton CONTINUER).
-# Réduite ~15 % par rapport à l'ancien 22 → la dernière ligne ne passe plus sous le
-# dégradé/bouton, et même les chapitres au texte le plus long tiennent dans le scroll.
-const NARRATIVE_FONT_SIZE: int = 19
+# Posée à 21 (un poil sous l'original 22, après un passage à 19 jugé trop petit). Le texte
+# vit dans un ScrollContainer → le chapitre le plus long (~706 car.) reste atteignable au
+# scroll, jamais coupé. L'indicateur de scroll (fondu + chevron) signale le reste.
+const NARRATIVE_FONT_SIZE: int = 21
 
 # Palette stricte Mid-Century (CLAUDE.md) — sert aux dégradés de placeholder (varient par chapitre).
 const PALETTE: Array[Color] = [

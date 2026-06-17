@@ -167,6 +167,13 @@ func get_chapter(n: int) -> Dictionary:
 func is_playable(n: int) -> bool:
 	return get_chapter(n).get("type", "story") == "play"
 
+# Le son TRIOMPHANT de fin de niveau doit-il jouer à la réussite de ce chapitre ? true par
+# défaut. Mettre "no_win_sfx": true sur un chapitre pour le rendre SILENCIEUX (ex. un chapitre
+# au ton sombre où une fanfare jurerait). Le ch.1 "descent" (mort = réussite) ne passe de toute
+# façon pas par l'écran de victoire, donc il est déjà exclu sans flag.
+func chapter_plays_win_sfx(n: int) -> bool:
+	return not bool(get_chapter(n).get("no_win_sfx", false))
+
 # Thème de décor d'un chapitre (arc visuel narratif). "" si non défini.
 func chapter_theme_id(n: int) -> String:
 	return String(get_chapter(n).get("theme", ""))

@@ -5,6 +5,7 @@
 [ext_resource type="AudioStream" uid="uid://lx2leo67hbba" path="res://assets/audio/sfx/coin_pickup.mp3" id="CoinSFX"]
 [ext_resource type="AudioStream" uid="uid://e5dm2ifod6wr" path="res://assets/audio/music/fall_whoosh.mp3" id="FallWhoosh"]
 [ext_resource type="AudioStream" uid="uid://y2q28f0cqtwu" path="res://assets/audio/sfx/game_over.mp3" id="GameOverSFX"]
+[ext_resource type="AudioStream" uid="uid://e5voxeqar2ya" path="res://assets/audio/sfx/level_complete.mp3" id="LevelCompleteSFX"]
 [ext_resource type="AudioStream" uid="uid://bryp327lrs56n" path="res://assets/audio/music/gameplay_loop.mp3" id="GameplayMusic"]
 [ext_resource type="AudioStream" uid="uid://bn3ww2oygwx8b" path="res://assets/audio/sfx/obstacle_hit.mp3" id="HitSFX"]
 [ext_resource type="AudioStream" uid="uid://bjiiuchh62c4o" path="res://assets/audio/music/jetpack.mp3" id="Jetpack"]
@@ -14,6 +15,7 @@ script = ExtResource("AudioManagerScript")
 coin_sfx = ExtResource("CoinSFX")
 hit_sfx = ExtResource("HitSFX")
 game_over_sfx = ExtResource("GameOverSFX")
+level_complete_sfx = ExtResource("LevelCompleteSFX")
 ui_click_sfx = ExtResource("5_s06pa")
 gameplay_music = ExtResource("GameplayMusic")
 fall_whoosh = ExtResource("FallWhoosh")

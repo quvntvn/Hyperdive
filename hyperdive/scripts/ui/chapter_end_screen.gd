@@ -30,6 +30,11 @@ func show_victory(n: int, reward: int, has_outro: bool) -> void:
 	%RewardLabel.text = "+ " + UIAnimations.format_number(reward) + " pièces"
 	%PrimaryButton.text = "CONTINUER"
 	%SecondaryButton.visible = false
+	# Son triomphant de réussite (bus SFX, non ducké). Gaté par chapitre : un chapitre marqué
+	# "no_win_sfx" reste silencieux. Le ch.1 "descent" ne passe pas ici (mort = réussite → outro),
+	# donc l'impact "2028" n'est jamais accompagné de la fanfare.
+	if Story.chapter_plays_win_sfx(n):
+		Audio.play_level_complete()
 	_open()
 
 func show_failure(n: int) -> void:
