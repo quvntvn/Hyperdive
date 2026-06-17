@@ -14,6 +14,11 @@ func _ready() -> void:
 	# flag pour compenser le tangage et la garder en bas de l'écran comme en chute.
 	# En campagne, le thème du CHAPITRE prime sur le thème équipé ("" hors campagne).
 	CitySkyline.attach_to(get_viewport().get_camera_3d(), Settings.active_mode == "jetpack", Story.current_theme_id())
+	# Overlay d'éclaboussures de sang (GLOBAL, tous modes) : player.gd le retrouve via le groupe
+	# "blood_overlay" pour les taches de mur (fugaces) et de mort (permanentes).
+	var blood := BloodOverlay.new()
+	blood.name = "BloodOverlay"
+	add_child(blood)
 	# COOP : pièces OFF + power-up sans aimant (branche campagne du spawner), mais PAS d'objectif
 	# — la manche coop se joue jusqu'à la mort (mode infini/jetpack), classement live au HUD.
 	if Coop.active:

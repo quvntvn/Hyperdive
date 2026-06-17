@@ -1,7 +1,7 @@
 extends Node
 class_name Tutorial
 # Surcouche DIDACTICIEL — vit UNIQUEMENT au chapitre tuto (Story.is_tutorial(), ch.1 « 2028 »).
-# Greffée par main_game PAR-DESSUS la descente scriptée (le sol à 250 m reste la victoire).
+# Greffée par main_game PAR-DESSUS la descente scriptée (le sol à 200 m reste la victoire).
 # Possède son propre CanvasLayer (au-dessus du HUD, sous la pause).
 # Pilote : ralenti d'intro 0.025× tant que le joueur n'a pas donné d'input, deux textes pulsants
 # en TEMPS RÉEL, une flèche ↔ pulsante synchro au texte 1, et une rangée pleine largeur de

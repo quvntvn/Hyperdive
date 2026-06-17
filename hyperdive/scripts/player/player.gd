@@ -446,6 +446,9 @@ func _on_body_entered(body: Node3D) -> void:
 			_jolt = 0.4
 			_wall_hit_cooldown = WALL_HIT_COOLDOWN
 			_no_wall_streak = 0.0   # série sans mur cassée
+			var bw := get_tree().get_first_node_in_group("blood_overlay")
+			if bw:
+				bw.splatter_wall()   # tache fugace (gatée par le cooldown du hit → pas de spam)
 		return
 	if not body.is_in_group("obstacles"):
 		return
@@ -474,6 +477,9 @@ func _trigger_ragdoll() -> void:
 	if _is_invincible():
 		return
 	Settings.vibrate(120)   # impact haptique marqué qui accompagne le ragdoll (mort satisfaisante)
+	var bd := get_tree().get_first_node_in_group("blood_overlay")
+	if bd:
+		bd.splatter_death()   # 1-2 taches PERMANENTES jusqu'à la transition d'écran
 	var death_vel := linear_velocity
 	# En jetpack, on montait (gravity_scale=0). À la mort : "on RETOMBE" → on rétablit la
 	# gravité et on lance le ragdoll vers le BAS (sinon il s'envolerait, vitesse positive).
