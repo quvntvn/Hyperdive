@@ -14,6 +14,7 @@ func _ready() -> void:
 		return
 	Audio.stop_whoosh()
 	Audio.stop_jetpack()
+	Audio.duck_music()   # écran hors gameplay → musique baissée (règle unique « plein en jeu »)
 	_populate()
 	var btn := $Content/ContinueButton as Button
 	btn.text = "CLASSEMENT FINAL" if Coop.is_last_round() else "CONTINUER"

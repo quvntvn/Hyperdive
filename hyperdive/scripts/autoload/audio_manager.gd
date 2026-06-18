@@ -57,6 +57,11 @@ func _ready() -> void:
 	if gameplay_music is AudioStreamMP3:
 		(gameplay_music as AudioStreamMP3).loop = true
 	_music_player.stream = gameplay_music
+	# Règle unique : PLEIN volume uniquement pendant le gameplay actif, BAISSÉ partout ailleurs.
+	# Le jeu démarre sur le MENU → on amorce la musique au niveau baissé (le menu re-baisse de
+	# toute façon ; ça évite juste un coup de plein volume au boot).
+	_music_player.volume_db = DUCKED_VOLUME_DB
+	_is_ducked = true
 	play_music()
 	_whoosh_player = AudioStreamPlayer.new()
 	_whoosh_player.bus = "SFX"

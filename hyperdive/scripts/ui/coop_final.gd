@@ -19,6 +19,7 @@ func _ready() -> void:
 		return
 	Audio.stop_whoosh()
 	Audio.stop_jetpack()
+	Audio.duck_music()   # écran hors gameplay → musique baissée (règle unique « plein en jeu »)
 	_populate()
 	$Content/ButtonsRow/RejouerButton.pressed.connect(_on_rejouer_pressed)
 	$Content/ButtonsRow/MenuButton.pressed.connect(_on_menu_pressed)

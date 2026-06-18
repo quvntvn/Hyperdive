@@ -10,6 +10,11 @@ var _player_alive: bool = true
 var _tutorial: Tutorial = null   # surcouche didacticiel (ch.1 « 2028 » uniquement)
 
 func _ready() -> void:
+	# GAMEPLAY ACTIF = seul contexte à PLEIN volume (règle unique « plein en jeu, baissé ailleurs »).
+	# Vaut pour tous les modes (infini, jetpack, histoire jouable, coop). Exception : l'ouverture
+	# ch.1 « 2028 » qui COUPE la musique (_setup_descent → stop_music, plus bas) — le stop prime.
+	Audio.unduck_music()
+	Audio.play_music()
 	# La skyline est ancrée à la caméra. En jetpack (caméra vers le haut) on lui passe le
 	# flag pour compenser le tangage et la garder en bas de l'écran comme en chute.
 	# En campagne, le thème du CHAPITRE prime sur le thème équipé ("" hors campagne).
@@ -157,5 +162,12 @@ func _on_objective_success() -> void:
 	if ch.get("text_when", "before") == "after":
 		Story.pending_outro = n
 	Story.pending_reward = n
+	# SON de fin de niveau AU MOMENT DE LA VICTOIRE (sur le fondu vers l'histoire), plus dans le
+	# pop-up récompense (qui arrivait trop tard). Gaté par chapitre (ch.1 « 2028 » = pas de fanfare,
+	# mais il ne passe pas par ici de toute façon : sa « victoire » est une mort, gérée par player.gd).
+	if Story.chapter_plays_win_sfx(n):
+		Audio.play_level_complete()
+	# Victoire = on QUITTE le gameplay actif → musique BAISSÉE dès cet instant (règle unique).
+	Audio.duck_music()
 	# Fondu au noir DOUX (~1 s) avant le chargement de la carte (l'ancien fondu était trop sec).
 	Transition.change_scene("res://scenes/ui/main_menu.tscn", 1.0)

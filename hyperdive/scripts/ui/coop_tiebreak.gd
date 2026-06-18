@@ -10,6 +10,7 @@ func _ready() -> void:
 		return
 	Audio.stop_whoosh()
 	Audio.stop_jetpack()
+	Audio.duck_music()       # écran hors gameplay → musique baissée (règle unique « plein en jeu »)
 	Audio.play_coop_lead()   # petite fanfare de tension à l'annonce
 	$Center/Card.add_theme_stylebox_override("panel", UIAnimations.glass_card_style())
 	_populate()

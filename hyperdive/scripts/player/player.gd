@@ -481,6 +481,11 @@ func _on_body_entered(body: Node3D) -> void:
 func _trigger_ragdoll() -> void:
 	if _is_invincible():
 		return
+	# Mort = on QUITTE le gameplay actif → musique BAISSÉE à l'INSTANT de la mort (règle unique
+	# « plein en jeu, baissé ailleurs »). Point unique couvrant TOUS les cas (infini, jetpack,
+	# échec campagne, coop ; ch.1 « 2028 » a déjà coupé la musique → sans effet). Avant, la baisse
+	# n'arrivait qu'à l'affichage de l'écran (~1,5 s après le ragdoll).
+	Audio.duck_music()
 	Settings.vibrate(120)   # impact haptique marqué qui accompagne le ragdoll (mort satisfaisante)
 	var bd := get_tree().get_first_node_in_group("blood_overlay")
 	if bd:

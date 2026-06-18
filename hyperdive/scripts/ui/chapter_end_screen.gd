@@ -31,13 +31,10 @@ func show_reward(n: int) -> void:
 	%RewardLabel.text = "+ " + UIAnimations.format_number(Story.chapter_reward(n)) + " pièces"
 	%PrimaryButton.text = "CONTINUER"
 	%SecondaryButton.visible = false
-	# Son triomphant de réussite (bus SFX, non ducké). Gaté par chapitre : un chapitre marqué
-	# "no_win_sfx" reste silencieux.
-	if Story.chapter_plays_win_sfx(n):
-		Audio.play_level_complete()
+	# Le son de fin de niveau a déjà été joué AU MOMENT DE LA VICTOIRE (main_game, sur le fondu) —
+	# plus ici (il arrivait trop tard, après l'histoire). La musique est déjà baissée (hors jeu).
 	# Contexte MENU : on N'arrête PAS l'arbre (la carte vit derrière, animée). On ne fait
 	# qu'ouvrir le pop-up par-dessus.
-	Audio.duck_music()
 	visible = true
 	UIAnimations.pop_in($Content, $Tint)
 
@@ -65,8 +62,8 @@ func _on_primary() -> void:
 	Audio.play_ui_click()
 	if _mode == "reward":
 		# Contexte MENU : on referme simplement le pop-up (la carte est déjà derrière). Pas de
-		# changement de scène, pas d'arbre en pause à relâcher.
-		Audio.unduck_music()
+		# changement de scène, pas d'arbre en pause à relâcher. La musique RESTE baissée (on est
+		# hors gameplay, sur la carte).
 		visible = false
 		return
 	# Échec (en jeu) : on relance le même chapitre (Story.active persiste) → retry illimité.

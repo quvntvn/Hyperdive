@@ -41,7 +41,9 @@ func _ready() -> void:
 
 	Audio.stop_whoosh()
 	Audio.stop_jetpack()
-	Audio.unduck_music()
+	# Menu = hors gameplay → musique BAISSÉE (règle unique : plein seulement en jeu). play_music
+	# garantit la reprise (utile après le ch.1 « 2028 » qui coupe la musique via stop_music).
+	Audio.duck_music()
 	Audio.play_music()
 
 	_animate_title()

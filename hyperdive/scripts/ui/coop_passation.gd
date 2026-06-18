@@ -12,6 +12,7 @@ func _ready() -> void:
 	# Le son de jeu de la manche précédente doit s'arrêter (le prochain tour le relancera).
 	Audio.stop_whoosh()
 	Audio.stop_jetpack()
+	Audio.duck_music()   # écran hors gameplay → musique baissée (règle unique « plein en jeu »)
 	$Center/Card.add_theme_stylebox_override("panel", UIAnimations.glass_card_style())
 	_populate()
 	$ReadyButton.pressed.connect(_on_ready_pressed)
