@@ -60,6 +60,11 @@ const TUTORIAL_INTRO_FACTOR: float = 0.025  # plafond de chute réduit pendant l
 var _is_touching: bool = false
 var _wall_hit_cooldown: float = 0.0
 var _touch_target_x: float = 0.0
+# Souris (DESKTOP uniquement, mode clavier) : confort de test. Le perso suit le X du curseur
+# (même finger-follow fluide que le tactile). _mouse_active passe vrai au 1er mouvement de souris
+# → pas de dérive vers le curseur tant qu'on n'y a pas touché. Jamais lu en mode TOUCH (mobile).
+var _mouse_target_x: float = 0.0
+var _mouse_active: bool = false
 var _first_input_done: bool = false   # 1er input joueur reçu (didacticiel ch.1 : coupe le ralenti 0.025×)
 var _is_dead: bool = false
 var _level_completed: bool = false
@@ -614,6 +619,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			_is_touching = true
 			_update_touch_target(event.position)
 			_notify_first_input()
+	else:
+		# DESKTOP (mode clavier) : la souris pilote aussi le perso, en parallèle des flèches.
+		# Le déplacement réel (vers _mouse_target_x) se fait dans _physics_process avec la même
+		# vitesse latérale que le tactile → fluide, pas de snap. Gaté hors TOUCH → zéro effet mobile.
+		if event is InputEventMouseMotion:
+			_mouse_target_x = _screen_x_to_world_x(event.position.x)
+			_mouse_active = true
 	# Mode switching — dev only, replaced by options menu in Phase E
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.physical_keycode:
@@ -638,9 +650,14 @@ func _get_lateral_input() -> float:
 	return 0.0
 
 func _update_touch_target(screen_pos: Vector2) -> void:
+	_touch_target_x = _screen_x_to_world_x(screen_pos.x)
+
+# Convertit une abscisse ÉCRAN (px) en abscisse MONDE dans le couloir (-5..5). Partagé par le
+# suivi tactile et le suivi souris desktop.
+func _screen_x_to_world_x(screen_x: float) -> float:
 	var screen_width: float = get_viewport().get_visible_rect().size.x
-	var normalized: float = clampf(screen_pos.x / screen_width, 0.0, 1.0)
-	_touch_target_x = lerpf(-5.0, 5.0, normalized)
+	var normalized: float = clampf(screen_x / screen_width, 0.0, 1.0)
+	return lerpf(-5.0, 5.0, normalized)
 
 func _update_body_color() -> void:
 	var mat := $Character/Torso.material_override as StandardMaterial3D
@@ -851,11 +868,19 @@ func _physics_process(delta: float) -> void:
 		else:
 			linear_velocity.x = move_toward(linear_velocity.x, 0.0, MAX_LATERAL_SPEED * delta * 4.0)
 	else:
+		# DESKTOP : flèches ET souris en parallèle. Les flèches (force) priment ; sinon, si la
+		# souris a bougé au moins une fois, on vise sa position X (même suivi fluide que le tactile).
 		var lateral: float = _get_lateral_input()
 		if lateral != 0.0:
 			_notify_first_input()
 			apply_central_force(Vector3(lateral * LATERAL_FORCE, 0.0, 0.0))
-		linear_velocity.x = clampf(linear_velocity.x, -MAX_LATERAL_SPEED, MAX_LATERAL_SPEED)
+			linear_velocity.x = clampf(linear_velocity.x, -MAX_LATERAL_SPEED, MAX_LATERAL_SPEED)
+		elif _mouse_active:
+			_notify_first_input()
+			var diff: float = _mouse_target_x - global_position.x
+			linear_velocity.x = clampf(diff * TOUCH_FOLLOW_SPEED, -MAX_LATERAL_SPEED, MAX_LATERAL_SPEED)
+		else:
+			linear_velocity.x = clampf(linear_velocity.x, -MAX_LATERAL_SPEED, MAX_LATERAL_SPEED)
 	# Signe vertical centralisé : +1 en jetpack (on monte), -1 en chute.
 	var dir: float = Settings.get_fall_dir()
 	if Settings.active_mode != "campaign" and not _level_completed:

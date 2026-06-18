@@ -2,7 +2,10 @@ extends Node
 class_name CosmeticsCatalog
 
 const SKINS: Array[Dictionary] = [
-	{"id": "default",   "name": "Orange Brûlé",    "price": 0,  "color": Color(0.914, 0.310, 0.216)},
+	# Défaut : JAUNE MOUTARDE #F2C14E. L'ancien orange brûlé #E94F37 était la couleur EXACTE des
+	# obstacles → perso quasi invisible (sur le bordeaux des chutes ET fondu dans le danger). Le
+	# moutarde tranche sur les fonds chauds (bordeaux) ET froids (bleu nuit/océan des niveaux jetpack).
+	{"id": "default",   "name": "Jaune Moutarde",   "price": 0,  "color": Color(0.949, 0.757, 0.306)},
 	{"id": "turquoise", "name": "Turquoise Rétro",  "price": 50,  "color": Color(0.235, 0.682, 0.639)},
 	{"id": "cream",     "name": "Crème Pâle",       "price": 300, "color": Color(0.957, 0.914, 0.804)},
 	{"id": "bordeaux",  "name": "Bordeaux Lourd",   "price": 450, "color": Color(0.486, 0.180, 0.165)},
