@@ -140,24 +140,22 @@ func _on_objective_success() -> void:
 	_success_handled = true
 	var player := $Player as PlayerController
 	player.complete_run()   # fige le run (invincible, stats stoppées), le perso file encore
-	# Un court instant de chute libre puis FONDU NOIR : la simulation coupe net — pas
-	# d'atterrissage héroïque (l'ancien parachute ne collait plus au ton de l'histoire).
+	# Un court instant de chute libre, puis on quitte vers la carte. La simulation coupe net —
+	# pas d'atterrissage héroïque (l'ancien parachute ne collait plus au ton de l'histoire).
 	await get_tree().create_timer(0.5).timeout
-	await Transition.fade_to_black()
 	Audio.stop_whoosh()
 	Audio.stop_jetpack()
 	var n: int = Story.active_chapter
 	var ch: Dictionary = Story.get_chapter(n)
-	var reward: int = Story.chapter_reward(n)
-	Story.complete_chapter(n)      # crédite pièces + déblocages + avance la progression
-	var has_outro: bool = ch.get("text_when", "before") == "after"
-	var screen := get_tree().get_first_node_in_group("chapter_end_screen")
-	if screen:
-		# L'écran de victoire (inchangé) apparaît pendant que le noir se dissipe.
-		screen.show_victory(n, reward, has_outro)
-		Transition.fade_from_black()
-	else:
-		# Repli théorique (l'écran vit dans main_game.tscn) : on libère le verrou du fondu
-		# avant de naviguer, sinon change_scene serait ignoré.
-		await Transition.fade_from_black()
-		Transition.change_scene("res://scenes/ui/main_menu.tscn")
+	# Crédite les pièces UNE seule fois ici (+ déblocages + avance). Le pop-up de réussite
+	# affiché plus tard ne fait que MONTRER ce gain, il ne crédite rien.
+	Story.complete_chapter(n)
+	# Nouveau flux : on NE montre PLUS le pop-up "Chapitre réussi" en jeu. On va d'abord lire
+	# l'HISTOIRE (outro), puis le pop-up récompense s'affiche PAR-DESSUS au retour menu.
+	# pending_outro → la carte ouvre le lecteur en mode "outro" ; pending_reward → après le
+	# CONTINUER de l'outro, le pop-up récompense apparaît (retour carte ensuite).
+	if ch.get("text_when", "before") == "after":
+		Story.pending_outro = n
+	Story.pending_reward = n
+	# Fondu au noir DOUX (~1 s) avant le chargement de la carte (l'ancien fondu était trop sec).
+	Transition.change_scene("res://scenes/ui/main_menu.tscn", 1.0)

@@ -131,6 +131,9 @@ var active: bool = false                # garde-fou global du contexte campagne 
 var active_chapter: int = 0             # chapitre en cours de jeu (0 = aucun)
 var dodged: int = 0                     # esquives du run courant (objectif "dodge"), NON gaté
 var pending_outro: int = 0              # chapitre dont l'outro reste à lire au retour menu (0 = aucun)
+var pending_reward: int = 0             # chapitre dont le pop-up "réussite + pièces" reste à AFFICHER
+                                        # au menu (après l'outro). 0 = aucun. NON posé par le ch.1
+                                        # "2028" (mort = réussite) → pas de pop-up triomphant.
 
 # Démarre un chapitre jouable : pose le contexte campagne + le mode de jeu, puis le main_game
 # lit Story.objective(). Mode "jetpack" pour un chapitre jetpack, "infinite" pour la chute
@@ -243,3 +246,6 @@ func clear() -> void:
 	active = false
 	active_chapter = 0
 	dodged = 0
+	# pending_outro / pending_reward sont consommés explicitement par le menu (remis à 0 avant
+	# clear) ; on les remet à zéro ici aussi par sécurité (abandon de chapitre sans les lire).
+	pending_reward = 0

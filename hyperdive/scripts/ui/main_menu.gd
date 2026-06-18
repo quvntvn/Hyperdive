@@ -22,7 +22,7 @@ func _ready() -> void:
 	# plus derrière le flou de l'écran. On GARDE le décor 3D (ville défilante) : il vit dans le
 	# monde Node3D, pas dans MenuUI → le backdrop de l'écran continue de le flouter joliment.
 	# Piloté par visibility_changed (un seul point de vérité, gère ouverture ET fermeture).
-	for screen: CanvasLayer in [$ShopScreen, $SettingsScreen, $MissionsScreen, $CoopConfigScreen, $CampaignScreen, $ChapterReader]:
+	for screen: CanvasLayer in [$ShopScreen, $SettingsScreen, $MissionsScreen, $CoopConfigScreen, $CampaignScreen, $ChapterReader, $ChapterEndScreen]:
 		screen.visibility_changed.connect(_sync_menu_ui_visibility)
 
 	# Le bouton campagne ouvre la CARTE de l'HISTOIRE (campagne narrative 40 chapitres).
@@ -83,7 +83,7 @@ func _set_mode_button(btn: Button, unlocked: bool, mode_name: String, condition:
 # la réaffiche quand ils sont tous fermés. Le décor 3D reste visible (hors MenuUI).
 func _sync_menu_ui_visibility() -> void:
 	var any_open: bool = false
-	for screen: CanvasLayer in [$ShopScreen, $SettingsScreen, $MissionsScreen, $CoopConfigScreen, $CampaignScreen, $ChapterReader]:
+	for screen: CanvasLayer in [$ShopScreen, $SettingsScreen, $MissionsScreen, $CoopConfigScreen, $CampaignScreen, $ChapterReader, $ChapterEndScreen]:
 		if screen.visible:
 			any_open = true
 			break
@@ -106,18 +106,37 @@ func _on_campagne_pressed() -> void:
 # chapitre courant ; si une outro est en attente (chapitre à texte "after" tout juste réussi),
 # l'affiche par-dessus en lecture seule. Puis coupe le contexte campagne.
 func _handle_story_return() -> void:
-	if not Story.active and Story.pending_outro <= 0:
+	if not Story.active and Story.pending_outro <= 0 and Story.pending_reward <= 0:
 		return
 	var outro: int = Story.pending_outro
+	var reward_n: int = Story.pending_reward   # chapitre dont le pop-up réussite reste à afficher
 	Story.pending_outro = 0
+	Story.pending_reward = 0
 	Story.clear()
 	var campaign := get_tree().get_first_node_in_group("campaign_screen")
 	if campaign:
 		campaign.open()
 	if outro > 0:
+		# Lit l'HISTOIRE (outro) d'abord ; à sa fermeture, le pop-up récompense s'affiche
+		# PAR-DESSUS la carte (nouvel ordre : niveau → histoire → pop-up réussite).
 		var reader := get_tree().get_first_node_in_group("chapter_reader")
 		if reader:
+			if reward_n > 0:
+				reader.outro_closed.connect(
+					func(_cn: int) -> void: _show_reward_popup(reward_n),
+					CONNECT_ONE_SHOT)
 			reader.open_chapter(outro, "outro")
+	elif reward_n > 0:
+		# Chapitre sans outro (cas théorique : tous les jouables sont "after" aujourd'hui) →
+		# pop-up récompense directement sur la carte.
+		_show_reward_popup(reward_n)
+
+# Pop-up "CHAPITRE RÉUSSI" + pièces, affiché PAR-DESSUS la carte au menu. Il n'AFFICHE que le
+# gain (déjà crédité à la victoire via Story.complete_chapter) ; son bouton referme le pop-up.
+func _show_reward_popup(n: int) -> void:
+	var screen := get_tree().get_first_node_in_group("chapter_end_screen")
+	if screen:
+		screen.show_reward(n)
 
 # Rafraîchit les boutons de mode + stats après une complétion de chapitre (la carte appelle
 # ça quand un chapitre débloque Classique (ch.1) ou Jetpack (ch.20)). Le menu reste chargé

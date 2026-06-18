@@ -13,6 +13,8 @@ class_name ChapterReader
 
 signal chapter_closed(n: int)   # émis après complétion d'une narration (carte reconstruite / menu rafraîchi)
 signal play_requested(n: int)   # JOUER sur un chapitre jouable → la carte lance le niveau
+signal outro_closed(n: int)     # émis quand l'outro (texte "after" post-victoire) est refermé →
+                                # le menu enchaîne le pop-up "Chapitre réussi" + pièces par-dessus
 
 const FADE_TIME: float = 0.3
 
@@ -136,7 +138,9 @@ func _on_action() -> void:
 		"play_before":
 			await _request_play()   # JOUER → la carte lance le niveau (et fait la complétion à la victoire)
 		"outro":
-			await _close_only()     # texte déjà "complété" en jeu → simple retour carte
+			var on: int = _n
+			await _close_only()     # texte déjà "complété" en jeu → retour carte
+			outro_closed.emit(on)   # → le menu affiche le pop-up récompense par-dessus (si dû)
 		_:                          # "story" : narration → lire = compléter
 			await _complete_and_close()
 

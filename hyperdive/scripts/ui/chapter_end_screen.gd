@@ -1,18 +1,19 @@
 extends CanvasLayer
 class_name ChapterEndScreen
-# Overlay de fin de chapitre HISTOIRE, en surcouche sur le jeu (le décor reste derrière, flouté).
-# Deux états :
-#   VICTOIRE : "Chapitre réussi" + pièces gagnées + CONTINUER (→ outro si "after", sinon carte).
-#   ÉCHEC    : "Tu es tombé" + RÉESSAYER (relance le même chapitre) + RETOUR CAMPAGNE.
-# Échec = retry illimité doux : aucune stat, aucune perte (le chapitre n'est complété qu'en jeu,
-# sur objectif atteint — pas ici).
+# Overlay de fin de chapitre HISTOIRE. Deux états / deux contextes :
+#   RÉCOMPENSE (au MENU, par-dessus la carte) : "Chapitre réussi" + pièces gagnées + CONTINUER.
+#       Affiché APRÈS l'outro (nouvel ordre : niveau → histoire → pop-up réussite). Il n'AFFICHE
+#       que le gain — les pièces ont déjà été créditées à la victoire (Story.complete_chapter) —
+#       et son bouton ne fait que refermer le pop-up (retour carte). Pas de pause de l'arbre.
+#   ÉCHEC (en JEU, par-dessus le jeu) : "Tu es tombé" + RÉESSAYER (relance le même chapitre)
+#       + RETOUR CAMPAGNE. Retry illimité doux : aucune stat, aucune perte.
+# NB : le ch.1 "2028" (mort = réussite) ne déclenche PAS le pop-up récompense (flux sombre voulu).
 
 const GOLD: Color = Color(0.949, 0.757, 0.306)
 const CREAM: Color = Color(0.957, 0.914, 0.804)
 
 var _n: int = 0
-var _has_outro: bool = false
-var _mode: String = ""   # "victory" | "failure"
+var _mode: String = ""   # "reward" (menu) | "failure" (jeu)
 
 func _ready() -> void:
 	add_to_group("chapter_end_screen")
@@ -21,21 +22,24 @@ func _ready() -> void:
 	UIAnimations.wire_buttons(self)
 	UIAnimations.make_glass_panel($Content)
 
-func show_victory(n: int, reward: int, has_outro: bool) -> void:
+# Pop-up de réussite au MENU (par-dessus la carte), après l'outro. AFFICHE seulement le gain.
+func show_reward(n: int) -> void:
 	_n = n
-	_mode = "victory"
-	_has_outro = has_outro
+	_mode = "reward"
 	%TitleLabel.text = "CHAPITRE RÉUSSI"
 	%RewardLabel.visible = true
-	%RewardLabel.text = "+ " + UIAnimations.format_number(reward) + " pièces"
+	%RewardLabel.text = "+ " + UIAnimations.format_number(Story.chapter_reward(n)) + " pièces"
 	%PrimaryButton.text = "CONTINUER"
 	%SecondaryButton.visible = false
 	# Son triomphant de réussite (bus SFX, non ducké). Gaté par chapitre : un chapitre marqué
-	# "no_win_sfx" reste silencieux. Le ch.1 "descent" ne passe pas ici (mort = réussite → outro),
-	# donc l'impact "2028" n'est jamais accompagné de la fanfare.
+	# "no_win_sfx" reste silencieux.
 	if Story.chapter_plays_win_sfx(n):
 		Audio.play_level_complete()
-	_open()
+	# Contexte MENU : on N'arrête PAS l'arbre (la carte vit derrière, animée). On ne fait
+	# qu'ouvrir le pop-up par-dessus.
+	Audio.duck_music()
+	visible = true
+	UIAnimations.pop_in($Content, $Tint)
 
 func show_failure(n: int) -> void:
 	_n = n
@@ -59,14 +63,15 @@ func _open() -> void:
 
 func _on_primary() -> void:
 	Audio.play_ui_click()
-	_leave_game()
-	if _mode == "failure":
-		Transition.reload_scene()   # même chapitre (Story.active persiste) → retry illimité
+	if _mode == "reward":
+		# Contexte MENU : on referme simplement le pop-up (la carte est déjà derrière). Pas de
+		# changement de scène, pas d'arbre en pause à relâcher.
+		Audio.unduck_music()
+		visible = false
 		return
-	# Victoire : si le chapitre a un texte "after", on le lit (outro) au retour ; sinon carte directe.
-	if _has_outro:
-		Story.pending_outro = _n
-	Transition.change_scene("res://scenes/ui/main_menu.tscn")
+	# Échec (en jeu) : on relance le même chapitre (Story.active persiste) → retry illimité.
+	_leave_game()
+	Transition.reload_scene()
 
 func _on_secondary() -> void:
 	# Uniquement en échec : retour campagne sans réussir (le chapitre reste à refaire).

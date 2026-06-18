@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="MainMenuScript"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_screen.tscn" id="SettingsScene"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/coop_config_screen.tscn" id="CoopConfigScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/campaign_screen.tscn" id="CampaignScene"]
 [ext_resource type="PackedScene" path="res://scenes/ui/chapter_reader.tscn" id="ReaderScene"]
+[ext_resource type="PackedScene" path="res://scenes/ui/chapter_end_screen.tscn" id="ChapterEndScene"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/corridor_walls.tscn" id="CorridorWallsScene"]
 [ext_resource type="PackedScene" path="res://scenes/effects/post_process.tscn" id="PostProcessScene"]
 [ext_resource type="Script" path="res://scripts/ui/menu_camera.gd" id="MenuCameraScript"]
@@ -183,3 +184,6 @@ stretch_mode = 5
 [node name="CampaignScreen" parent="." instance=ExtResource("CampaignScene")]
 
 [node name="ChapterReader" parent="." instance=ExtResource("ReaderScene")]
+
+[node name="ChapterEndScreen" parent="." instance=ExtResource("ChapterEndScene")]
+layer = 11
