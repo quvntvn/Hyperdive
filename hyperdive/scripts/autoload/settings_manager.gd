@@ -3,9 +3,6 @@ class_name SettingsManager
 
 enum ControlMode { KEYBOARD, TOUCH }
 
-# Seuil de distance (mode infini) qui débloque le jetpack.
-const JETPACK_UNLOCK_DISTANCE: int = 1000
-
 signal control_mode_changed(new_mode: ControlMode)
 signal coin_collected(new_total: int)
 signal owned_skins_changed
@@ -465,8 +462,9 @@ func is_infinite_unlocked() -> bool:
 	return infinite_unlocked
 
 func is_jetpack_unlocked() -> bool:
-	# Débloqué par la campagne (fin du chapitre 20) OU en atteignant 1000 m en mode infini.
-	return jetpack_unlocked or best_infinite_distance >= JETPACK_UNLOCK_DISTANCE
+	# Débloqué UNIQUEMENT par la campagne (complétion du chapitre 20, flag posé par
+	# Story.complete_chapter). Aucune partie arcade ne débloque le Jetpack.
+	return jetpack_unlocked
 
 # Signe vertical centralisé (source de vérité unique pour l'inversion du mode jetpack).
 # +1.0 en jetpack (le joueur MONTE), -1.0 sinon (chute). Tous les scripts lisent ça.
@@ -646,6 +644,11 @@ func load_settings() -> void:
 	story_chapter = cfg.get_value("campaign", "story_chapter", 1)
 	infinite_unlocked = cfg.get_value("campaign", "infinite_unlocked", false)
 	jetpack_unlocked = cfg.get_value("campaign", "jetpack_unlocked", false)
+	# Répare les saves affectés par l'ancien déblocage par distance : si le Jetpack est
+	# marqué débloqué alors que le chapitre 20 n'est PAS complété (story_chapter <= 20),
+	# on le re-verrouille. Le déblocage légitime (ch.20) laisse story_chapter à 21+.
+	if jetpack_unlocked and story_chapter <= 20:
+		jetpack_unlocked = false
 	daily_date = cfg.get_value("daily", "date", "")
 	daily_challenges = cfg.get_value("daily", "challenges", [])
 	daily_progress = cfg.get_value("daily", "progress", {})
