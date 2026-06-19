@@ -26,7 +26,7 @@ var best_distance: int = 0
 var best_infinite_distance: int = 0   # record en mode infini ("Record") — débloque le jetpack à 1000 m
 var best_jetpack_distance: int = 0    # record d'altitude en mode jetpack (défis altitude)
 var infinite_unlocked: bool = false   # passé true à la 1re fin de niveau campagne
-var jetpack_unlocked: bool = false    # passé true à la complétion du chapitre 20 de campagne
+var jetpack_unlocked: bool = false    # passé true à la complétion du chapitre 11 de campagne
 
 # === Stats cumulées pour les défis (persistées) ===
 var coins_lifetime: int = 0           # total de pièces JAMAIS ramassées (ne baisse pas aux achats)
@@ -462,7 +462,7 @@ func is_infinite_unlocked() -> bool:
 	return infinite_unlocked
 
 func is_jetpack_unlocked() -> bool:
-	# Débloqué UNIQUEMENT par la campagne (complétion du chapitre 20, flag posé par
+	# Débloqué UNIQUEMENT par la campagne (complétion du chapitre 11, flag posé par
 	# Story.complete_chapter). Aucune partie arcade ne débloque le Jetpack.
 	return jetpack_unlocked
 
@@ -645,9 +645,9 @@ func load_settings() -> void:
 	infinite_unlocked = cfg.get_value("campaign", "infinite_unlocked", false)
 	jetpack_unlocked = cfg.get_value("campaign", "jetpack_unlocked", false)
 	# Répare les saves affectés par l'ancien déblocage par distance : si le Jetpack est
-	# marqué débloqué alors que le chapitre 20 n'est PAS complété (story_chapter <= 20),
-	# on le re-verrouille. Le déblocage légitime (ch.20) laisse story_chapter à 21+.
-	if jetpack_unlocked and story_chapter <= 20:
+	# marqué débloqué alors que le chapitre 11 n'est PAS complété (story_chapter <= 11),
+	# on le re-verrouille. Le déblocage légitime (ch.11) laisse story_chapter à 12+.
+	if jetpack_unlocked and story_chapter <= 11:
 		jetpack_unlocked = false
 	daily_date = cfg.get_value("daily", "date", "")
 	daily_challenges = cfg.get_value("daily", "challenges", [])

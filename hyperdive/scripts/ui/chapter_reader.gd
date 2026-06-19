@@ -6,7 +6,9 @@ class_name ChapterReader
 # fondu cinématique à l'ouverture/fermeture.
 #
 # Contextes (_ctx) :
-#   "story"       narration → bouton CONTINUER (complète + retour carte)
+#   "story"       narration → bouton CONTINUER (complète + retour carte). VESTIGIAL depuis la
+#                 refonte 40→21 : plus aucun chapitre n'est type:"story", ce contexte n'est plus
+#                 jamais ouvert. Conservé comme fallback inoffensif (open_chapter/_on_action).
 #   "play_before" jouable, intro → bouton JOUER (lance le niveau du chapitre)
 #   "outro"       texte après une victoire (text_when "after") → CONTINUER (lecture seule, retour carte)
 #   "gallery"     relecture → ◀ ▶ parmi les chapitres débloqués + RETOUR (aucune complétion)
@@ -148,7 +150,7 @@ func _complete_and_close() -> void:
 	var n: int = _n
 	await _fade_out()
 	visible = false
-	Story.complete_chapter(n)   # crédite pièces + déblocages (ch.1→Classique, ch.20→Jetpack) + avance
+	Story.complete_chapter(n)   # crédite pièces + déblocages (ch.1→Classique, ch.11→Jetpack) + avance
 	chapter_closed.emit(n)
 
 func _request_play() -> void:

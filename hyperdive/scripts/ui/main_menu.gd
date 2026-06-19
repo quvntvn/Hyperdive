@@ -25,7 +25,7 @@ func _ready() -> void:
 	for screen: CanvasLayer in [$ShopScreen, $SettingsScreen, $MissionsScreen, $CoopConfigScreen, $CampaignScreen, $ChapterReader, $ChapterEndScreen]:
 		screen.visibility_changed.connect(_sync_menu_ui_visibility)
 
-	# Le bouton campagne ouvre la CARTE de l'HISTOIRE (campagne narrative 40 chapitres).
+	# Le bouton campagne ouvre la CARTE de l'HISTOIRE (campagne narrative 21 chapitres jouables).
 	%CampagneButton.text = "HISTOIRE"
 	# Descend l'engrenage sous la safe area (encoche/caméra frontale), avec une marge mini
 	# généreuse même sans encoche pour qu'il ne soit pas collé au bord haut.
@@ -68,7 +68,7 @@ func _update_mode_buttons() -> void:
 		  " best_infinite_distance=", Settings.best_infinite_distance)
 	# Libellés d'AFFICHAGE seulement ; active_mode reste "infinite"/"jetpack" en interne.
 	_set_mode_button(%RecordButton, record_unlocked, "CLASSIQUE", "Termine le chapitre 1")
-	_set_mode_button(%JetpackButton, jetpack_unlocked, "JETPACK", "Termine le chapitre 20")
+	_set_mode_button(%JetpackButton, jetpack_unlocked, "JETPACK", "Termine le chapitre 11")
 
 # Débloqué : texte = nom du mode, cliquable, grande police. Verrouillé : texte = nom +
 # cadenas + condition (2 lignes), grisé, police réduite pour faire tenir la condition.
@@ -99,7 +99,7 @@ func update_stats() -> void:
 
 func _on_campagne_pressed() -> void:
 	Audio.play_ui_click()
-	# Ouvre la CARTE de l'histoire (carte verticale des 40 chapitres) au lieu de lancer un niveau.
+	# Ouvre la CARTE de l'histoire (carte verticale des 21 chapitres) au lieu de lancer un niveau.
 	var campaign := get_tree().get_first_node_in_group("campaign_screen")
 	if campaign:
 		campaign.open()
@@ -141,7 +141,7 @@ func _show_reward_popup(n: int) -> void:
 		screen.show_reward(n)
 
 # Rafraîchit les boutons de mode + stats après une complétion de chapitre (la carte appelle
-# ça quand un chapitre débloque Classique (ch.1) ou Jetpack (ch.20)). Le menu reste chargé
+# ça quand un chapitre débloque Classique (ch.1) ou Jetpack (ch.11)). Le menu reste chargé
 # derrière la carte → il suffit de relire les déblocages/stats.
 func refresh_after_story() -> void:
 	_update_mode_buttons()

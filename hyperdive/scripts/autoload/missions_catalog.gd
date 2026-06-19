@@ -36,12 +36,12 @@ const MISSIONS: Array[Dictionary] = [
 	{"id": "j_dist_10000", "chain": "j_dist", "name": "Acier trempé",         "desc": "Monte à 10 000 m en jetpack",   "type": "jetpack_distance", "target": 10000, "reward": 600, "reward_theme": "steel"},
 
 	# === PALIERS — Histoire (story_chapter : plus haut chapitre atteint) ===
-	{"id": "camp_5",  "chain": "camp", "name": "Apprenti plongeur",  "desc": "Atteins le chapitre 5",  "type": "story_chapter", "target": 5,  "reward": 50},
-	{"id": "camp_10", "chain": "camp", "name": "Vétéran",             "desc": "Atteins le chapitre 10", "type": "story_chapter", "target": 10, "reward": 100},
-	{"id": "camp_15", "chain": "camp", "name": "Confirmé",            "desc": "Atteins le chapitre 15", "type": "story_chapter", "target": 15, "reward": 180},
-	{"id": "camp_20", "chain": "camp", "name": "Expert",              "desc": "Atteins le chapitre 20", "type": "story_chapter", "target": 20, "reward": 280},
-	{"id": "camp_30", "chain": "camp", "name": "Maître",              "desc": "Atteins le chapitre 30", "type": "story_chapter", "target": 30, "reward": 400},
-	{"id": "camp_40", "chain": "camp", "name": "Légende de 1962",     "desc": "Atteins le chapitre 40", "type": "story_chapter", "target": 40, "reward": 800},
+	{"id": "camp_3",  "chain": "camp", "name": "Apprenti plongeur",  "desc": "Atteins le chapitre 3",  "type": "story_chapter", "target": 3,  "reward": 50},
+	{"id": "camp_7",  "chain": "camp", "name": "Vétéran",             "desc": "Atteins le chapitre 7",  "type": "story_chapter", "target": 7,  "reward": 100},
+	{"id": "camp_11", "chain": "camp", "name": "Confirmé",            "desc": "Atteins le chapitre 11", "type": "story_chapter", "target": 11, "reward": 180},
+	{"id": "camp_15", "chain": "camp", "name": "Expert",              "desc": "Atteins le chapitre 15", "type": "story_chapter", "target": 15, "reward": 280},
+	{"id": "camp_18", "chain": "camp", "name": "Maître",              "desc": "Atteins le chapitre 18", "type": "story_chapter", "target": 18, "reward": 400},
+	{"id": "camp_21", "chain": "camp", "name": "Légende de 1962",     "desc": "Atteins le chapitre 21", "type": "story_chapter", "target": 21, "reward": 800},
 
 	# === PALIERS — Pièces cumulées (coins_lifetime) ===
 	{"id": "coins_500",   "chain": "coins", "name": "Économe",            "desc": "Ramasse 500 pièces au total",    "type": "coins_lifetime", "target": 500,   "reward": 30},
