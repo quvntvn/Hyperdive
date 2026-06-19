@@ -123,14 +123,13 @@ func set_sfx_volume(v: float) -> void:
 
 # Retour haptique centralisé. No-op si désactivé (option réglages) ou hors mobile.
 # On teste OS.get_name() (fiable sur l'APK) plutôt que has_feature("mobile") qui pouvait
-# court-circuiter la vibration. Log debug temporaire pour diagnostiquer sur appareil.
+# court-circuiter la vibration.
 func vibrate(duration_ms: int) -> void:
 	if not vibration_enabled:
 		return
 	var os_name: String = OS.get_name()
 	if os_name != "Android" and os_name != "iOS":
 		return
-	print("[haptic] vibrate called ", duration_ms, " ms (os=", os_name, ")")
 	Input.vibrate_handheld(duration_ms)
 
 func set_vibration_enabled(v: bool) -> void:
@@ -512,50 +511,6 @@ func _keep_existing(owned: Array[String], catalog: Array, fallback: String) -> A
 	if not fallback in result:
 		result.insert(0, fallback)
 	return result
-
-# DEBUG TEMP — débloque TOUT (cosmétiques + pièces) ET pousse les stats à fond pour
-# tester l'affichage/le flux des défis. À RETIRER avant la sortie. Déclenché par la
-# touche "U" / appui long sur le titre (main_menu).
-# NB : on NE marque PAS claimed_missions → les défis restent RÉCLAMABLES (on teste le flux
-# de claim). Les cosmétiques exclusifs sont quand même ajoutés en direct à owned_* pour
-# pouvoir les équiper tout de suite.
-func debug_unlock_all() -> void:
-	for skin in Catalog.SKINS:
-		if not skin["id"] in owned_skins:
-			owned_skins.append(skin["id"])
-	for trail in Catalog.TRAILS:
-		if not trail["id"] in owned_trails:
-			owned_trails.append(trail["id"])
-	for theme in Catalog.THEMES:
-		if not theme["id"] in owned_themes:
-			owned_themes.append(theme["id"])
-	coins_total = 99999
-	# Stats à fond → tous les défis (paliers + exploits) apparaissent complétés/réclamables.
-	best_infinite_distance = 999999
-	best_jetpack_distance = 999999
-	best_distance = 999999
-	coins_lifetime = 999999
-	total_games = 9999
-	games_infinite = 9999
-	games_jetpack = 9999
-	games_campaign = 9999
-	total_deaths = 9999
-	total_obstacles_dodged = 999999
-	best_obstacles_run = 9999
-	best_coins_run = 9999
-	best_no_wall_time = 9999
-	powerups_used = ["shield", "slowmo", "magnet", "boost"]
-	ascetic_done = true
-	story_chapter = Story.chapter_count()   # DEBUG : tous les chapitres de l'HISTOIRE débloqués/jouables
-	infinite_unlocked = true
-	jetpack_unlocked = true
-	owned_skins_changed.emit()
-	owned_trails_changed.emit()
-	owned_themes_changed.emit()
-	coin_collected.emit(coins_total)
-	mission_claimed.emit()   # rafraîchit l'écran des défis s'il est ouvert
-	save_settings()
-	print("[debug] tout débloqué (cosmétiques + stats à fond, défis réclamables)")
 
 func save_settings() -> void:
 	var cfg: ConfigFile = ConfigFile.new()

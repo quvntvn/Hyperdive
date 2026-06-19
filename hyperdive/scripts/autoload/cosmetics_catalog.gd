@@ -79,9 +79,9 @@ const THEMES: Array[Dictionary] = [
 
 # Thèmes CAMPAGNE (arc visuel narratif) : imposés automatiquement par chapitre via
 # Story.current_theme_id(), JAMAIS vendus ni équipables. Tableau SÉPARÉ de THEMES exprès :
-# le shop, le défi "Décorateur" (all_shop_themes), debug_unlock_all et la validation de save
-# itèrent THEMES → les thèmes campagne leur restent invisibles. Même structure (price -1
-# par homogénéité avec les exclusifs), résolus par get_theme() comme les autres.
+# le shop, le défi "Décorateur" (all_shop_themes) et la validation de save itèrent THEMES
+# → les thèmes campagne leur restent invisibles. Même structure (price -1 par homogénéité
+# avec les exclusifs), résolus par get_theme() comme les autres.
 const CAMPAIGN_THEMES: Array[Dictionary] = [
 	# Simulation : froid numérique, irréel — cyan électrique sur noir, sensation de machine.
 	{"id": "simulation", "name": "Simulation",   "wall_color": Color(0.03, 0.10, 0.11), "line_color": Color(0.30, 1.00, 0.95), "sky_top": Color(0.01, 0.05, 0.06), "sky_horizon": Color(0.08, 0.42, 0.45), "price": -1},

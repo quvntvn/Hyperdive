@@ -268,14 +268,12 @@ Hooks (un seul point chacun) : `register_run_start`, `register_obstacle_dodged` 
 - Bugs visuels difficiles -> mode debug systématique (exagérer/colorer pour confirmer, puis doser).
 - Gros morceaux -> rapport + proposition avant de coder.
 
-## Outils DEBUG TEMP en place (À RETIRER avant distribution)
+## Outils DEBUG TEMP
 
-- **Log `[haptic]`** dans `Settings.vibrate` (print à chaque vibration).
-- NB : les déclencheurs de `Settings.debug_unlock_all()` (touche `U`, appui long sur le titre) et le saut de chapitre PageUp/PageDown de la carte ont été RETIRÉS pour la release. La fonction `debug_unlock_all()` reste dans `settings_manager.gd` mais n'est plus appelée (inerte).
+- **Plus AUCUN outil debug** : tous retirés pour la release. Retirés successivement : déclencheurs de `debug_unlock_all()` (touche `U` + appui long titre), saut de chapitre PageUp/PageDown de la carte, la fonction `debug_unlock_all()` elle-même, et le log `[haptic]` de `Settings.vibrate`.
 
 ## PENDING connus (avant distribution)
 
-- **Retirer le log `[haptic]`** dans `Settings.vibrate` (dernier outil debug restant ; les déclencheurs unlock + PageUp/PageDown sont déjà retirés).
 - **Images des 40 chapitres** : ajouter `assets/story/ch01.png` … `ch40.png` (le lecteur affiche un placeholder dégradé tant qu'elles manquent).
 - **Keystore release** : configurer une signature de release (actuellement debug) pour le Play Store.
 - **Permission VIBRATE** : re-vérifier qu'elle est cochée dans l'export Android avant chaque build (l'éditeur la décoche).
