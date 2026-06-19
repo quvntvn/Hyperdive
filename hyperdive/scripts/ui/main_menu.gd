@@ -53,10 +53,6 @@ func _ready() -> void:
 	# visibilité ci-dessus → l'ouverture de la carte masque bien l'UI du menu.
 	_handle_story_return()
 
-	# DEBUG TEMP — appui long (~0.8s) sur le titre HYPERDIVE débloque tout. À RETIRER.
-	%TitleLabel.mouse_filter = Control.MOUSE_FILTER_STOP
-	%TitleLabel.gui_input.connect(_on_title_debug_input)
-
 # Campagne toujours jouable. Record (infini) et Jetpack restent affichés mais GRISÉS
 # (disabled) tant que verrouillés. La condition de déblocage est écrite DANS le bouton
 # (pas de label séparé). Relu à CHAQUE _ready → un mode débloqué en jeu apparaît au retour.
@@ -229,21 +225,3 @@ func _animate_title() -> void:
 	var tween: Tween = create_tween().set_loops()
 	tween.tween_property(%TitleLabel, "modulate", Color(1.15, 1.15, 1.15, 1.0), 1.8).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(%TitleLabel, "modulate", Color(1.0, 1.0, 1.0, 1.0), 1.8).set_trans(Tween.TRANS_SINE)
-
-# DEBUG TEMP — débloquer tous les cosmétiques pour le test (à retirer avant la sortie).
-var _title_holding: bool = false
-
-func _on_title_debug_input(event: InputEvent) -> void:
-	if event is InputEventScreenTouch or event is InputEventMouseButton:
-		if event.pressed:
-			_title_holding = true
-			await get_tree().create_timer(0.8).timeout
-			if _title_holding:
-				_title_holding = false
-				Settings.debug_unlock_all()
-		else:
-			_title_holding = false
-
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_U:
-		Settings.debug_unlock_all()

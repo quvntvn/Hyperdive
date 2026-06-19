@@ -339,19 +339,3 @@ func _center_on_current() -> void:
 	var target: float = _centers[ci].y - view_h * 0.5
 	var max_s: float = maxf(0.0, _map.custom_minimum_size.y - view_h)
 	_scroll.scroll_vertical = int(clampf(target, 0.0, max_s))
-
-# DEBUG TEMP — PageUp/PageDown : avance/recule la progression d'un chapitre pour tester les
-# états (courant/complété/verrouillé) et lancer chute ET jetpack sans tout dérouler. À RETIRER.
-func _unhandled_input(event: InputEvent) -> void:
-	if not visible:
-		return
-	if event is InputEventKey and event.pressed and not event.echo:
-		var delta: int = 0
-		if event.keycode == KEY_PAGEUP:
-			delta = 1
-		elif event.keycode == KEY_PAGEDOWN:
-			delta = -1
-		if delta != 0:
-			Settings.story_chapter = clampi(Settings.story_chapter + delta, 1, Story.chapter_count())
-			Settings.save_settings()
-			_on_chapter_closed(Settings.story_chapter)   # rebuild + recentre + rafraîchit le menu

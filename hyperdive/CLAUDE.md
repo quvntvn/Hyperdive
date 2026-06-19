@@ -1,8 +1,8 @@
-# Hyperdive — Briefing de reprise pour Claude assistant
+# Vertige Protocol — Briefing de reprise pour Claude assistant
 
 ## Qui je suis et comment on bosse
 
-Je m'appelle Quvntvn (GitHub) / Hulku, dev intermédiaire sur Windows. Je développe Hyperdive, un jeu mobile Android portrait. J'utilise **Claude Code (CLI, Opus 4.8, Claude Pro)** pour l'exécution dans le repo, et je discute avec toi (Claude claude.ai) pour la stratégie : tu me donnes des prompts à coller dans Claude Code.
+Je m'appelle Quvntvn (GitHub) / Hulku, dev intermédiaire sur Windows. Je développe Vertige Protocol (nom affiché du jeu ; le dossier, le repo et l'APK gardent le nom de code « Hyperdive »), un jeu mobile Android portrait. J'utilise **Claude Code (CLI, Opus 4.8, Claude Pro)** pour l'exécution dans le repo, et je discute avec toi (Claude claude.ai) pour la stratégie : tu me donnes des prompts à coller dans Claude Code.
 
 Dossier projet : `C:\Users\Hulku\Desktop\autre\dev\Hyperdive\hyperdive`. Git `origin/main` configuré, Claude Code auto-push à la fin de chaque tâche. `CLAUDE.md` à la racine décrit le contexte permanent.
 
@@ -14,9 +14,9 @@ Style attendu :
 - En cas de bug visuel "ça ne s'affiche pas", utilise le **mode debug** : rendre le truc volontairement TRÈS visible (couleurs vives, grande taille) pour confirmer qu'il se rend, puis doser.
 - Pour les gros morceaux (nouveau mode, gros contenu), faire un RAPPORT d'analyse + proposition AVANT de coder, qu'on valide ensemble.
 
-## Le jeu — Hyperdive
+## Le jeu — Vertige Protocol
 
-Jeu de chute libre Android portrait, style Falling Fred mais avec une DA forte, doublé d'une **campagne narrative de 40 chapitres** (l'histoire de Hyperdive).
+Jeu de chute libre Android portrait, style Falling Fred mais avec une DA forte, doublé d'une **campagne narrative de 40 chapitres** (l'histoire de Vertige Protocol).
 
 **Direction artistique du JEU (3D) : Mid-Century rétrofuturisme** (Les Indestructibles, Googie, Atomic Age). Palette stricte 7 couleurs :
 - Orange brûlé `#E94F37`
@@ -89,7 +89,7 @@ Pass-and-play LOCAL : 2 à 5 joueurs se passent le téléphone. `Coop.active` = 
 
 ### Campagne narrative — détail (autoload `Story`)
 
-L'histoire de Hyperdive en **40 chapitres** (`story.gd`, const `CHAPTERS`). Chaque chapitre : `{n, title, text, image, type}`. `type` = **"story"** (narration : lire pour avancer) ou **"play"** (jouable : un niveau à réussir). Répartition : 19 narration + 21 jouables (15 chute, 6 jetpack). Textes définitifs en place ; les IMAGES (`assets/story/ch01-40.png`) ne sont PAS encore présentes → placeholder dégradé élégant par chapitre (jamais cassé).
+L'histoire de Vertige Protocol en **40 chapitres** (`story.gd`, const `CHAPTERS`). Chaque chapitre : `{n, title, text, image, type}`. `type` = **"story"** (narration : lire pour avancer) ou **"play"** (jouable : un niveau à réussir). Répartition : 19 narration + 21 jouables (15 chute, 6 jetpack). Textes définitifs en place ; les IMAGES (`assets/story/ch01-40.png`) ne sont PAS encore présentes → placeholder dégradé élégant par chapitre (jamais cassé).
 
 - **Progression** : `Settings.story_chapter` (persisté), débloquage LINÉAIRE. `story_chapter` = plus haut chapitre débloqué = chapitre COURANT. `< courant` = complété, `> courant` = verrouillé.
 - **Difficulté progressive** (`Story.speed_factor()`) : multiplie la VITESSE DE BASE du chapitre, linéaire `1.0 + (n-1)/(CHAPTERS.size()-1) * 0.75` → ×1.0 au ch.1, ×1.75 au ch.40 (PLAFONNÉ à 1.75 — le ×2.0 initial rendait la fin trop dure). Appliqué une seule fois dans `player._ready` (`_base_max_speed = MAX_FALL_SPEED * Story.speed_factor()`, valeur posée direct, pas de rampe d'amorçage). La rampe interne d'un run (+10 %/1000 m) joue PAR-DESSUS, inchangée. ×1.0 hors campagne (solo/coop). Le ch.1 "descent" reste à ×1.0 par la formule (timing d'ouverture intouché).
@@ -270,13 +270,12 @@ Hooks (un seul point chacun) : `register_run_start`, `register_obstacle_dodged` 
 
 ## Outils DEBUG TEMP en place (À RETIRER avant distribution)
 
-- **Touche `U`** (clavier) / **appui long ~0.8s sur le titre HYPERDIVE** (menu) → `Settings.debug_unlock_all()` : débloque tous les cosmétiques + 99999 pièces + toutes les stats à fond + tous les chapitres (`story_chapter = chapter_count`) + modes débloqués. Ne marque PAS les défis claimed (on teste le flux de claim).
-- **PageUp / PageDown** sur la carte campagne → avance/recule `story_chapter` d'un chapitre (tester états + lancer chute/jetpack sans tout dérouler).
 - **Log `[haptic]`** dans `Settings.vibrate` (print à chaque vibration).
+- NB : les déclencheurs de `Settings.debug_unlock_all()` (touche `U`, appui long sur le titre) et le saut de chapitre PageUp/PageDown de la carte ont été RETIRÉS pour la release. La fonction `debug_unlock_all()` reste dans `settings_manager.gd` mais n'est plus appelée (inerte).
 
 ## PENDING connus (avant distribution)
 
-- **Retirer les outils debug** ci-dessus (touche U / appui long titre, PageUp/PageDown carte, log `[haptic]`).
+- **Retirer le log `[haptic]`** dans `Settings.vibrate` (dernier outil debug restant ; les déclencheurs unlock + PageUp/PageDown sont déjà retirés).
 - **Images des 40 chapitres** : ajouter `assets/story/ch01.png` … `ch40.png` (le lecteur affiche un placeholder dégradé tant qu'elles manquent).
 - **Keystore release** : configurer une signature de release (actuellement debug) pour le Play Store.
 - **Permission VIBRATE** : re-vérifier qu'elle est cochée dans l'export Android avant chaque build (l'éditeur la décoche).
