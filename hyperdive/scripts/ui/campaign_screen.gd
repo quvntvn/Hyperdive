@@ -1,14 +1,12 @@
 extends CanvasLayer
 class_name CampaignScreen
 # Carte de campagne : un CHEMIN vertical en zig-zag entre les deux tours de Vertex, avec les
-# 21 chapitres (tous jouables) en nœuds le long du parcours. Scroll haut→bas (ch.1 en haut →
-# ch.21 en bas) ; un nœud "pivot" au ch.11 marque l'inversion narrative (chute → jetpack).
-# Ouverture centrée sur le chapitre courant. Même facture verre que les autres écrans pleins.
+# 40 chapitres en nœuds le long du parcours. Scroll haut→bas (ch.1 en haut → ch.40 en bas) ;
+# un nœud "pivot" au ch.20 marque l'inversion narrative (chute → jetpack). Ouverture centrée
+# sur le chapitre courant. Même facture verre que les autres écrans pleins (backdrop-blur + tint).
 #
-# Tout le contenu de la carte est construit en code (nœuds + tours + chemin) → reconstruit à
+# Tout le contenu de la carte est construit en code (40 nœuds + tours + chemin) → reconstruit à
 # chaque ouverture et après chaque complétion (la progression peut avoir avancé).
-# NB : tous les chapitres étant désormais type:"play", le code couleur/logo « narration »
-# (CREME + READ_ICON, branche is_story) est conservé mais ne s'active plus jamais.
 
 const TOWER_SHADER: String = "res://assets/shaders/tower_windows.gdshader"
 const LOCK_ICON: String = "res://assets/ui/lock_icon.svg"
@@ -113,7 +111,7 @@ func _on_chapter_closed(_n: int) -> void:
 	_build()
 	await get_tree().process_frame
 	_center_on_current()
-	# Un chapitre complété peut avoir débloqué Classique (ch.1) ou Jetpack (ch.11) → rafraîchir
+	# Un chapitre complété peut avoir débloqué Classique (ch.1) ou Jetpack (ch.20) → rafraîchir
 	# les boutons du menu (qui reste chargé derrière) et les stats.
 	var menu := get_parent()
 	if menu != null and menu.has_method("refresh_after_story"):
@@ -252,9 +250,8 @@ func _add_node(i: int) -> void:
 	if completed:
 		_add_label("✓", 18, tcol, Vector2(center.x + d * 0.12, center.y - d * 0.55), 24.0)
 
-	# Marquage PIVOT au ch.11 (dernier niveau chute ; sa complétion débloque le jetpack et son
-	# outro porte le beat « L'inversion ») : flèches ↓↑ au-dessus du nœud.
-	if n == 11:
+	# Marquage PIVOT au ch.20 (inversion chute → jetpack) : flèches ↓↑ au-dessus du nœud.
+	if n == 20:
 		_add_label("↓  ↑", 22, JAUNE, Vector2(center.x - 60.0, center.y - d * 0.5 - 30.0), 120.0)
 
 func _add_label(txt: String, font_size: int, color: Color, pos: Vector2, width: float, two_lines: bool = false) -> void:
