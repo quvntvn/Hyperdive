@@ -490,6 +490,16 @@ func _best_single_score(p: int, last_round: int) -> int:
 		best = maxi(best, int(scores[p][r]))
 	return best
 
+# Meilleur score INDIVIDUEL du tournoi EN COURS, sur les manches 0..last_round inclus, tous joueurs
+# confondus. Sert l'affichage inter-manche (≠ record perso, jamais lu ici). RAZ implicite à chaque
+# start_session (scores rempli de 0). NB MIX : en mode Mix les manches mélangent classique (distance)
+# et jetpack (altitude) — on prend le max BRUT, l'unité "m" est commune mais la sémantique diffère.
+func tournament_best_through(last_round: int) -> int:
+	var best: int = 0
+	for p in range(num_players):
+		best = maxi(best, _best_single_score(p, last_round))
+	return best
+
 func _rounds_won(p: int, last_round: int) -> int:
 	var won: int = 0
 	for r in range(mini(last_round + 1, num_rounds)):

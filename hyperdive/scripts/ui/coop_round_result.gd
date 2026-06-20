@@ -62,18 +62,19 @@ func _populate_records(r: int) -> void:
 	best_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(best_lbl)
 
-	# Record perso du mode (référence) — purement informatif, jamais écrit par le tournoi.
-	var mode: String = Coop.current_mode()
-	var record: int = Coop.mode_personal_record(mode)
+	# Meilleur score du TOURNOI EN COURS (max individuel toutes manches jouées, tous joueurs) —
+	# PAS le record perso (qui n'est jamais touché par le tournoi). RAZ à chaque nouveau tournoi.
+	var best_tourn: int = Coop.tournament_best_through(r)
 	var rec_lbl := _label(
-		"Record %s : %s m" % [Coop.mode_label(mode), UIAnimations.format_number(record)],
+		"Meilleur du tournoi : %s m" % UIAnimations.format_number(best_tourn),
 		18, TEXT_DIM)
 	rec_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(rec_lbl)
 
-	# Mise en avant si le round a dépassé le record perso (sans rien écrire dans les stats).
-	if top_score > record:
-		var beat := _label("RECORD BATTU !", 20, TEXT_GOLD)
+	# Mise en avant si CE round établit (ou égale) le meilleur du tournoi : le top du round EST
+	# le meilleur du tournoi → nouveau sommet posé cette manche.
+	if top_score >= best_tourn and top_score > 0:
+		var beat := _label("MEILLEUR DU TOURNOI !", 20, TEXT_GOLD)
 		beat.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		beat.add_theme_color_override("font_outline_color", Color.WHITE)
 		beat.add_theme_constant_override("outline_size", 2)
