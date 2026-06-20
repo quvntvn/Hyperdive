@@ -27,10 +27,14 @@ const PULSE_PERIOD := 1.2          # période de la pulsation (s)
 # l'altimètre restant passe sous le seuil. Monotone décroissant → ordre garanti.
 const TEXT2_AT_M := 130.0          # texte 2 « Attrape les bonus ! » (juste avant la rangée)
 const ROW1_AT_M := 120.0           # rangée de power-up slow-time (unique)
-const TEXT2_FADE_AT_M := 95.0      # fondu du texte 2
+const TEXT2_FADE_AT_M := 55.0      # fondu du texte 2 — juste APRÈS le ramassage (≈ remaining 60 m)
 const TEXT3_AT_M := 45.0           # texte 3 « La mort est inévitable » (reste jusqu'à l'impact)
 
-const ROW_LEAD := 14.0             # rangée posée à 14 m devant (dir) le joueur au déclenchement
+# Distance de pose de la rangée DEVANT le joueur (dir-relatif). = ObstacleSpawner.SPAWN_AHEAD (60)
+# pour qu'elle ENTRE depuis la profondeur comme les obstacles normaux (on la voit venir) au lieu de
+# « pop » à 14 m devant le visage. Déclenchée à remaining 120 m → la rangée se pose à remaining 60 m,
+# le joueur la ramasse en tombant vers elle (le texte 2 tient jusqu'à TEXT2_FADE_AT_M = 55 m).
+const ROW_LEAD := 60.0
 const ROW_CLEAR_HALF := 8.0        # demi-bande sans obstacle autour de la rangée
 const ROW_X_MIN := -5.0            # rangée pleine largeur (couloir = ±4,5)
 const ROW_X_MAX := 5.0
