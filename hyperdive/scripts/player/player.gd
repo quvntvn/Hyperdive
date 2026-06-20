@@ -8,18 +8,21 @@ const TOUCH_FOLLOW_SPEED: float = 16.0   # finger-follow ×2 (plus réactif)
 const TRAIL_BASE_AMOUNT: int = 40
 const WALL_HIT_COOLDOWN: float = 0.3
 const CHARACTER_BASE_ROT := Vector3(205.0, 0.0, 0.0)
-# Pose FUSÉE (mode jetpack) : perso droit légèrement penché en avant, bras RELEVÉS au-dessus
-# de la tête (V vers le haut, un peu en arrière vers la caméra), jambes serrées/tendues en traîne.
-# Séparé de la pose plongeon pour ne pas la casser. Le mesh de bras pend vers -Y depuis l'épaule :
-# Z≈155° le fait pointer vers le HAUT (180 = vertical) en gardant ±25° d'écart → V lisible de dos ;
-# X positif penche les bras en arrière (+Z = côté caméra). Jambes : X négatif les fait traîner en
-# arrière, Z faible vers le centre = jointes. Valeurs de DÉPART à doser.
+# Pose FUSÉE (mode jetpack) : perso droit légèrement penché en avant. Jambes serrées/tendues en
+# traîne, tête relevée. Séparé de la pose plongeon pour ne pas la casser. Valeurs de DÉPART à doser.
 const JETPACK_CHARACTER_ROT := Vector3(-12.0, 0.0, 0.0)
-const JETPACK_ARM_L := Vector3(15.0, 0.0, 155.0)
-const JETPACK_ARM_R := Vector3(15.0, 0.0, -155.0)
 const JETPACK_LEG_L := Vector3(-8.0, 0.0, 4.0)
 const JETPACK_LEG_R := Vector3(-8.0, 0.0, -4.0)
 const JETPACK_HEAD := Vector3(-6.0, 0.0, 0.0)
+# BRAS en jetpack (SOURCE DE VÉRITÉ UNIQUE — gérés à part, hors de _apply_rocket_pose) : pendent
+# vers le BAS le long du torse. Le mesh de bras pointe déjà vers -Y depuis l'épaule → base ≈ repos,
+# Z faible vers le centre = légèrement rentrés contre le corps. Symétriques G/D.
+const JETPACK_ARM_DOWN_L := Vector3(0.0, 0.0, 5.0)
+const JETPACK_ARM_DOWN_R := Vector3(0.0, 0.0, -5.0)
+# Tremblement des bras (vent de montée qui les plaque) : oscillation RAPIDE faible amplitude,
+# mélange sin haute fréquence + jitter incommensurable (casse la régularité), phases G/D distinctes.
+const JETPACK_ARM_TREMBLE_AMP: float = 4.5    # degrés (≈ ±3-6)
+const JETPACK_ARM_TREMBLE_FREQ: float = 22.0  # rad/s, rapide
 const SLOWMO_DURATION: float = 4.5    # allonge (etait 3.0) pour savourer le slow-motion
 const SLOWMO_FACTOR: float = 0.5
 const MAGNET_DURATION: float = 8.0    # le plus long (effet passif utilitaire), etait 5.0
@@ -978,18 +981,33 @@ func _process(delta: float) -> void:
 	# rien à faire ici : ses membres sont des ressorts intégrés dans _physics_process (_apply_limb_springs).
 	if Settings.active_mode == "jetpack":
 		_apply_rocket_pose(delta)
+		# BRAS : source de vérité séparée (pose vers le bas + tremblement rapide). Phases G/D
+		# distinctes pour qu'ils ne tremblent pas à l'unisson.
+		_apply_jetpack_arm_tremble($Character/ArmLeftPivot,  JETPACK_ARM_DOWN_L, 0.0)
+		_apply_jetpack_arm_tremble($Character/ArmRightPivot, JETPACK_ARM_DOWN_R, 1.9)
 
-# Pose fusée VIVANTE : oscillation légère et subtile autour des bases JETPACK (≈25 %
-# de l'amplitude du sway chute), pilotée par sin + un peu de vélocité latérale.
+# Pose fusée VIVANTE des JAMBES/TÊTE : oscillation légère et subtile autour des bases JETPACK
+# (≈25 % de l'amplitude du sway chute), pilotée par sin + un peu de vélocité latérale. Les BRAS
+# sont gérés à part (_apply_jetpack_arm_tremble) — ne PAS les ré-ajouter ici (conflit d'écriture).
 func _apply_rocket_pose(delta: float) -> void:
 	var t: float = _sway_time
 	var lateral: float = linear_velocity.x
 	# node, base, phase, x_amp, z_amp, lat_z
-	_apply_jetpack_sway($Character/ArmLeftPivot,  delta, JETPACK_ARM_L, t, lateral, 0.0, 3.0, 5.0,  0.3)
-	_apply_jetpack_sway($Character/ArmRightPivot, delta, JETPACK_ARM_R, t, lateral, 1.7, 3.0, 5.0, -0.3)
 	_apply_jetpack_sway($Character/LegLeftPivot,  delta, JETPACK_LEG_L, t, lateral, 0.9, 2.5, 3.0,  0.2)
 	_apply_jetpack_sway($Character/LegRightPivot, delta, JETPACK_LEG_R, t, lateral, 2.4, 2.5, 3.0, -0.2)
 	_apply_jetpack_sway($Character/HeadPivot,     delta, JETPACK_HEAD,  t, lateral, 3.2, 2.0, 2.0,  0.0)
+
+# Bras plaqués vers le bas + tremblement RAPIDE faible amplitude (vent de montée). Set direct (pas
+# de lerp : le lerp lisserait la haute fréquence et tuerait le tremblement). Gaté jetpack par l'appel.
+func _apply_jetpack_arm_tremble(node: Node3D, base: Vector3, phase: float) -> void:
+	var t: float = _sway_time
+	var f: float = JETPACK_ARM_TREMBLE_FREQ
+	var amp: float = JETPACK_ARM_TREMBLE_AMP
+	# Z = tremblement principal : sin rapide + jitter à fréquence incommensurable (2.7×) → irrégulier.
+	var tz: float = sin(t * f + phase) * amp + sin(t * f * 2.7 + phase * 3.1) * amp * 0.35
+	# X = tremblement secondaire plus discret (avant/arrière dans le vent), fréquence décalée.
+	var tx: float = sin(t * f * 1.31 + phase * 1.7) * amp * 0.6
+	node.rotation_degrees = base + Vector3(tx, 0.0, tz)
 
 # Flottement subtil autour d'une base fixe (pose fusée). Lent (speed 2.5), faible amp.
 func _apply_jetpack_sway(node: Node3D, delta: float, base: Vector3, t: float, lateral: float,
