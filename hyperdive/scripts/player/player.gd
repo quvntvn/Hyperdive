@@ -8,14 +8,18 @@ const TOUCH_FOLLOW_SPEED: float = 16.0   # finger-follow ×2 (plus réactif)
 const TRAIL_BASE_AMOUNT: int = 40
 const WALL_HIT_COOLDOWN: float = 0.3
 const CHARACTER_BASE_ROT := Vector3(205.0, 0.0, 0.0)
-# Pose FUSÉE (mode jetpack) : perso droit légèrement penché en avant, membres serrés
-# le long du corps. Séparé de la pose plongeon pour ne pas la casser.
+# Pose FUSÉE (mode jetpack) : perso droit légèrement penché en avant, bras RELEVÉS au-dessus
+# de la tête (V vers le haut, un peu en arrière vers la caméra), jambes serrées/tendues en traîne.
+# Séparé de la pose plongeon pour ne pas la casser. Le mesh de bras pend vers -Y depuis l'épaule :
+# Z≈155° le fait pointer vers le HAUT (180 = vertical) en gardant ±25° d'écart → V lisible de dos ;
+# X positif penche les bras en arrière (+Z = côté caméra). Jambes : X négatif les fait traîner en
+# arrière, Z faible vers le centre = jointes. Valeurs de DÉPART à doser.
 const JETPACK_CHARACTER_ROT := Vector3(-12.0, 0.0, 0.0)
-const JETPACK_ARM_L := Vector3(0.0, 0.0, 6.0)
-const JETPACK_ARM_R := Vector3(0.0, 0.0, -6.0)
-const JETPACK_LEG_L := Vector3(0.0, 0.0, 2.5)
-const JETPACK_LEG_R := Vector3(0.0, 0.0, -2.5)
-const JETPACK_HEAD := Vector3.ZERO
+const JETPACK_ARM_L := Vector3(15.0, 0.0, 155.0)
+const JETPACK_ARM_R := Vector3(15.0, 0.0, -155.0)
+const JETPACK_LEG_L := Vector3(-8.0, 0.0, 4.0)
+const JETPACK_LEG_R := Vector3(-8.0, 0.0, -4.0)
+const JETPACK_HEAD := Vector3(-6.0, 0.0, 0.0)
 const SLOWMO_DURATION: float = 4.5    # allonge (etait 3.0) pour savourer le slow-motion
 const SLOWMO_FACTOR: float = 0.5
 const MAGNET_DURATION: float = 8.0    # le plus long (effet passif utilitaire), etait 5.0
