@@ -15,10 +15,13 @@ const JETPACK_LEG_L := Vector3(-8.0, 0.0, 4.0)
 const JETPACK_LEG_R := Vector3(-8.0, 0.0, -4.0)
 const JETPACK_HEAD := Vector3(-6.0, 0.0, 0.0)
 # BRAS en jetpack (SOURCE DE VÉRITÉ UNIQUE — gérés à part, hors de _apply_rocket_pose) : pendent
-# vers le BAS le long du torse. Le mesh de bras pointe déjà vers -Y depuis l'épaule → base ≈ repos,
-# Z faible vers le centre = légèrement rentrés contre le corps. Symétriques G/D.
-const JETPACK_ARM_DOWN_L := Vector3(0.0, 0.0, 5.0)
-const JETPACK_ARM_DOWN_R := Vector3(0.0, 0.0, -5.0)
+# vers le BAS mais ÉCARTÉS vers l'extérieur (V vers le bas). La caméra voit le DOS : à Z≈0 le long
+# du torse (épaules X≈±0.10 < demi-largeur 0.13, profondeur 0) les bras étaient OCCULTÉS dans le
+# volume du torse. On les fait SORTIR latéralement de la silhouette : Z négatif à gauche / positif à
+# droite (rotation autour de Z) pousse l'extrémité en X au-delà de ±0.13. Tip ≈ X±0.252 (hors torse).
+# NB : signe INVERSÉ par rapport à l'ancienne pose (±5 rentrait les bras VERS le centre = caché).
+const JETPACK_ARM_DOWN_L := Vector3(0.0, 0.0, -25.0)
+const JETPACK_ARM_DOWN_R := Vector3(0.0, 0.0, 25.0)
 # Tremblement des bras (vent de montée qui les plaque) : oscillation RAPIDE faible amplitude,
 # mélange sin haute fréquence + jitter incommensurable (casse la régularité), phases G/D distinctes.
 const JETPACK_ARM_TREMBLE_AMP: float = 4.5    # degrés (≈ ±3-6)
