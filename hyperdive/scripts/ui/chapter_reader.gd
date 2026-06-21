@@ -128,7 +128,7 @@ func _configure_buttons() -> void:
 		$NavBox/NextButton.disabled = _gallery_index >= _gallery.size() - 1
 	else:
 		# JOUER pour une intro jouable, CONTINUER sinon (narration ou outro).
-		_action.text = "JOUER" if _ctx == "play_before" else "CONTINUER"
+		_action.text = tr("READER_PLAY") if _ctx == "play_before" else tr("COMMON_CONTINUE")
 
 # === Boutons ===============================================================================
 

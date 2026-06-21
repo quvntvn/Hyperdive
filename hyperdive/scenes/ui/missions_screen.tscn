@@ -30,7 +30,7 @@ offset_bottom = -40.0
 theme_override_constants/separation = 16
 
 [node name="TitleLabel" type="Label" parent="Content"]
-text = "DÉFIS"
+text = "MENU_CHALLENGES"
 horizontal_alignment = 1
 theme_type_variation = &"Title"
 
@@ -50,4 +50,4 @@ theme_override_constants/separation = 16
 [node name="MenuButton" type="Button" parent="Content"]
 custom_minimum_size = Vector2(200.0, 60.0)
 size_flags_horizontal = 4
-text = "RETOUR"
+text = "COMMON_BACK"

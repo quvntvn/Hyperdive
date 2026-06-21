@@ -44,21 +44,21 @@ func _build_form() -> void:
 		_form.remove_child(child)
 		child.queue_free()
 
-	_form.add_child(_section_header("JOUEURS"))
+	_form.add_child(_section_header(tr("COOP_PLAYERS")))
 	_form.add_child(_build_segmented([2, 3, 4, 5], ["2", "3", "4", "5"], _num_players,
 		func(v: Variant) -> void:
 			_num_players = int(v)
 			_rebuild_pseudos()))
 
-	_form.add_child(_section_header("MODE"))
+	_form.add_child(_section_header(tr("COOP_MODE")))
 	_form.add_child(_build_segmented(["mix", "infinite", "jetpack"],
-		["MIX", "CLASSIQUE", "JETPACK"], _mode,
+		[tr("MODE_MIX"), tr("MODE_CLASSIC"), tr("MODE_JETPACK")], _mode,
 		func(v: Variant) -> void: _mode = String(v)))
 
-	_form.add_child(_section_header("MANCHES"))
+	_form.add_child(_section_header(tr("COOP_ROUNDS")))
 	_form.add_child(_build_stepper())
 
-	_form.add_child(_section_header("PSEUDOS (optionnel)"))
+	_form.add_child(_section_header(tr("COOP_NICKNAMES")))
 	_pseudo_box = VBoxContainer.new()
 	_pseudo_box.add_theme_constant_override("separation", 8)
 	_form.add_child(_pseudo_box)
@@ -154,7 +154,7 @@ func _rebuild_pseudos() -> void:
 		swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		swatch.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var field := LineEdit.new()
-		field.placeholder_text = "Joueur %d" % (i + 1)
+		field.placeholder_text = tr("COOP_PLAYER_FMT") % (i + 1)
 		field.text = _names[i]
 		field.max_length = 12
 		field.custom_minimum_size = Vector2(0, 48)

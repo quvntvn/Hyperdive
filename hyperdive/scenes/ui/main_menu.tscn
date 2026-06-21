@@ -141,21 +141,21 @@ theme_override_font_sizes/font_size = 32
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 72)
 size_flags_horizontal = 4
-text = "TOURNOI"
+text = "MENU_TOURNAMENT"
 theme_override_font_sizes/font_size = 30
 
 [node name="ShopButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 56)
 size_flags_horizontal = 4
-text = "COSMÉTIQUE"
+text = "MENU_COSMETICS"
 theme_override_font_sizes/font_size = 24
 
 [node name="DefisButton" type="Button" parent="MenuUI/Screen/Layout/ButtonsContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 56)
 size_flags_horizontal = 4
-text = "DÉFIS"
+text = "MENU_CHALLENGES"
 theme_override_font_sizes/font_size = 24
 
 

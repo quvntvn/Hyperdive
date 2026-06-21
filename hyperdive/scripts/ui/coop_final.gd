@@ -34,7 +34,7 @@ func _populate() -> void:
 	var wcol: Color = Coop.player_color(wp)
 	$Content/WinnerName.text = Coop.player_names[wp]
 	$Content/WinnerName.add_theme_color_override("font_color", wcol)
-	$Content/WinnerPoints.text = "%d points" % int(winner["points"])
+	$Content/WinnerPoints.text = tr("COOP_POINTS_FMT") % int(winner["points"])
 	# Score du vainqueur mis en avant par un liseré blanc FIN (lisible).
 	$Content/WinnerPoints.add_theme_color_override("font_outline_color", Color.WHITE)
 	$Content/WinnerPoints.add_theme_constant_override("outline_size", 2)
@@ -61,13 +61,13 @@ func _populate_best_score() -> void:
 	var score_txt: String = UIAnimations.format_number(Coop.tournament_best_score)
 	if players.size() == 1:
 		var p: int = int(players[0])
-		lbl.text = "★ Meilleur score du tournoi : %s — %s m  (+1)" % [Coop.player_names[p], score_txt]
+		lbl.text = tr("COOP_BEST_SCORE_SINGLE_FMT") % [Coop.player_names[p], score_txt]
 		lbl.add_theme_color_override("font_color", Coop.player_color(p))
 	else:
 		var names: Array = []
 		for p in players:
 			names.append(Coop.player_names[int(p)])
-		lbl.text = "★ Meilleur score du tournoi : %s — %s m  (+1 chacun)" % [", ".join(names), score_txt]
+		lbl.text = tr("COOP_BEST_SCORE_MULTI_FMT") % [", ".join(names), score_txt]
 		lbl.add_theme_color_override("font_color", TEXT_GOLD)
 
 # Podium : 2e à gauche, 1er au centre (plus haut), 3e à droite. Piliers alignés en bas.

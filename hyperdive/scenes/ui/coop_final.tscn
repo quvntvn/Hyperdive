@@ -24,7 +24,7 @@ offset_bottom = -32.0
 theme_override_constants/separation = 10
 
 [node name="TitleLabel" type="Label" parent="Content"]
-text = "VAINQUEUR"
+text = "COOP_WINNER"
 horizontal_alignment = 1
 theme_type_variation = &"Title"
 
@@ -65,10 +65,10 @@ theme_override_constants/separation = 16
 
 [node name="RejouerButton" type="Button" parent="Content/ButtonsRow"]
 custom_minimum_size = Vector2(200, 64)
-text = "REJOUER"
+text = "COMMON_REPLAY"
 theme_override_font_sizes/font_size = 26
 
 [node name="MenuButton" type="Button" parent="Content/ButtonsRow"]
 custom_minimum_size = Vector2(160, 64)
-text = "MENU"
+text = "COMMON_MENU"
 theme_override_font_sizes/font_size = 24

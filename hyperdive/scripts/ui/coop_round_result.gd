@@ -17,13 +17,13 @@ func _ready() -> void:
 	Audio.duck_music()   # écran hors gameplay → musique baissée (règle unique « plein en jeu »)
 	_populate()
 	var btn := $Content/ContinueButton as Button
-	btn.text = "CLASSEMENT FINAL" if Coop.is_last_round() else "CONTINUER"
+	btn.text = tr("COOP_FINAL_RANKING") if Coop.is_last_round() else tr("COMMON_CONTINUE")
 	btn.pressed.connect(_on_continue_pressed)
 	UIAnimations.wire_buttons(self)
 
 func _populate() -> void:
 	var r: int = Coop.current_round
-	$Content/TitleLabel.text = "MANCHE %d / %d" % [r + 1, Coop.num_rounds]
+	$Content/TitleLabel.text = tr("COOP_ROUND_FMT") % [r + 1, Coop.num_rounds]
 	$Content/ModeLabel.text = Coop.mode_label(Coop.current_mode())
 
 	_populate_records(r)
@@ -37,7 +37,7 @@ func _populate() -> void:
 	var standings := $Content/StandingsBox as VBoxContainer
 	for child in standings.get_children():
 		child.queue_free()
-	var header := _label("CLASSEMENT GÉNÉRAL", 22, TEXT_GOLD)
+	var header := _label(tr("COOP_OVERALL_RANKING"), 22, TEXT_GOLD)
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	standings.add_child(header)
 	var rank: int = 1
@@ -57,7 +57,7 @@ func _populate_records(r: int) -> void:
 	var top_p: int = int(top["player"])
 	var top_score: int = int(top["score"])
 	var best_lbl := _label(
-		"Meilleur ce round : %s m  (%s)" % [UIAnimations.format_number(top_score), Coop.player_names[top_p]],
+		tr("COOP_BEST_ROUND_FMT") % [UIAnimations.format_number(top_score), Coop.player_names[top_p]],
 		20, Coop.player_color(top_p))
 	best_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(best_lbl)
@@ -66,7 +66,7 @@ func _populate_records(r: int) -> void:
 	# PAS le record perso (qui n'est jamais touché par le tournoi). RAZ à chaque nouveau tournoi.
 	var best_tourn: int = Coop.tournament_best_through(r)
 	var rec_lbl := _label(
-		"Meilleur du tournoi : %s m" % UIAnimations.format_number(best_tourn),
+		tr("COOP_BEST_TOURNAMENT_FMT") % UIAnimations.format_number(best_tourn),
 		18, TEXT_DIM)
 	rec_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(rec_lbl)
@@ -74,7 +74,7 @@ func _populate_records(r: int) -> void:
 	# Mise en avant si CE round établit (ou égale) le meilleur du tournoi : le top du round EST
 	# le meilleur du tournoi → nouveau sommet posé cette manche.
 	if top_score >= best_tourn and top_score > 0:
-		var beat := _label("MEILLEUR DU TOURNOI !", 20, TEXT_GOLD)
+		var beat := _label(tr("COOP_TOURNAMENT_BEST_BANNER"), 20, TEXT_GOLD)
 		beat.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		beat.add_theme_color_override("font_outline_color", Color.WHITE)
 		beat.add_theme_constant_override("outline_size", 2)

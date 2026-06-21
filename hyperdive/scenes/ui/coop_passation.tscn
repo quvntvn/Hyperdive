@@ -47,7 +47,7 @@ theme_override_font_sizes/font_size = 40
 [node name="Sep" type="HSeparator" parent="Center/Card/Margin/VBox"]
 
 [node name="TurnLabel" type="Label" parent="Center/Card/Margin/VBox"]
-text = "AU TOUR DE"
+text = "COOP_TURN_OF"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 26
 theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
@@ -72,5 +72,5 @@ offset_left = -140.0
 offset_top = -140.0
 offset_right = 140.0
 offset_bottom = -56.0
-text = "PRÊT"
+text = "COOP_READY"
 theme_override_font_sizes/font_size = 34

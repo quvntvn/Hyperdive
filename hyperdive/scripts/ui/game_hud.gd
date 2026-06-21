@@ -38,9 +38,10 @@ const PILL_COLORS: Dictionary = {
 	"magnet": Color(0.949, 0.757, 0.306, 1.0),
 	"megaboost": Color(0.69, 0.149, 1.0, 1.0),   # magenta/violet #B026FF
 }
+# Valeurs = CLÉS de traduction (le libellé est résolu via tr() à la construction des pastilles).
 const PILL_NAMES: Dictionary = {
-	"shield": "BOUCLIER", "boost": "BOOST", "slowmo": "RALENTI", "magnet": "AIMANT",
-	"megaboost": "MÉGA-BOOST",
+	"shield": "HUD_PU_SHIELD", "boost": "HUD_PU_BOOST", "slowmo": "HUD_PU_SLOWMO",
+	"magnet": "HUD_PU_MAGNET", "megaboost": "HUD_PU_MEGABOOST",
 }
 
 func _ready() -> void:
@@ -293,7 +294,7 @@ func _build_powerup_pills() -> void:
 	var container := $PowerupIndicator as VBoxContainer
 	for type: String in ["shield", "boost", "megaboost", "slowmo", "magnet"]:
 		var timed: bool = type != "shield"   # le bouclier n'a pas de timer
-		var pill := _make_pill(PILL_COLORS[type], PILL_NAMES[type], timed)
+		var pill := _make_pill(PILL_COLORS[type], tr(PILL_NAMES[type]), timed)
 		container.add_child(pill["root"])
 		_pills[type] = pill
 

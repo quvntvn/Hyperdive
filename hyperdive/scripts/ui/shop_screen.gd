@@ -53,7 +53,7 @@ func _on_themes_pressed() -> void:
 	refresh()
 
 func refresh() -> void:
-	_coins_label.text = "Pièces : " + UIAnimations.format_number(Settings.coins_total)
+	_coins_label.text = tr("COMMON_COINS_FMT") % UIAnimations.format_number(Settings.coins_total)
 	_skins_btn.disabled = _current_category == "skins"
 	_trails_btn.disabled = _current_category == "trails"
 	_themes_btn.disabled = _current_category == "themes"
@@ -85,8 +85,8 @@ func _add_card(row: Control) -> void:
 func _unlock_condition(reward_key: String, item_id: String) -> String:
 	for m in Missions.MISSIONS:
 		if String(m.get(reward_key, "")) == item_id:
-			return "🔒 Défi : " + String(m["desc"])
-	return "🔒 Récompense de défi"
+			return tr("SHOP_LOCK_CHALLENGE_FMT") % String(m["desc"])
+	return tr("SHOP_LOCK_REWARD")
 
 # Pastille assombrie pour un exclusif verrouillé (montre la couleur mais grisée).
 func _dim(c: Color) -> Color:
@@ -122,7 +122,7 @@ func _set_price_label(label: Label, locked: bool, condition: String, price: int)
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_font_size_override("font_size", 16)
 	else:
-		label.text = "Prix : " + UIAnimations.format_number(price) if price > 0 else "Gratuit"
+		label.text = (tr("SHOP_PRICE_FMT") % UIAnimations.format_number(price)) if price > 0 else tr("SHOP_FREE")
 
 func _refresh_skins() -> void:
 	for skin in Catalog.SKINS:
@@ -152,20 +152,20 @@ func _refresh_skins() -> void:
 			btn.disabled = true
 			_add_lock_icon(btn)
 		elif skin_id == Settings.equipped_skin:
-			btn.text = "ÉQUIPÉ"
+			btn.text = tr("SHOP_EQUIPPED")
 			btn.disabled = true
 		elif owned:
-			btn.text = "ÉQUIPER"
+			btn.text = tr("SHOP_EQUIP")
 			btn.pressed.connect(func() -> void:
 				Audio.play_ui_click()
 				Settings.equip_skin(skin_id))
 		elif Settings.coins_total >= price:
-			btn.text = "ACHETER"
+			btn.text = tr("SHOP_BUY")
 			btn.pressed.connect(func() -> void:
 				Audio.play_ui_click()
 				Settings.buy_skin(skin_id))
 		else:
-			btn.text = "ACHETER"
+			btn.text = tr("SHOP_BUY")
 			btn.disabled = true
 		row.add_child(btn)
 		_add_card(row)
@@ -208,20 +208,20 @@ func _refresh_trails() -> void:
 			btn.disabled = true
 			_add_lock_icon(btn)
 		elif trail_id == Settings.equipped_trail:
-			btn.text = "ÉQUIPÉ"
+			btn.text = tr("SHOP_EQUIPPED")
 			btn.disabled = true
 		elif owned:
-			btn.text = "ÉQUIPER"
+			btn.text = tr("SHOP_EQUIP")
 			btn.pressed.connect(func() -> void:
 				Audio.play_ui_click()
 				Settings.equip_trail(trail_id))
 		elif Settings.coins_total >= price:
-			btn.text = "ACHETER"
+			btn.text = tr("SHOP_BUY")
 			btn.pressed.connect(func() -> void:
 				Audio.play_ui_click()
 				Settings.buy_trail(trail_id))
 		else:
-			btn.text = "ACHETER"
+			btn.text = tr("SHOP_BUY")
 			btn.disabled = true
 		row.add_child(btn)
 		_add_card(row)
@@ -261,20 +261,20 @@ func _refresh_themes() -> void:
 			btn.disabled = true
 			_add_lock_icon(btn)
 		elif theme_id == Settings.equipped_theme:
-			btn.text = "ÉQUIPÉ"
+			btn.text = tr("SHOP_EQUIPPED")
 			btn.disabled = true
 		elif owned:
-			btn.text = "ÉQUIPER"
+			btn.text = tr("SHOP_EQUIP")
 			btn.pressed.connect(func() -> void:
 				Audio.play_ui_click()
 				Settings.equip_theme(theme_id))
 		elif Settings.coins_total >= price:
-			btn.text = "ACHETER"
+			btn.text = tr("SHOP_BUY")
 			btn.pressed.connect(func() -> void:
 				Audio.play_ui_click()
 				Settings.buy_theme(theme_id))
 		else:
-			btn.text = "ACHETER"
+			btn.text = tr("SHOP_BUY")
 			btn.disabled = true
 		row.add_child(btn)
 		_add_card(row)

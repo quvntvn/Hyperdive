@@ -26,10 +26,10 @@ func _ready() -> void:
 func show_reward(n: int) -> void:
 	_n = n
 	_mode = "reward"
-	%TitleLabel.text = "CHAPITRE RÉUSSI"
+	%TitleLabel.text = tr("CHAPTER_END_SUCCESS")
 	%RewardLabel.visible = true
-	%RewardLabel.text = "+ " + UIAnimations.format_number(Story.chapter_reward(n)) + " pièces"
-	%PrimaryButton.text = "CONTINUER"
+	%RewardLabel.text = tr("CHAPTER_END_REWARD_FMT") % UIAnimations.format_number(Story.chapter_reward(n))
+	%PrimaryButton.text = tr("COMMON_CONTINUE")
 	%SecondaryButton.visible = false
 	# Le son de fin de niveau a déjà été joué AU MOMENT DE LA VICTOIRE (main_game, sur le fondu) —
 	# plus ici (il arrivait trop tard, après l'histoire). La musique est déjà baissée (hors jeu).
@@ -41,15 +41,15 @@ func show_reward(n: int) -> void:
 func show_failure(n: int) -> void:
 	_n = n
 	_mode = "failure"
-	%TitleLabel.text = "TU ES TOMBÉ"
+	%TitleLabel.text = tr("CHAPTER_END_FAILURE")
 	# Pas de pièces en échec : on réutilise le label en sous-titre doux.
 	%RewardLabel.visible = true
-	%RewardLabel.text = "On réessaie ?"
+	%RewardLabel.text = tr("CHAPTER_END_RETRY_PROMPT")
 	%RewardLabel.add_theme_color_override("font_color", CREAM)
 	%RewardLabel.add_theme_font_size_override("font_size", 28)
-	%PrimaryButton.text = "RÉESSAYER"
+	%PrimaryButton.text = tr("CHAPTER_END_RETRY")
 	%SecondaryButton.visible = true
-	%SecondaryButton.text = "RETOUR CAMPAGNE"
+	%SecondaryButton.text = tr("CHAPTER_END_BACK_CAMPAIGN")
 	_open()
 
 func _open() -> void:

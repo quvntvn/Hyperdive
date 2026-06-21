@@ -30,7 +30,7 @@ offset_bottom = -40.0
 theme_override_constants/separation = 16
 
 [node name="TitleLabel" type="Label" parent="Content"]
-text = "TOURNOI"
+text = "MENU_TOURNAMENT"
 horizontal_alignment = 1
 theme_type_variation = &"Title"
 
@@ -54,10 +54,10 @@ theme_override_constants/separation = 16
 
 [node name="StartButton" type="Button" parent="Content/ButtonsRow"]
 custom_minimum_size = Vector2(200, 64)
-text = "DÉMARRER"
+text = "COOP_START"
 theme_override_font_sizes/font_size = 26
 
 [node name="MenuButton" type="Button" parent="Content/ButtonsRow"]
 custom_minimum_size = Vector2(160, 64)
-text = "RETOUR"
+text = "COMMON_BACK"
 theme_override_font_sizes/font_size = 22

@@ -21,7 +21,7 @@ func _ready() -> void:
 
 func _populate() -> void:
 	var vb := $Center/Card/Margin/VBox
-	(vb.get_node("ModeLabel") as Label).text = "Round final : " + Coop.mode_label(Coop.tiebreak_mode)
+	(vb.get_node("ModeLabel") as Label).text = tr("COOP_FINAL_ROUND_FMT") % Coop.mode_label(Coop.tiebreak_mode)
 	var box := vb.get_node("PlayersBox") as VBoxContainer
 	for child in box.get_children():
 		child.queue_free()

@@ -31,7 +31,7 @@ offset_bottom = -40.0
 theme_override_constants/separation = 16
 
 [node name="TitleLabel" type="Label" parent="Content"]
-text = "COSMÉTIQUE"
+text = "MENU_COSMETICS"
 horizontal_alignment = 1
 theme_type_variation = &"Title"
 
@@ -48,16 +48,16 @@ theme_override_constants/separation = 12
 
 [node name="SkinsCatBtn" type="Button" parent="Content/CategoryButtons"]
 custom_minimum_size = Vector2(110.0, 44.0)
-text = "SKINS"
+text = "SHOP_TAB_SKINS"
 disabled = true
 
 [node name="TrailsCatBtn" type="Button" parent="Content/CategoryButtons"]
 custom_minimum_size = Vector2(110.0, 44.0)
-text = "SANG"
+text = "SHOP_TAB_TRAILS"
 
 [node name="ThemesCatBtn" type="Button" parent="Content/CategoryButtons"]
 custom_minimum_size = Vector2(110.0, 44.0)
-text = "THÈMES"
+text = "SHOP_TAB_THEMES"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Content"]
 size_flags_vertical = 3
@@ -70,4 +70,4 @@ theme_override_constants/separation = 12
 [node name="CloseButton" type="Button" parent="Content"]
 custom_minimum_size = Vector2(200.0, 60.0)
 size_flags_horizontal = 4
-text = "RETOUR"
+text = "COMMON_BACK"

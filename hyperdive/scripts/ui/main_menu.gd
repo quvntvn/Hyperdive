@@ -66,8 +66,8 @@ func _update_mode_buttons() -> void:
 		  " jetpack=", jetpack_unlocked,
 		  " best_infinite_distance=", Settings.best_infinite_distance)
 	# Libellés d'AFFICHAGE seulement ; active_mode reste "infinite"/"jetpack" en interne.
-	_set_mode_button(%RecordButton, record_unlocked, tr("MODE_CLASSIC"), "Termine le chapitre 1")
-	_set_mode_button(%JetpackButton, jetpack_unlocked, "JETPACK", "Termine le chapitre 20")
+	_set_mode_button(%RecordButton, record_unlocked, tr("MODE_CLASSIC"), tr("MENU_UNLOCK_CLASSIC"))
+	_set_mode_button(%JetpackButton, jetpack_unlocked, tr("MODE_JETPACK"), tr("MENU_UNLOCK_JETPACK"))
 
 # Bascule de langue à chaud : on réassigne tous les libellés posés en code (les autres écrans
 # ouverts font de même via leur propre abonnement). Échantillon lot 0 : bouton HISTOIRE + mode.
@@ -99,9 +99,9 @@ func _sync_menu_ui_visibility() -> void:
 
 func update_stats() -> void:
 	# Deux records distincts : Classique (best_infinite_distance) et Jetpack (best_jetpack_distance).
-	%BestLabel.text = "Classique : " + UIAnimations.format_number(Settings.best_infinite_distance) + " m"
-	%JetpackLabel.text = "Jetpack : " + UIAnimations.format_number(Settings.best_jetpack_distance) + " m"
-	%CoinsLabel.text = "Pièces : " + UIAnimations.format_number(Settings.coins_total)
+	%BestLabel.text = tr("MENU_BEST_CLASSIC_FMT") % UIAnimations.format_number(Settings.best_infinite_distance)
+	%JetpackLabel.text = tr("MENU_BEST_JETPACK_FMT") % UIAnimations.format_number(Settings.best_jetpack_distance)
+	%CoinsLabel.text = tr("COMMON_COINS_FMT") % UIAnimations.format_number(Settings.coins_total)
 
 func _on_campagne_pressed() -> void:
 	Audio.play_ui_click()

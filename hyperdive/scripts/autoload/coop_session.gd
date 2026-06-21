@@ -188,10 +188,10 @@ func player_color(p: int) -> Color:
 
 # Numéro de manche affichable (1-based) et libellé de mode.
 func round_label() -> String:
-	return "MANCHE %d / %d" % [current_round + 1, num_rounds]
+	return tr("COOP_ROUND_FMT") % [current_round + 1, num_rounds]
 
 func mode_label(mode: String) -> String:
-	return "JETPACK" if mode == "jetpack" else "CLASSIQUE"
+	return tr("MODE_JETPACK") if mode == "jetpack" else tr("MODE_CLASSIC")
 
 # Record PERSO du mode (référence d'affichage uniquement — le tournoi ne modifie JAMAIS
 # les stats perso, gatées par active). Sert à comparer "quelqu'un l'a-t-il battu ce round ?".
@@ -217,7 +217,7 @@ func turn_name() -> String:
 	return player_names[turn_current_player()]
 
 func turn_round_label() -> String:
-	return "ROUND FINAL" if tiebreak_active else round_label()
+	return tr("COOP_FINAL_ROUND") if tiebreak_active else round_label()
 
 # Joueurs concernés par ce tour-round (tous, ou seulement les ex-æquo en tiebreak).
 func turn_players() -> Array:

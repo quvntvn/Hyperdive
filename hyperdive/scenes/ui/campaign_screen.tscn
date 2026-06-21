@@ -53,7 +53,7 @@ offset_top = 50.0
 offset_bottom = 104.0
 theme_type_variation = &"Title"
 theme_override_font_sizes/font_size = 44
-text = "HISTOIRE"
+text = "MENU_STORY"
 horizontal_alignment = 1
 
 [node name="GalleryButton" type="Button" parent="Content" unique_id=924703704]
@@ -65,7 +65,7 @@ offset_top = 112.0
 offset_right = 102.0
 offset_bottom = 160.0
 theme_override_font_sizes/font_size = 20
-text = "ARCHIVES"
+text = "CAMPAIGN_ARCHIVES"
 
 [node name="Scroll" type="ScrollContainer" parent="Content" unique_id=1742621894]
 layout_mode = 0
@@ -92,4 +92,4 @@ offset_top = -76.0
 offset_right = 100.0
 offset_bottom = -20.0
 theme_override_font_sizes/font_size = 24
-text = "RETOUR"
+text = "COMMON_BACK"

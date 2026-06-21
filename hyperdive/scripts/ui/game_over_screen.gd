@@ -31,9 +31,9 @@ func show_game_over(distance: int) -> void:
 	UIAnimations.pop_in($GameOverPanel, $Background)
 
 func update_stats(distance: int) -> void:
-	%DistanceLabel.text = "Distance: " + UIAnimations.format_number(distance) + " m"
-	%CoinsRunLabel.text = "Pièces ce run: " + UIAnimations.format_number(Settings.coins_this_run)
-	%BestLabel.text = "Record : " + UIAnimations.format_number(Settings.best_distance) + " m"
+	%DistanceLabel.text = tr("GAMEOVER_DISTANCE_FMT") % UIAnimations.format_number(distance)
+	%CoinsRunLabel.text = tr("GAMEOVER_COINS_RUN_FMT") % UIAnimations.format_number(Settings.coins_this_run)
+	%BestLabel.text = tr("GAMEOVER_BEST_FMT") % UIAnimations.format_number(Settings.best_distance)
 
 func _on_rejouer_pressed() -> void:
 	Audio.play_ui_click()

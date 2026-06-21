@@ -40,7 +40,7 @@ offset_bottom = -32.0
 theme_override_constants/separation = 24
 
 [node name="TitleLabel" type="Label" parent="GameOverPanel/Layout"]
-text = "GAME OVER"
+text = "GAMEOVER_TITLE"
 horizontal_alignment = 1
 theme_type_variation = &"Title"
 
@@ -73,13 +73,13 @@ theme_override_constants/separation = 12
 
 [node name="RejouerButton" type="Button" parent="GameOverPanel/Layout/ButtonsContainer"]
 custom_minimum_size = Vector2(0.0, 64.0)
-text = "REJOUER"
+text = "COMMON_REPLAY"
 theme_override_font_sizes/font_size = 28
 
 [node name="ShopButton" type="Button" parent="GameOverPanel/Layout/ButtonsContainer"]
 custom_minimum_size = Vector2(0.0, 56.0)
-text = "COSMÉTIQUE"
+text = "MENU_COSMETICS"
 
 [node name="MenuButton" type="Button" parent="GameOverPanel/Layout/ButtonsContainer"]
 custom_minimum_size = Vector2(0.0, 56.0)
-text = "MENU"
+text = "COMMON_MENU"

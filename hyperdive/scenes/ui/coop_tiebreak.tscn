@@ -32,14 +32,14 @@ theme_override_constants/separation = 14
 alignment = 1
 
 [node name="TitleLabel" type="Label" parent="Center/Card/Margin/VBox"]
-text = "ÉGALITÉ !"
+text = "COOP_TIE"
 horizontal_alignment = 1
 theme_type_variation = &"Title"
 theme_override_font_sizes/font_size = 52
 theme_override_colors/font_color = Color(0.914, 0.310, 0.216, 1)
 
 [node name="SubLabel" type="Label" parent="Center/Card/Margin/VBox"]
-text = "ROUND FINAL"
+text = "COOP_FINAL_ROUND"
 horizontal_alignment = 1
 theme_type_variation = &"Subtitle"
 theme_override_font_sizes/font_size = 30
@@ -48,7 +48,7 @@ theme_override_colors/font_color = Color(0.949, 0.757, 0.306, 1)
 [node name="Sep" type="HSeparator" parent="Center/Card/Margin/VBox"]
 
 [node name="DescLabel" type="Label" parent="Center/Card/Margin/VBox"]
-text = "Départage entre :"
+text = "COOP_TIEBREAK_BETWEEN"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 22
 theme_override_colors/font_color = Color(0.957, 0.914, 0.804, 1)
@@ -71,5 +71,5 @@ offset_left = -150.0
 offset_top = -140.0
 offset_right = 150.0
 offset_bottom = -56.0
-text = "C'EST PARTI"
+text = "COOP_START_TIEBREAK"
 theme_override_font_sizes/font_size = 30

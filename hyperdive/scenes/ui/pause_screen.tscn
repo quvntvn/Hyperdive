@@ -41,7 +41,7 @@ offset_bottom = -32.0
 theme_override_constants/separation = 20
 
 [node name="TitleLabel" type="Label" parent="PausePanel/Layout"]
-text = "PAUSE"
+text = "PAUSE_TITLE"
 horizontal_alignment = 1
 theme_type_variation = &"Title"
 
@@ -55,19 +55,19 @@ theme_override_constants/separation = 16
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 70)
 size_flags_horizontal = 3
-text = "REPRENDRE"
+text = "PAUSE_RESUME"
 theme_override_font_sizes/font_size = 32
 
 [node name="ReglagesButton" type="Button" parent="PausePanel/Layout/Buttons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 56)
 size_flags_horizontal = 3
-text = "RÉGLAGES"
+text = "SETTINGS_TITLE"
 theme_override_font_sizes/font_size = 24
 
 [node name="MenuButton" type="Button" parent="PausePanel/Layout/Buttons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 56)
 size_flags_horizontal = 3
-text = "MENU"
+text = "COMMON_MENU"
 theme_override_font_sizes/font_size = 24

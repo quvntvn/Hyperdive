@@ -19,16 +19,16 @@ func _ready() -> void:
 	refresh()
 
 func refresh() -> void:
-	_coins_label.text = "Pièces : " + UIAnimations.format_number(Settings.coins_total)
+	_coins_label.text = tr("COMMON_COINS_FMT") % UIAnimations.format_number(Settings.coins_total)
 	for child in _mission_list.get_children():
 		_mission_list.remove_child(child)
 		child.queue_free()
-	_add_section_label("DÉFIS DU JOUR", Color(0.914, 0.310, 0.216))
+	_add_section_label(tr("MISSIONS_DAILY"), Color(0.914, 0.310, 0.216))
 	for ch in Settings.daily_challenges:
 		_build_daily_row(ch)
 	var sep := HSeparator.new()
 	_mission_list.add_child(sep)
-	_add_section_label("DÉFIS", Color(0.957, 0.914, 0.804))
+	_add_section_label(tr("MENU_CHALLENGES"), Color(0.957, 0.914, 0.804))
 	# Chaînes de paliers : n'afficher que le PROCHAIN palier non réclamé de chaque chaîne
 	# (l'array est ordonné en paliers croissants). Les exploits (sans chain) restent tous visibles.
 	var shown_chains: Dictionary = {}
@@ -80,13 +80,13 @@ func _build_daily_row(ch: Dictionary) -> void:
 	var reward: int = ch["reward"]
 	if Settings.is_daily_claimed(id):
 		var claimed_label := Label.new()
-		claimed_label.text = "✓ Réclamé"
+		claimed_label.text = tr("MISSIONS_CLAIMED")
 		claimed_label.add_theme_font_size_override("font_size", 18)
 		claimed_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.58))
 		row.add_child(claimed_label)
 	elif Settings.is_daily_complete(ch):
 		var btn := Button.new()
-		btn.text = "RÉCLAMER " + UIAnimations.format_number(reward)
+		btn.text = tr("MISSIONS_CLAIM_FMT") % UIAnimations.format_number(reward)
 		btn.custom_minimum_size = Vector2(148.0, 48.0)
 		btn.pressed.connect(func() -> void:
 			Audio.play_ui_click()
@@ -104,10 +104,10 @@ func _format_daily_progress(ch: Dictionary, progress: int, target: int) -> Strin
 	var p: String = UIAnimations.format_number(progress)
 	var t: String = UIAnimations.format_number(target)
 	match ch["type"]:
-		"distance": return "%s/%s m" % [p, t]
-		"coins":    return "%s/%s pièces" % [p, t]
-		"time":     return "%ss/%ss" % [p, t]
-		"games":    return "%s/%s parties" % [p, t]
+		"distance": return tr("MISSIONS_PROG_M") % [p, t]
+		"coins":    return tr("MISSIONS_PROG_COINS") % [p, t]
+		"time":     return tr("MISSIONS_PROG_TIME") % [p, t]
+		"games":    return tr("MISSIONS_PROG_GAMES") % [p, t]
 	return "%s/%s" % [p, t]
 
 func _build_row(mission: Dictionary) -> void:
@@ -131,7 +131,7 @@ func _build_row(mission: Dictionary) -> void:
 	var cosmetic_name: String = _reward_cosmetic_name(mission)
 	if cosmetic_name != "":
 		var reward_label := Label.new()
-		reward_label.text = "🎁 Débloque : " + cosmetic_name
+		reward_label.text = tr("MISSIONS_UNLOCKS_FMT") % cosmetic_name
 		reward_label.add_theme_font_size_override("font_size", 15)
 		reward_label.add_theme_color_override("font_color", Color(0.949, 0.757, 0.306))
 		info.add_child(reward_label)
@@ -144,13 +144,13 @@ func _build_row(mission: Dictionary) -> void:
 
 	if Settings.is_mission_claimed(mission_id):
 		var claimed_label := Label.new()
-		claimed_label.text = "✓ Réclamé"
+		claimed_label.text = tr("MISSIONS_CLAIMED")
 		claimed_label.add_theme_font_size_override("font_size", 18)
 		claimed_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.58))
 		row.add_child(claimed_label)
 	elif Settings.is_mission_complete(mission):
 		var btn := Button.new()
-		btn.text = "RÉCLAMER " + UIAnimations.format_number(reward)
+		btn.text = tr("MISSIONS_CLAIM_FMT") % UIAnimations.format_number(reward)
 		btn.custom_minimum_size = Vector2(148.0, 48.0)
 		btn.pressed.connect(func() -> void:
 			Audio.play_ui_click()
@@ -170,31 +170,31 @@ func _format_progress(mission: Dictionary, progress: int, target: int) -> String
 	var t: String = UIAnimations.format_number(target)
 	match mission["type"]:
 		"story_chapter":
-			return "Chapitre %s/%s" % [p, t]
+			return tr("MISSIONS_PROG_CHAPTER") % [p, t]
 		"infinite_distance", "jetpack_distance", "distance", "dual_distance":
-			return "%s/%s m" % [p, t]
+			return tr("MISSIONS_PROG_M") % [p, t]
 		"coins_lifetime", "coins_run":
-			return "%s/%s pièces" % [p, t]
+			return tr("MISSIONS_PROG_COINS") % [p, t]
 		"obstacles_dodged", "obstacles_run":
-			return "%s/%s esquives" % [p, t]
+			return tr("MISSIONS_PROG_DODGE") % [p, t]
 		"no_wall_time":
-			return "%ss/%ss" % [p, t]
+			return tr("MISSIONS_PROG_TIME") % [p, t]
 		"powerups_used":
-			return "%s/%s power-ups" % [p, t]
+			return tr("MISSIONS_PROG_POWERUPS") % [p, t]
 		"deaths":
-			return "%s/%s morts" % [p, t]
+			return tr("MISSIONS_PROG_DEATHS") % [p, t]
 		"total_games":
-			return "%s/%s parties" % [p, t]
+			return tr("MISSIONS_PROG_GAMES") % [p, t]
 		"ascetic":
-			return "À accomplir"
+			return tr("MISSIONS_PROG_TODO")
 		"all_shop_skins", "owned_skins":
-			return "%s/%s skins" % [p, t]
+			return tr("MISSIONS_PROG_SKINS") % [p, t]
 		"all_shop_trails":
-			return "%s/%s trails" % [p, t]
+			return tr("MISSIONS_PROG_TRAILS") % [p, t]
 		"all_shop_themes", "owned_themes":
-			return "%s/%s thèmes" % [p, t]
+			return tr("MISSIONS_PROG_THEMES") % [p, t]
 		"trail_equipped":
-			return "Non équipé" if progress == 0 else "Équipé"
+			return tr("MISSIONS_NOT_EQUIPPED") if progress == 0 else tr("MISSIONS_EQUIPPED")
 	return "%s/%s" % [p, t]
 
 # Nom lisible du cosmétique récompense d'un jalon (ou "" si pas de récompense cosmétique).
