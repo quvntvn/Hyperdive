@@ -26,7 +26,10 @@ func _ready() -> void:
 		screen.visibility_changed.connect(_sync_menu_ui_visibility)
 
 	# Le bouton campagne ouvre la CARTE de l'HISTOIRE (campagne narrative 40 chapitres).
-	%CampagneButton.text = "HISTOIRE"
+	# [i18n lot 0] libellé via clé tr() ; rafraîchi à chaud par Locale.language_changed (les
+	# libellés posés EN CODE ne se retraduisent pas seuls, contrairement aux Control à clé .tscn).
+	%CampagneButton.text = tr("MENU_STORY")
+	Locale.language_changed.connect(_on_language_changed)
 	# Descend l'engrenage sous la safe area (encoche/caméra frontale), avec une marge mini
 	# généreuse même sans encoche pour qu'il ne soit pas collé au bord haut.
 	UIAnimations.apply_top_safe_area(%SettingsGearButton, 28.0)
@@ -63,8 +66,15 @@ func _update_mode_buttons() -> void:
 		  " jetpack=", jetpack_unlocked,
 		  " best_infinite_distance=", Settings.best_infinite_distance)
 	# Libellés d'AFFICHAGE seulement ; active_mode reste "infinite"/"jetpack" en interne.
-	_set_mode_button(%RecordButton, record_unlocked, "CLASSIQUE", "Termine le chapitre 1")
+	_set_mode_button(%RecordButton, record_unlocked, tr("MODE_CLASSIC"), "Termine le chapitre 1")
 	_set_mode_button(%JetpackButton, jetpack_unlocked, "JETPACK", "Termine le chapitre 20")
+
+# Bascule de langue à chaud : on réassigne tous les libellés posés en code (les autres écrans
+# ouverts font de même via leur propre abonnement). Échantillon lot 0 : bouton HISTOIRE + mode.
+func _on_language_changed(_code: String) -> void:
+	%CampagneButton.text = tr("MENU_STORY")
+	_update_mode_buttons()
+	update_stats()
 
 # Débloqué : texte = nom du mode, cliquable, grande police. Verrouillé : texte = nom +
 # cadenas + condition (2 lignes), grisé, police réduite pour faire tenir la condition.

@@ -41,7 +41,7 @@ offset_bottom = -32.0
 theme_override_constants/separation = 20
 
 [node name="TitleLabel" type="Label" parent="SettingsPanel/Layout"]
-text = "RÉGLAGES"
+text = "SETTINGS_TITLE"
 horizontal_alignment = 1
 theme_type_variation = &"Title"
 
@@ -108,6 +108,20 @@ theme_type_variation = &"Subtitle"
 unique_name_in_owner = true
 button_pressed = true
 text = "Vibrations"
+theme_override_font_sizes/font_size = 20
+
+[node name="LanguageRow" type="HBoxContainer" parent="SettingsPanel/Layout"]
+theme_override_constants/separation = 12
+
+[node name="LanguageLabel" type="Label" parent="SettingsPanel/Layout/LanguageRow"]
+custom_minimum_size = Vector2(120, 0)
+text = "SETTINGS_LANGUAGE"
+theme_override_font_sizes/font_size = 20
+vertical_alignment = 1
+
+[node name="LanguageOption" type="OptionButton" parent="SettingsPanel/Layout/LanguageRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 20
 
 [node name="Spacer" type="Control" parent="SettingsPanel/Layout"]

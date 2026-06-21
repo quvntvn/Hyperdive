@@ -21,6 +21,7 @@ config/icon="res://assets/branding/logo.png"
 [autoload]
 
 Settings="*res://scripts/autoload/settings_manager.gd"
+Locale="*res://scripts/autoload/locale_manager.gd"
 Catalog="*res://scripts/autoload/cosmetics_catalog.gd"
 Missions="*res://scripts/autoload/missions_catalog.gd"
 Audio="*res://scenes/autoload/audio_manager.tscn"
@@ -41,6 +42,10 @@ window/handheld/orientation=1
 [gui]
 
 theme/custom="res://resources/ui/main_theme.tres"
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://locale/ui.fr.translation", "res://locale/ui.en.translation")
 
 [input]
 

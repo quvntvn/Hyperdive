@@ -281,7 +281,11 @@ func _process(_delta: float) -> void:
 	if _coop_active:
 		_update_coop_ranking()
 	elif not _campaign_mode:
-		_distance_label.text = UIAnimations.format_number(int(abs(_player.global_position.y))) + " m"
+		# [i18n lot 0] Nombre + unité : le NOMBRE garde son formatage (séparateur de milliers,
+		# logique inchangée), seul le GABARIT "%s m" passe par tr() → une langue future pourrait
+		# déplacer/changer l'unité sans toucher au code. Relu chaque frame ici → bascule live gratuite
+		# (pas besoin du signal). NB : "m" est identique FR/EN par choix (mètres conservés).
+		_distance_label.text = tr("HUD_DISTANCE_FMT") % UIAnimations.format_number(int(abs(_player.global_position.y)))
 	_update_powerup_indicator()
 
 # Construit les 4 pastilles (cachees par defaut). Ordre d'empilement bas-gauche.
