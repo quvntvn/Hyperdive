@@ -194,7 +194,6 @@ func register_run_start() -> void:
 		"jetpack":  games_jetpack += 1
 		"campaign": games_campaign += 1
 	update_daily_progress()
-	print("[stats] run start: mode=%s total_games=%d (inf=%d jet=%d camp=%d)" % [active_mode, total_games, games_infinite, games_jetpack, games_campaign])
 	save_settings()
 
 # Un obstacle dépassé = une esquive. Appelé au despawn (une seule fois par obstacle).
@@ -216,7 +215,6 @@ func register_powerup_used(ptype: String) -> void:
 	if ptype in powerups_used:
 		return
 	powerups_used.append(ptype)
-	print("[stats] powerup used: %s (types=%d/4)" % [ptype, powerups_used.size()])
 	# Pas de save ici (écriture disque en plein gameplay = micro-freeze, comme l'ancien
 	# add_coin). powerups_used est persisté au finalize_run de fin de partie.
 
@@ -240,7 +238,6 @@ func finalize_run(distance: int, no_wall_seconds: int) -> void:
 	if active_mode == "infinite" and distance >= 1500 and coins_this_run == 0:
 		ascetic_done = true
 	run_active = false
-	print("[stats] run end: mode=%s dist=%d coins_run=%d(best%d) dodged_run=%d(best%d) no_wall=%ds(best%d) deaths=%d obstacles_tot=%d coins_life=%d ascetic=%s" % [active_mode, distance, coins_this_run, best_coins_run, obstacles_dodged_run, best_obstacles_run, no_wall_seconds, best_no_wall_time, total_deaths, total_obstacles_dodged, coins_lifetime, ascetic_done])
 	save_settings()
 
 func buy_skin(skin_id: String) -> bool:
@@ -357,19 +354,16 @@ func claim_mission(mission: Dictionary) -> bool:
 		if not sid in owned_skins:
 			owned_skins.append(sid)
 			owned_skins_changed.emit()
-			print("[missions] skin exclusif débloqué : %s" % sid)
 	if mission.has("reward_trail"):
 		var tid: String = mission["reward_trail"]
 		if not tid in owned_trails:
 			owned_trails.append(tid)
 			owned_trails_changed.emit()
-			print("[missions] trail exclusif débloqué : %s" % tid)
 	if mission.has("reward_theme"):
 		var thid: String = mission["reward_theme"]
 		if not thid in owned_themes:
 			owned_themes.append(thid)
 			owned_themes_changed.emit()
-			print("[missions] thème exclusif débloqué : %s" % thid)
 	claimed_missions.append(id)
 	coin_collected.emit(coins_total)
 	mission_claimed.emit()

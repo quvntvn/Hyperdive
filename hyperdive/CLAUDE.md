@@ -185,7 +185,7 @@ Hooks (un seul point chacun) : `register_run_start`, `register_obstacle_dodged` 
 - Jetpack (`assets/audio/music/jetpack.mp3`) : boucle en jetpack, EN PLUS du whoosh. Loop activé sur l'import. PAS sur le bus Music. Stop à mort/pause.
 - SFX de base `assets/audio/sfx/` : coin_pickup, obstacle_hit, game_over, ui_click.
 - **SFX power-up SYNTHÉTISÉS** (`_generate_powerup_sfx`, AudioStreamWAV générés au démarrage via `_make_arp`/`_make_sweep`) : bouclier (arpège), ralenti (sweep descendant), aimant (sweep montant carré), boost (sweep montant scié), + éclatement bouclier (`play_shield_break`), + SFX coop (dépassement `play_coop_overtake`, prise de tête `play_coop_lead`). Pas de fichiers audio pour ceux-là. API : `play_powerup(type)`, `play_shield_break`, `play_coop_*`, play_coin/hit/game_over/ui_click, play_music/duck/unduck, play/stop jetpack/whoosh.
-- **Haptique** : `Settings.vibrate(ms)` centralisé. Garde-fous : `vibration_enabled` (persisté) + `OS.get_name() in {Android, iOS}` (PAS has_feature("mobile")). Boutons 20ms, mort 120ms, power-up 35-70ms. Permission VIBRATE requise dans l'export. Log debug `[haptic]` encore en place (À RETIRER).
+- **Haptique** : `Settings.vibrate(ms)` centralisé. Garde-fous : `vibration_enabled` (persisté) + `OS.get_name() in {Android, iOS}` (PAS has_feature("mobile")). Boutons 20ms, mort 120ms, power-up 35-70ms. Permission VIBRATE requise dans l'export. (Log debug `[haptic]` retiré.)
 - Volumes persistés via Settings, AudioServer set_bus_volume_db.
 
 ## Décor / atmosphère
@@ -270,7 +270,8 @@ Hooks (un seul point chacun) : `register_run_start`, `register_obstacle_dodged` 
 
 ## Outils DEBUG TEMP
 
-- **Plus AUCUN outil debug** : tous retirés pour la release. Retirés successivement : déclencheurs de `debug_unlock_all()` (touche `U` + appui long titre), saut de chapitre PageUp/PageDown de la carte, la fonction `debug_unlock_all()` elle-même, et le log `[haptic]` de `Settings.vibrate`.
+- **AUCUN outil debug — prêt release.** Le code runtime du jeu ne contient plus aucun outil ni log de debug. Retirés successivement : déclencheurs de `debug_unlock_all()` (touche `U` + appui long titre), saut de chapitre PageUp/PageDown de la carte, la fonction `debug_unlock_all()` elle-même, le log `[haptic]` de `Settings.vibrate`, l'overlay de perf temporaire (`scripts/effects/perf_overlay.gd` + son `add_child` dans `main_game._ready`), et tous les `print()` diagnostiques runtime (`[stats]`/`[missions]` dans settings_manager, `[coop]` dans coop_session, `[Menu]` dans main_menu, `[MenuCam]` dans menu_camera).
+- Seul `print()` restant : `tools/gen_blood.gd` (outil dev autonome dans `tools/`, JAMAIS embarqué dans le jeu).
 
 ## PENDING connus (avant distribution)
 

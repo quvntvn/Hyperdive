@@ -62,9 +62,6 @@ func _ready() -> void:
 func _update_mode_buttons() -> void:
 	var record_unlocked: bool = Settings.is_infinite_unlocked()
 	var jetpack_unlocked: bool = Settings.is_jetpack_unlocked()
-	print("[Menu] déblocages — infinite=", record_unlocked,
-		  " jetpack=", jetpack_unlocked,
-		  " best_infinite_distance=", Settings.best_infinite_distance)
 	# Libellés d'AFFICHAGE seulement ; active_mode reste "infinite"/"jetpack" en interne.
 	_set_mode_button(%RecordButton, record_unlocked, tr("MODE_CLASSIC"), tr("MENU_UNLOCK_CLASSIC"))
 	_set_mode_button(%JetpackButton, jetpack_unlocked, tr("MODE_JETPACK"), tr("MENU_UNLOCK_JETPACK"))

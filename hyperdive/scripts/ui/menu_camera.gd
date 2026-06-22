@@ -14,9 +14,6 @@ var _start_y: float
 
 func _ready() -> void:
 	_start_y = global_position.y
-	print("[MenuCam] LOOP_DISTANCE=", LOOP_DISTANCE,
-		  " = période motif (", PATTERN_PERIOD, ") × ", LOOP_CELLS, " cellules",
-		  " → multiple exact par construction")
 
 func _process(delta: float) -> void:
 	global_position.y -= DESCENT_SPEED * delta

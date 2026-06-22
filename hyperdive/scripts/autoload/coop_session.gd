@@ -120,8 +120,6 @@ func start_session(p_num_players: int, p_num_rounds: int, p_mode: String, p_name
 	_shuffle_round_order()   # ordre de jeu aléatoire pour la 1re manche
 	_reset_tiebreak()
 	active = true
-	print("[coop] start: %d joueurs, %d manches, mode=%s, modes=%s, noms=%s"
-		% [num_players, num_rounds, mode_choice, str(round_modes), str(player_names)])
 
 # Tire un ORDRE DE JEU aléatoire pour la manche courante et place le curseur sur le 1er joueur.
 # Appelé au début de CHAQUE manche (start_session pour la 1re, start_next_round pour les suivantes)
@@ -133,7 +131,6 @@ func _shuffle_round_order() -> void:
 	play_order.shuffle()
 	order_idx = 0
 	current_player = play_order[0]
-	print("[coop] ordre manche %d : %s" % [current_round + 1, str(play_order)])
 
 func _roll_round_mode() -> String:
 	match mode_choice:
@@ -379,7 +376,6 @@ func _start_tiebreak(players: Array) -> void:
 	tiebreak_scores = {}
 	tiebreak_cur_idx = 0
 	tiebreak_mode = "jetpack" if randi() % 2 == 0 else "infinite"
-	print("[coop] ÉGALITÉ 1re place — round final entre %s, mode=%s" % [str(tiebreak_players), tiebreak_mode])
 	Transition.change_scene(SCENE_TIEBREAK)
 
 # Annonce "ROUND FINAL" → entrée dans la passation du 1er ex-æquo.

@@ -10,10 +10,6 @@ var _player_alive: bool = true
 var _tutorial: Tutorial = null   # surcouche didacticiel (ch.1 « 2028 » uniquement)
 
 func _ready() -> void:
-	# OVERLAY DEBUG TEMPORAIRE (FPS/draw calls/VRAM) — à retirer avant release. Posé en 1er pour
-	# couvrir TOUS les modes (les branches coop/histoire/descent ci-dessous font des return).
-	# Pour le couper : PerfOverlay.DEBUG_PERF_OVERLAY = false (scripts/effects/perf_overlay.gd).
-	add_child(preload("res://scripts/effects/perf_overlay.gd").new())
 	# GAMEPLAY ACTIF = seul contexte à PLEIN volume (règle unique « plein en jeu, baissé ailleurs »).
 	# Vaut pour tous les modes (infini, jetpack, histoire jouable, coop). Exception : l'ouverture
 	# ch.1 « 2028 » qui COUPE la musique (_setup_descent → stop_music, plus bas) — le stop prime.
