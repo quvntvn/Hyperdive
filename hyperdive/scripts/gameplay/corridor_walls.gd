@@ -409,8 +409,10 @@ func _resolve_skyline() -> void:
 	if skyline == null:
 		return
 	for c in skyline.get_children():
-		if c is MeshInstance3D:
-			var m := (c as MeshInstance3D).material_override
+		# La skyline est désormais un MultiMeshInstance3D (avant : MeshInstance3D). On accepte
+		# tout GeometryInstance3D → material_override partagé retrouvé dans les deux cas.
+		if c is GeometryInstance3D:
+			var m := (c as GeometryInstance3D).material_override
 			if m is ShaderMaterial:
 				_skyline_mat = m as ShaderMaterial
 				_base_facade = _skyline_mat.get_shader_parameter("facade_color")

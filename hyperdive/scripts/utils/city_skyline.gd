@@ -52,22 +52,35 @@ static func attach_to(cam: Camera3D, ascending: bool = false, theme_override: St
 	var grid_w := cols * cell
 	var grid_d := rows * cell
 
+	# UN seul MultiMesh : une instance par immeuble (transform = position + scale w/h/d sur un
+	# cube UNITÉ). Avant : ~158 MeshInstance3D = autant de draw calls. Le tirage RNG est consommé
+	# dans le MÊME ordre (randf skip → w → d → h) → immeubles identiques au pixel près. Le shader
+	# est unshaded et n'utilise que l'UV (par-face, invariante à l'échelle) + la position en espace
+	# vue (identique) → rendu inchangé ; les normales (altérées par le scale non uniforme) ne servent pas.
+	var box := BoxMesh.new()
+	box.size = Vector3.ONE
+	var transforms: Array[Transform3D] = []
 	for ix in cols:
 		for iz in rows:
 			if rng.randf() < 0.12:
 				continue
-			var b := MeshInstance3D.new()
-			var box := BoxMesh.new()
 			var w: float = cell * rng.randf_range(0.6, 0.85)
 			var d: float = cell * rng.randf_range(0.6, 0.85)
 			var h: float = rng.randf_range(5.0, 16.0)
-			box.size = Vector3(w, h, d)
-			b.mesh = box
-			b.material_override = mat
 			var px: float = -grid_w / 2.0 + ix * cell + cell / 2.0
 			var pz: float = -grid_d / 2.0 + iz * cell + cell / 2.0
-			b.position = Vector3(px, h / 2.0, pz)
-			skyline.add_child(b)
+			transforms.append(Transform3D(Basis.from_scale(Vector3(w, h, d)), Vector3(px, h / 2.0, pz)))
+
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = box
+	mm.instance_count = transforms.size()
+	for i in transforms.size():
+		mm.set_instance_transform(i, transforms[i])
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = mm
+	mmi.material_override = mat
+	skyline.add_child(mmi)
 
 	print("[Skyline] ville 3D plongée ", cols, "x", rows, " fenêtres émissives")
 
