@@ -21,6 +21,9 @@ var _next_spawn_y: float = 0.0
 var _campaign_mode: bool = false
 # Signe vertical : -1 chute (spawn en bas), +1 jetpack (spawn en haut). Lu une fois au départ.
 var _dir: float = -1.0
+# Liste locale des power-ups vivants, ordonnée par depth croissante (= ordre de spawn). Remplace
+# get_tree().get_nodes_in_group("powerups") par frame (qui allouait un Array à chaque _process).
+var _alive: Array[Node3D] = []
 
 func set_campaign_mode(enabled: bool) -> void:
 	_campaign_mode = enabled
@@ -41,9 +44,19 @@ func _process(_delta: float) -> void:
 	while _dir * _next_spawn_y < _dir * player_y + SPAWN_AHEAD:
 		_spawn_at(_next_spawn_y)
 		_next_spawn_y += _dir * randf_range(SPAWN_INTERVAL_MIN, SPAWN_INTERVAL_MAX)
-	for pu: Node3D in get_tree().get_nodes_in_group("powerups"):
+	# Despawn FIFO : _alive ordonnée par depth croissante → le plus ANCIEN (front) part en 1er.
+	# Évite le get_nodes_in_group(...) par frame. Un power-up ramassé ailleurs est retiré sans
+	# action (is_instance_valid faux après son queue_free).
+	while not _alive.is_empty():
+		var pu: Node3D = _alive[0]
+		if not is_instance_valid(pu):
+			_alive.pop_front()
+			continue
 		if _dir * pu.global_position.y < _dir * player_y - DESPAWN_BEHIND:
 			pu.queue_free()
+			_alive.pop_front()
+		else:
+			break
 
 func _spawn_at(y: float) -> void:
 	var pool: Array[String] = TYPES_CAMPAIGN if _campaign_mode else TYPES
@@ -55,6 +68,7 @@ func _spawn_at(y: float) -> void:
 		y,
 		0.0
 	)
+	_alive.append(pu)
 
 # Tirage pondéré : somme des poids du pool, on tire dans [0,total) et on défausse poids par poids.
 func _pick_type(pool: Array[String]) -> String:

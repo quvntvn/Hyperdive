@@ -39,6 +39,9 @@ var _draw_pool: Array[PackedScene] = []
 var _next_special_depth: float = SPECIAL_MIN_START
 # Bandes [y_lo, y_hi] où aucun obstacle ne doit exister (didacticiel : rangée slow-time inratable).
 var _clear_bands: Array[Vector2] = []
+# Liste locale des obstacles vivants, ordonnée par depth croissante (= ordre de spawn). Remplace
+# get_tree().get_nodes_in_group("obstacles") par frame (qui allouait un Array à chaque _process).
+var _alive: Array[Node3D] = []
 
 func _ready() -> void:
 	if player == null and not player_path.is_empty():
@@ -88,8 +91,15 @@ func _process(_delta: float) -> void:
 			if Zones.in_visual_band(depth, "clouds"):
 				interval *= CLOUD_SPACING_MULT
 			_next_spawn_y += _dir * interval
-	# Despawn ce qui est passé DERRIÈRE le joueur (sinon fuite mémoire).
-	for obstacle in get_tree().get_nodes_in_group("obstacles"):
+	# Despawn FIFO : _alive est ordonnée par depth croissante → le plus ANCIEN (front) est le 1er
+	# à passer derrière le joueur. Évite le get_nodes_in_group(...) par frame. Un obstacle détruit
+	# ailleurs (pulvérisation boost / bouclier) est DÉJÀ compté par player.gd : ici on le retire
+	# sans le recompter (is_instance_valid faux après son queue_free).
+	while not _alive.is_empty():
+		var obstacle: Node3D = _alive[0]
+		if not is_instance_valid(obstacle):
+			_alive.pop_front()
+			continue
 		# Étendue de la zone : une zone rare est UN seul corps dont
 		# l'origine = l'élément d'ENTRÉE ; ses autres éléments s'étalent vers l'AVANT (sens dir)
 		# sur zone_length. On ne libère la zone que quand son EXTRÉMITÉ la plus avancée
@@ -101,6 +111,9 @@ func _process(_delta: float) -> void:
 			Settings.register_obstacle_dodged()
 			Story.notify_dodge()   # compteur d'esquive campagne (objectif "dodge") ; no-op hors campagne
 			obstacle.queue_free()
+			_alive.pop_front()
+		else:
+			break
 
 # Réserve une bande propre (aucun obstacle) ET supprime ceux déjà posés dedans. Appelé par le
 # didacticiel autour de la rangée slow-time forcée pour garantir le ramassage.
@@ -129,6 +142,7 @@ func _spawn_at(y: float) -> void:
 	if not (obstacle is ObstacleBase and (obstacle as ObstacleBase).spawn_centered):
 		x = randf_range(-CORRIDOR_HALF_WIDTH, CORRIDOR_HALF_WIDTH)
 	obstacle.global_position = Vector3(x, y, 0.0)
+	_alive.append(obstacle)
 
 # Pose UN obstacle de zone rare au centre. Retourne sa hauteur
 # verticale (zone_length) pour que la boucle de spawn saute la zone et reprenne le flux normal.
@@ -137,6 +151,7 @@ func _spawn_special_at(y: float) -> float:
 	var obstacle: Node3D = picked.instantiate()
 	get_parent().add_child(obstacle)
 	obstacle.global_position = Vector3(0.0, y, 0.0)
+	_alive.append(obstacle)
 	var zone_len: float = SPAWN_INTERVAL_Y
 	if obstacle is ObstacleBase and (obstacle as ObstacleBase).zone_length > 0.0:
 		zone_len = (obstacle as ObstacleBase).zone_length
