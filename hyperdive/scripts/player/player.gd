@@ -114,6 +114,16 @@ var _jetpack_smoke: GPUParticles3D
 # Spring-bones de chute : un Dictionary par membre {pivot, base, flutter, jolt, drag, lift, cur, vel}.
 # Construit une fois en _ready (_build_limbs). cur/vel = état du ressort, mutés chaque frame physique.
 var _limbs: Array = []
+# Refs de nœuds cachées (code chaud : _process/_physics_process à 120 Hz) — évitent de refaire
+# $Character/... chaque frame. _is_jetpack : le mode ne change pas pendant un run → comparaison
+# de string faite UNE fois en _ready au lieu de chaque frame.
+var _character: Node3D
+var _arm_left: Node3D
+var _arm_right: Node3D
+var _leg_left: Node3D
+var _leg_right: Node3D
+var _head: Node3D
+var _is_jetpack: bool = false
 
 signal game_over
 # Émis UNE fois au tout premier input du joueur (1er toucher/drag en touch, 1re action
@@ -122,6 +132,14 @@ signal first_input_received
 
 func _ready() -> void:
 	add_to_group("player")   # référence cross-scène (porte réactive, etc.)
+	# Cache des nœuds + mode (lus chaque frame dans le code chaud). Posé AVANT toute utilisation.
+	_character = $Character
+	_arm_left = $Character/ArmLeftPivot
+	_arm_right = $Character/ArmRightPivot
+	_leg_left = $Character/LegLeftPivot
+	_leg_right = $Character/LegRightPivot
+	_head = $Character/HeadPivot
+	_is_jetpack = Settings.active_mode == "jetpack"
 	Settings.register_run_start()
 	# HISTOIRE : difficulté progressive — vitesse de base du chapitre ×1.0 (ch.1) → ×1.75
 	# (ch.40, plafonné), appliquée DÈS le départ (valeur initiale posée direct, pas de rampe
@@ -846,11 +864,11 @@ func _shake_camera(amount: float) -> void:
 func _body_recoil() -> void:
 	# Repos selon le mode : pose fusée en jetpack, plongeon sinon (sinon le recul
 	# remettrait le perso tête en bas en plein vol).
-	var base: Vector3 = JETPACK_CHARACTER_ROT if Settings.active_mode == "jetpack" else CHARACTER_BASE_ROT
+	var base: Vector3 = JETPACK_CHARACTER_ROT if _is_jetpack else CHARACTER_BASE_ROT
 	var tween := create_tween()
-	tween.tween_property($Character, "rotation_degrees",
+	tween.tween_property(_character, "rotation_degrees",
 		base + Vector3(randf_range(-12.0, 12.0), 0.0, randf_range(-8.0, 8.0)), 0.05)
-	tween.tween_property($Character, "rotation_degrees", base, 0.15)
+	tween.tween_property(_character, "rotation_degrees", base, 0.15)
 
 func _physics_process(delta: float) -> void:
 	if _is_dead:
@@ -861,9 +879,9 @@ func _physics_process(delta: float) -> void:
 	# _level_completed : pas de tournoiement pendant le « file » de victoire avant le fondu noir.
 	# rotate_object_local ACCUMULE sur la pose de base (CHARACTER_BASE_ROT) sans toucher les membres
 	# (le sway agit sur les ENFANTS de $Character, donc aucun conflit d'écriture).
-	if Settings.active_mode != "jetpack" and not _level_completed:
+	if not _is_jetpack and not _level_completed:
 		_tumble_speed = minf(_tumble_speed + TUMBLE_ACCEL * delta, TUMBLE_MAX_SPEED)
-		$Character.rotate_object_local(
+		_character.rotate_object_local(
 			Vector3(1.0, 0.0, _tumble_axis_z).normalized(),
 			deg_to_rad(_tumble_speed * delta))
 		# Membres = ressorts amortis qui réagissent à la vitesse de chute + au mouvement latéral.
@@ -910,7 +928,7 @@ func _physics_process(delta: float) -> void:
 			step_dist = SPEED_RAMP_STEP_COOP
 			factor = SPEED_RAMP_FACTOR_COOP
 		else:
-			step_dist = SPEED_RAMP_STEP_JETPACK if Settings.active_mode == "jetpack" else SPEED_RAMP_STEP
+			step_dist = SPEED_RAMP_STEP_JETPACK if _is_jetpack else SPEED_RAMP_STEP
 			factor = SPEED_RAMP_FACTOR
 		var steps: int = int(abs(global_position.y) / step_dist)
 		var target_speed: float = _base_max_speed * pow(factor, steps)
@@ -939,7 +957,7 @@ func _physics_process(delta: float) -> void:
 			linear_velocity.y = -eff_speed * SLOWMO_FACTOR
 	# Vent toujours actif ; en jetpack le jetpack s'ajoute (même pilotage par la vitesse).
 	Audio.set_whoosh_intensity(absf(linear_velocity.y))
-	if Settings.active_mode == "jetpack":
+	if _is_jetpack:
 		Audio.set_jetpack_intensity(absf(linear_velocity.y))
 
 func _process(delta: float) -> void:
@@ -982,12 +1000,12 @@ func _process(delta: float) -> void:
 	_jolt = move_toward(_jolt, 0.0, delta * 4.0)
 	# Jetpack : pose fusée fixe (flottement subtil dans _apply_rocket_pose). La chute n'a plus
 	# rien à faire ici : ses membres sont des ressorts intégrés dans _physics_process (_apply_limb_springs).
-	if Settings.active_mode == "jetpack":
+	if _is_jetpack:
 		_apply_rocket_pose(delta)
 		# BRAS : source de vérité séparée (pose vers le bas + tremblement rapide). Phases G/D
 		# distinctes pour qu'ils ne tremblent pas à l'unisson.
-		_apply_jetpack_arm_tremble($Character/ArmLeftPivot,  JETPACK_ARM_DOWN_L, 0.0)
-		_apply_jetpack_arm_tremble($Character/ArmRightPivot, JETPACK_ARM_DOWN_R, 1.9)
+		_apply_jetpack_arm_tremble(_arm_left,  JETPACK_ARM_DOWN_L, 0.0)
+		_apply_jetpack_arm_tremble(_arm_right, JETPACK_ARM_DOWN_R, 1.9)
 
 # Pose fusée VIVANTE des JAMBES/TÊTE : oscillation légère et subtile autour des bases JETPACK
 # (≈25 % de l'amplitude du sway chute), pilotée par sin + un peu de vélocité latérale. Les BRAS
@@ -996,9 +1014,9 @@ func _apply_rocket_pose(delta: float) -> void:
 	var t: float = _sway_time
 	var lateral: float = linear_velocity.x
 	# node, base, phase, x_amp, z_amp, lat_z
-	_apply_jetpack_sway($Character/LegLeftPivot,  delta, JETPACK_LEG_L, t, lateral, 0.9, 2.5, 3.0,  0.2)
-	_apply_jetpack_sway($Character/LegRightPivot, delta, JETPACK_LEG_R, t, lateral, 2.4, 2.5, 3.0, -0.2)
-	_apply_jetpack_sway($Character/HeadPivot,     delta, JETPACK_HEAD,  t, lateral, 3.2, 2.0, 2.0,  0.0)
+	_apply_jetpack_sway(_leg_left,  delta, JETPACK_LEG_L, t, lateral, 0.9, 2.5, 3.0,  0.2)
+	_apply_jetpack_sway(_leg_right, delta, JETPACK_LEG_R, t, lateral, 2.4, 2.5, 3.0, -0.2)
+	_apply_jetpack_sway(_head,      delta, JETPACK_HEAD,  t, lateral, 3.2, 2.0, 2.0,  0.0)
 
 # Bras plaqués vers le bas + tremblement RAPIDE faible amplitude (vent de montée). Set direct (pas
 # de lerp : le lerp lisserait la haute fréquence et tuerait le tremblement). Gaté jetpack par l'appel.
@@ -1301,15 +1319,15 @@ func _spawn_pulverize_burst(pos: Vector3, color: Color, mega: bool = false) -> v
 # à ±22 (trop écartées sinon). cur/vel = WOBBLE autour de la pose de repos (PAS l'angle absolu).
 func _build_limbs() -> void:
 	_limbs = [
-		_make_limb($Character/ArmLeftPivot,  22.0,  -90.0,  10.0,  40.0, 1.2, 1.0),
-		_make_limb($Character/ArmRightPivot, 22.0,   90.0, -18.0, -35.0, 1.2, 1.0),
-		_make_limb($Character/LegLeftPivot,   0.0,  -22.0,  28.0, -22.0, 0.5, 0.4),
-		_make_limb($Character/LegRightPivot,  0.0,   22.0, -24.0,  20.0, 0.5, 0.4),
-		_make_limb($Character/HeadPivot,      0.0,    0.0,   8.0,  20.0, 0.4, 0.3),
+		_make_limb(_arm_left,  22.0,  -90.0,  10.0,  40.0, 1.2, 1.0),
+		_make_limb(_arm_right, 22.0,   90.0, -18.0, -35.0, 1.2, 1.0),
+		_make_limb(_leg_left,   0.0,  -22.0,  28.0, -22.0, 0.5, 0.4),
+		_make_limb(_leg_right,  0.0,   22.0, -24.0,  20.0, 0.5, 0.4),
+		_make_limb(_head,      0.0,    0.0,   8.0,  20.0, 0.4, 0.3),
 	]
 	# Pose initiale immédiate (avant la 1re frame) : chute = base spread-eagle, jetpack = neutre
 	# (_apply_rocket_pose lerpera ensuite vers les bases JETPACK_*).
-	var jetpack: bool = Settings.active_mode == "jetpack"
+	var jetpack: bool = _is_jetpack
 	for limb: Dictionary in _limbs:
 		if jetpack:
 			(limb["pivot"] as Node3D).rotation_degrees = Vector3.ZERO
