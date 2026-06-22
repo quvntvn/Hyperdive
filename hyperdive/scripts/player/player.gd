@@ -869,11 +869,15 @@ func _physics_process(delta: float) -> void:
 		return
 	_wall_hit_cooldown = maxf(_wall_hit_cooldown - delta, 0.0)
 	# Culbute continue du Character. _is_dead déjà filtré par le return ci-dessus (Character masqué
-	# pendant le ragdoll). Gaté CHUTE only : en jetpack la pose fusée doit rester stable. Gaté hors
-	# _level_completed : pas de tournoiement pendant le « file » de victoire avant le fondu noir.
+	# pendant le ragdoll). Gaté CHUTE only : en jetpack la pose fusée doit rester stable.
+	# PAS gaté par _level_completed : à la victoire campagne, le perso « file » puis le fondu noir
+	# dure encore (~1 s) — il doit CONTINUER de tournoyer tant qu'il est À L'ÉCRAN. La rotation
+	# s'arrête d'elle-même quand Transition.change_scene libère la scène (node disparu) en fin de
+	# fondu ; l'outro est un AUTRE écran (sans Character) → jamais de tournoiement là-bas. Seuls les
+	# stats (plus bas) et la rampe de vitesse restent gelés à la complétion.
 	# rotate_object_local ACCUMULE sur la pose de base (CHARACTER_BASE_ROT) sans toucher les membres
 	# (le sway agit sur les ENFANTS de $Character, donc aucun conflit d'écriture).
-	if not _is_jetpack and not _level_completed:
+	if not _is_jetpack:
 		_tumble_speed = minf(_tumble_speed + TUMBLE_ACCEL * delta, TUMBLE_MAX_SPEED)
 		_character.rotate_object_local(
 			Vector3(1.0, 0.0, _tumble_axis_z).normalized(),
