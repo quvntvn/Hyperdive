@@ -22,6 +22,10 @@ const WHOOSH_DUCKED_DB: float = -40.0
 const JETPACK_MIN_DB: float = -10.0
 const JETPACK_MAX_DB: float = 0.0
 const JETPACK_DUCKED_DB: float = -40.0
+# Throttle des intensités (vent + jetpack) : appelées à 120 Hz par player.gd, mais le volume est
+# un mapping DIRECT de la vitesse (pas un lissage dépendant de la cadence) → ~30 Hz suffit,
+# inaudible. Un timestamp PAR fonction (les deux sont appelées la même frame en jetpack).
+const INTENSITY_UPDATE_INTERVAL_MS: int = 33   # ~30 Hz
 
 var _sfx_pool: Array[AudioStreamPlayer] = []
 var _next_sfx_index: int = 0
@@ -36,6 +40,9 @@ var _shield_break_sfx: AudioStreamWAV
 # Coop : "tic" de dépassement (on double un joueur) + arpège de prise de tête (on devient leader).
 var _coop_overtake_sfx: AudioStreamWAV
 var _coop_lead_sfx: AudioStreamWAV
+# Derniers instants (ms) de mise à jour d'intensité — voir INTENSITY_UPDATE_INTERVAL_MS.
+var _last_whoosh_ms: int = 0
+var _last_jetpack_ms: int = 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -152,6 +159,10 @@ func stop_whoosh() -> void:
 func set_whoosh_intensity(fall_speed: float) -> void:
 	if _is_ducked or _whoosh_player == null:
 		return
+	var now: int = Time.get_ticks_msec()
+	if now - _last_whoosh_ms < INTENSITY_UPDATE_INTERVAL_MS:
+		return
+	_last_whoosh_ms = now
 	var t: float = clamp(absf(fall_speed) / WHOOSH_MAX_FALL_SPEED, 0.0, 1.0)
 	_whoosh_player.volume_db = lerpf(WHOOSH_MIN_DB, WHOOSH_MAX_DB, t)
 
@@ -173,6 +184,10 @@ func stop_jetpack() -> void:
 func set_jetpack_intensity(speed: float) -> void:
 	if _is_ducked or _jetpack_player == null:
 		return
+	var now: int = Time.get_ticks_msec()
+	if now - _last_jetpack_ms < INTENSITY_UPDATE_INTERVAL_MS:
+		return
+	_last_jetpack_ms = now
 	var t: float = clamp(absf(speed) / WHOOSH_MAX_FALL_SPEED, 0.0, 1.0)
 	_jetpack_player.volume_db = lerpf(JETPACK_MIN_DB, JETPACK_MAX_DB, t)
 
