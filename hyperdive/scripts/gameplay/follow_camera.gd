@@ -21,8 +21,6 @@ func _ready() -> void:
 	if Settings.active_mode == "jetpack":
 		rotation_degrees.x = -rotation_degrees.x
 		offset.y = -offset.y
-		# Log angle caméra jetpack (pour comparer à l'angle skyline).
-		print("[Camera] JETPACK rotation_degrees=", rotation_degrees, " offset=", offset)
 
 func shake(amount: float) -> void:
 	_shake_intensity = amount

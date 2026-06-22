@@ -233,7 +233,6 @@ func _apply_theme() -> void:
 	# Application immédiate (phase neutre = jour pur). Skyline résolue plus tard, en jeu.
 	_last_phase = -1.0
 	_apply_cycle(0.0, false)
-	print("[Thème] appliqué='", theme_id, "' (équipé='", Settings.equipped_theme, "') base wall=", _base_wall)
 
 # Applique l'état du cycle pour une phase donnée. do_skyline=false pendant _apply_theme
 # (la skyline n'existe pas encore au _ready, créée par main_game après).

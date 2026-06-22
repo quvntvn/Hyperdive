@@ -367,12 +367,6 @@ func _setup_jetpack() -> void:
 	reactor.add_child(smoke)
 	_jetpack_smoke = smoke
 
-	# Log pour trancher le côté caméra : compare Z du torse et de la caméra.
-	var cam := get_tree().get_first_node_in_group("follow_camera") as Node3D
-	var cam_pos: Vector3 = cam.global_position if cam else Vector3.INF
-	print("[Jetpack] box.size=", body.size, " reactor.pos(+Z=face caméra)=", reactor.position,
-		" | torso.global=", torso.global_position, " cam.global=", cam_pos)
-
 
 func _apply_trail() -> void:
 	if _trail_gradient == null or _trail_node == null:

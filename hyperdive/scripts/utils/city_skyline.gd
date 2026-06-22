@@ -24,7 +24,6 @@ static func attach_to(cam: Camera3D, ascending: bool = false, theme_override: St
 	# monde de la caméra). Plongée douce (-45°) : on voit les toits d'en haut.
 	skyline.position = Vector3(0, -72, -90)
 	skyline.rotation_degrees = Vector3(-45, 0, 0)
-	print("[Skyline] mode=chute(plongée) pos=", skyline.position, " rot=", skyline.rotation_degrees)
 
 	# Matériau immeuble : façade pilotée par la couleur du thème équipé (même source
 	# que corridor_walls), fenêtres émissives jaunes via un shader.
@@ -81,8 +80,6 @@ static func attach_to(cam: Camera3D, ascending: bool = false, theme_override: St
 	mmi.multimesh = mm
 	mmi.material_override = mat
 	skyline.add_child(mmi)
-
-	print("[Skyline] ville 3D plongée ", cols, "x", rows, " fenêtres émissives")
 
 # Shader simple : façade bleu nuit + fenêtres lumineuses en grille (jaune chaud).
 static func _make_shader() -> Shader:

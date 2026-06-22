@@ -356,7 +356,7 @@ func _set_pill(type: String, active: bool, frac: float) -> void:
 			bar.value = clampf(frac, 0.0, 1.0)
 
 func _on_game_over() -> void:
-	print("GAME OVER")
+	pass
 
 func _on_coin_collected(new_total: int) -> void:
 	_coin_label.text = UIAnimations.format_number(new_total)
